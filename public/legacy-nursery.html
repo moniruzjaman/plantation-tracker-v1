@@ -28,7 +28,7 @@ document.head.appendChild(s);
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box}
-body{font-family:'Noto Sans Bengali','Kalpurush','SolaimanLipi',sans-serif;padding-bottom:70px;margin:0}
+body{font-family:'Noto Sans Bengali','Kalpurush','SolaimanLipi',Arial,sans-serif;padding-bottom:70px;margin:0}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .anim-in{animation:fadeIn .35s ease-out}.shake{animation:shake .35s ease-in-out}
@@ -690,7 +690,26 @@ plantingDate:pDateVal,
 submittedAt:new Date().toISOString()
 };
 }
-function sendToWebhook(p){try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),redirect:"follow"}).catch(function(){})}catch(e){}}
+function sendToWebhook(p){
+  var c=countSeedlings(p);
+  var totalT=c.fruit+c.forest+c.medicinal;
+  var speciesList=[];["fruitSeedlings","forestSeedlings","medicinalSeedlings"].forEach(function(k){if(p[k])p[k].forEach(function(e){speciesList.push(e.name+"("+e.count+")")})});
+  
+  var pN = Object.assign({}, p, {
+    prescribedFormat: {
+      "জেলা,উপজেলা,ইউনিয়ন ও গ্রাম": p.district + ", " + p.upazila + ", " + p.address,
+      "বৃক্ষের প্রজাতি": speciesList.join(", "),
+      "বৃক্ষের সংখ্যা": totalT,
+      "তারিখ": p.plantingDate,
+      "এলাকা (জিও)": p.geoLocation,
+      "পরিচর্যাকারী": p.caretakerName + " " + p.caretakerMobile,
+      "মনিটরিং অফিসার": p.officerName + " " + p.mobile,
+      "মন্তব্য": p.remarks
+    }
+  });
+  
+  try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(pN),redirect:"follow"}).catch(function(){})}catch(e){}
+}
 
 // ── Form Submit ──
 document.getElementById("nurseryForm").addEventListener("submit",async function(e){
@@ -703,7 +722,7 @@ var payload=Object.assign({},buildPayload("f"),seedlings);
 var editId=document.getElementById("editId").value;
 var subs=getSubmissions();
 if(editId){var idx=subs.findIndex(function(s){return s.id===editId});if(idx>-1){subs[idx]=Object.assign({},subs[idx],payload);saveSubmissions(subs)}document.getElementById("editId").value="";showBanner("successBanner");resetForm()}
-else{payload.id=genId();subs.push(payload);saveSubmissions(subs);sendToWebhook(payload);showBanner("successBanner");resetForm()}
+else{payload.id=genId();subs.push(payload);saveSubmissions(subs);if(typeof window.renderMap === 'function') window.renderMap();sendToWebhook(payload);showBanner("successBanner");resetForm()}
 }catch(err){console.error("Submit error:",err);showBanner("errorBanner","তথ্য জমা করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")}
 btn.disabled=false;btn.textContent="তথ্য জমা দিন";
 setTimeout(function(){hideBanner("successBanner")},4000);
