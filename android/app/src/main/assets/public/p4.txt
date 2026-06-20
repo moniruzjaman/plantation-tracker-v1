@@ -1,0 +1,146 @@
+lor="#d1d5db"}},350)}
+else if(!validateMobile(mobEl.value.trim())){if(mobErr){mobErr.textContent="মোবাইল নম্বর অবশ্যই ১১ ডিজিট (017XXXXXXXX)";mobErr.classList.remove("hidden")}if(mobEl){mobEl.classList.add("shake");mobEl.style.borderColor="#ef4444"}ok=false;setTimeout(function(){if(mobEl){mobEl.classList.remove("shake");mobEl.style.borderColor="#d1d5db"}},350)}
+else{if(mobErr)mobErr.classList.add("hidden");if(mobEl)mobEl.style.borderColor="#d1d5db"}
+return ok;
+}
+
+function buildPayload(prefix){
+var upEl=document.getElementById(prefix+"Upazila");
+return{region:document.getElementById(prefix+"Region").value.trim(),district:document.getElementById(prefix+"District").value.trim(),upazila:upEl&&upEl.value.trim(),nurseryName:document.getElementById(prefix+"Nursery").value.trim(),mobile:document.getElementById(prefix+"Mobile").value.trim(),address:(document.getElementById(prefix+"Address")&&document.getElementById(prefix+"Address").value.trim())||"",geoLocation:(document.getElementById(prefix+"Geo")&&document.getElementById(prefix+"Geo").value.trim())||"",submittedAt:new Date().toISOString()};
+}
+function sendToWebhook(p){try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),redirect:"follow"}).catch(function(){})}catch(e){}}
+
+// ── Form Submit ──
+document.getElementById("nurseryForm").addEventListener("submit",async function(e){
+e.preventDefault();hideBanner("successBanner");hideBanner("errorBanner");
+if(!validateForm("f"))return;
+var btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="জমা হচ্ছে...";
+try{
+var seedlings=collectSeedlingsFromDOM("seedlingSections");
+var payload=Object.assign({},buildPayload("f"),seedlings);
+var editId=document.getElementById("editId").value;
+var subs=getSubmissions();
+if(editId){var idx=subs.findIndex(function(s){return s.id===editId});if(idx>-1){subs[idx]=Object.assign({},subs[idx],payload);saveSubmissions(subs)}document.getElementById("editId").value="";showBanner("successBanner");resetForm()}
+else{payload.id=genId();subs.push(payload);saveSubmissions(subs);sendToWebhook(payload);showBanner("successBanner");resetForm()}
+}catch(err){console.error("Submit error:",err);showBanner("errorBanner","তথ্য জমা করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")}
+btn.disabled=false;btn.textContent="তথ্য জমা দিন";
+setTimeout(function(){hideBanner("successBanner")},4000);
+});
+
+window.resetForm=function(){
+document.getElementById("nurseryForm").reset();document.getElementById("editId").value="";
+document.getElementById("formTitle").textContent="📄 নতুন তথ্য জমা দিন";
+document.getElementById("cancelBtn").classList.add("hidden");document.getElementById("submitBtn").textContent="তথ্য জমা দিন";
+populateRegionDD(document.getElementById("fRegion"));
+document.getElementById("fDistrict").innerHTML='<option value="">জেলা নির্বাচন করুন</option>';
+document.getElementById("fUpazila").innerHTML='<option value="">উপজেলা নির্বাচন করুন</option>';
+document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",null);
+document.querySelectorAll("[data-error]").forEach(function(el){el.classList.add("hidden")});
+document.getElementById("fGeo").value="";
+fetchGeoLocation();
+};
+
+// ── Geo Location ──
+window.fetchGeoLocation=async function(){
+try{
+var geoField=document.getElementById("fGeo"),geoStatus=document.getElementById("geoStatus"),geoStatusText=document.getElementById("geoStatusText"),geoBtnText=document.getElementById("geoBtnText");
+geoBtnText.textContent="অপেক্ষা...";geoStatusText.textContent="📡 লোকেশন খোঁজা হচ্ছে...";geoStatus.classList.remove("hidden");geoStatus.style.color="#2563eb";
+var handleSuccess=function(lat,lng){geoField.value=lat+", "+lng;geoStatusText.textContent="✅ লোকেশন সফলভাবে পাওয়া গেছে";geoStatus.style.color="#15803d";geoBtnText.textContent="আপডেট";setTimeout(function(){geoStatus.classList.add("hidden")},3000)};
+var handleError=function(msg){geoStatusText.textContent=msg;geoStatus.style.color="#dc2626";geoBtnText.textContent="আবার চেষ্টা"};
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Geolocation){
+  try{
+    var perm=await window.Capacitor.Plugins.Geolocation.requestPermissions();
+    if(perm.location==='denied'){handleError("❌ লোকেশন অনুমতি দেওয়া হয়নি।");return}
+    var pos=await window.Capacitor.Plugins.Geolocation.getCurrentPosition({enableHighAccuracy:true});
+    handleSuccess(pos.coords.latitude.toFixed(6),pos.coords.longitude.toFixed(6));
+  }catch(err){handleError("⚠️ লোকেশন পাওয়া যায়নি।")}
+}else if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(function(pos){handleSuccess(pos.coords.latitude.toFixed(6),pos.coords.longitude.toFixed(6));},function(err){var msg="";switch(err.code){case 1:msg="❌ লোকেশন অনুমতি দেওয়া হয়নি। ব্রাউজার সেটিংস থেকে অনুমতি দিন।";break;case 2:msg="⚠️ লোকেশন পাওয়া যায়নি।";break;case 3:msg="⏱️ লোকেশন খোঁজার সময় শেষ হয়ে গেছে।";break;default:msg="⚠️ অজানা ত্রুটি হয়েছে।"}handleError(msg)},{enableHighAccuracy:true,timeout:10000,maximumAge:300000});
+}else{
+  handleError("⚠️ আপনার ব্রাউজার লোকেশন সাপোর্ট করে না।");
+}
+}catch(e){console.error("Geo error:",e)}
+};
+
+// ── Lookup ──
+window.lookupSubmissions=function(){
+var mob=document.getElementById("lookupMobile").value.trim();
+if(!mob){showBanner("errorBanner","মোবাইল নম্বর দিন");return}
+var subs=getSubmissions().filter(function(s){return s.mobile===mob});
+var container=document.getElementById("mySubmissionsList");
+if(!subs.length){container.innerHTML='<div style="background:#fefce8;border:1px solid #fde047;border-radius:12px;padding:16px;text-align:center"><p style="color:#a16207;font-size:14px;font-weight:600">এই মোবাইল নম্বরে কোনো তথ্য পাওয়া যায়নি।</p></div>';return}
+container.innerHTML=subs.map(function(s){var t=countSeedlings(s);return '<div class="bg-white rounded-xl shadow p-4 anim-in"><div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:8px"><div><p class="font-semibold text-green-700 text-sm">'+s.nurseryName+'</p><p class="text-xs text-gray-500">'+s.region+" > "+s.district+" > "+s.upazila+'</p><p class="text-xs text-gray-400">'+new Date(s.submittedAt).toLocaleDateString("bn-BD")+'</p></div><div style="display:flex;gap:4px"><button onclick="editMySubmission(\''+s.id+'\')" style="background:#dbeafe;color:#1d4ed8;font-size:12px;padding:4px 10px;border-radius:8px;font-weight:600;border:none;cursor:pointer">✏️ সম্পাদনা</button><button onclick="deleteMySubmission(\''+s.id+'\')" style="background:#fee2e2;color:#b91c1c;font-size:12px;padding:4px 10px;border-radius:8px;font-weight:600;border:none;cursor:pointer">🗑️ মুছুন</button></div></div><div class="grid grid-cols-3 gap-2 text-xs"><div style="background:#fff7ed;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#ea580c">'+t.fruit+'</p><p style="color:#6b7280">ফলদ</p></div><div style="background:#ecfdf5;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#047857">'+t.forest+'</p><p style="color:#6b7280">বনজ</p></div><div style="background:#eff6ff;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#1d4ed8">'+t.medicinal+'</p><p style="color:#6b7280">ঔষধি</p></div></div></div>'}).join("");
+};
+function countSeedlings(s){var r={fruit:0,forest:0,medicinal:0};["fruitSeedlings","forestSeedlings","medicinalSeedlings"].forEach(function(k,i){(s[k]||[]).forEach(function(e){r[["fruit","forest","medicinal"][i]]+=(parseInt(e.count)||0)+(parseInt(e.graftingCount)||0)})});return r}
+
+window.editMySubmission=function(id){
+var s=getSubmissions().find(function(x){return x.id===id});if(!s)return;
+switchTab("form");document.getElementById("editId").value=id;
+document.getElementById("formTitle").textContent="✏️ তথ্য সম্পাদনা করুন";
+document.getElementById("cancelBtn").classList.remove("hidden");document.getElementById("submitBtn").textContent="আপডেট করুন";
+setTimeout(function(){
+document.getElementById("fRegion").value=s.region;onFormRegionChange();
+setTimeout(function(){
+document.getElementById("fDistrict").value=s.district;onFormDistrictChange();
+document.getElementById("fUpazila").value=s.upazila||"";
+document.getElementById("fNursery").value=s.nurseryName;document.getElementById("fMobile").value=s.mobile;document.getElementById("fAddress").value=s.address||"";document.getElementById("fGeo").value=s.geoLocation||"";
+document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",s);
+document.getElementById("tab-form").scrollIntoView({behavior:"smooth"});
+},100);
+},100);
+};
+window.deleteMySubmission=function(id){if(!confirm("আপনি কি নিশ্চিত?"))return;saveSubmissions(getSubmissions().filter(function(s){return s.id!==id}));lookupSubmissions()};
+
+// ── Dashboard ──
+function getFiltered(prefix){
+var r=document.getElementById(prefix+"Region")&&document.getElementById(prefix+"Region").value;
+var d=document.getElementById(prefix+"District")&&document.getElementById(prefix+"District").value;
+return getSubmissions().filter(function(s){if(r&&s.region!==r)return false;if(d&&s.district!==d)return false;return true});
+}
+window.renderDashboard=function(){
+try{
+var subs=getFiltered("dash");var totalS=0,totalG=0,nurs=new Set();
+subs.forEach(function(s){nurs.add(s.nurseryName);CATEGORIES.forEach(function(c){(s[c.key]||[]).forEach(function(e){totalS+=(parseInt(e.count)||0);totalG+=(parseInt(e.graftingCount)||0)})})});
+document.getElementById("statTotal").textContent=subs.length;document.getElementById("statNurseries").textContent=nurs.size;
+document.getElementById("statSeedlings").textContent=totalS.toLocaleString("bn-BD");document.getElementById("statGrafts").textContent=totalG.toLocaleString("bn-BD");
+
+if(typeof Chart!=="undefined"){
+var divC={};Object.keys(BD).forEach(function(d){divC[d]=0});subs.forEach(function(s){if(divC[s.region]!==undefined)divC[s.region]++});
+if(chartDiv)chartDiv.destroy();
+chartDiv=new Chart(document.getElementById("chartDivision"),{type:"bar",data:{labels:Object.keys(divC),datasets:[{label:"জমা",data:Object.values(divC),backgroundColor:["#15803d","#2563eb","#dc2626","#7c3aed","#ea580c","#0891b2","#be185d","#4d7c0f"]}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+var catC=[0,0,0];subs.forEach(function(s){CATEGORIES.forEach(function(c,i){(s[c.key]||[]).forEach(function(e){catC[i]+=(parseInt(e.count)||0)+(parseInt(e.graftingCount)||0)})})});
+if(chartCat)chartCat.destroy();
+chartCat=new Chart(document.getElementById("chartCategory"),{type:"doughnut",data:{labels:CATEGORIES.map(function(c){return c.label}),datasets:[{data:catC,backgroundColor:CATEGORIES.map(function(c){return c.color})}]},options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
+}
+
+var tb=document.getElementById("dashTableBody"),nd=document.getElementById("dashNoData");
+if(!subs.length){tb.innerHTML="";nd.classList.remove("hidden");return}nd.classList.add("hidden");
+tb.innerHTML=subs.map(function(s,i){var c=countSeedlings(s);return '<tr class="border-b" style="font-size:12px"><td class="px-2 py-2">'+(i+1).toLocaleString("bn-BD")+'</td><td class="px-2 py-2">'+s.region+'</td><td class="px-2 py-2">'+s.district+'</td><td class="px-2 py-2">'+s.upazila+'</td><td class="px-2 py-2 font-semibold">'+s.nurseryName+'</td><td class="px-2 py-2">'+s.mobile+'</td><td class="px-2 py-2" style="color:#ea580c">'+c.fruit+'</td><td class="px-2 py-2" style="color:#047857">'+c.forest+'</td><td class="px-2 py-2" style="color:#1d4ed8">'+c.medicinal+'</td><td class="px-2 py-2" style="color:#9ca3af">'+new Date(s.submittedAt).toLocaleDateString("bn-BD")+'</td></tr>'}).join("");
+}catch(err){console.error("Dashboard error:",err)}
+};
+
+// ── Excel Export ──
+window.exportToExcel=function(prefix){
+if(typeof XLSX==="undefined"){showBanner("errorBanner","Excel লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ নিশ্চিত করুন।");return}
+var subs=getFiltered(prefix||"dash");if(!subs.length){showBanner("errorBanner","রপ্তানি করার মতো তথ্য নেই।");return}
+var rows=[];
+subs.forEach(function(s){var has=(s.fruitSeedlings&&s.fruitSeedlings.length||0)+(s.forestSeedlings&&s.forestSeedlings.length||0)+(s.medicinalSeedlings&&s.medicinalSeedlings.length||0);
+if(!has)rows.push({"ক্রম":rows.length+1,"অঞ্চল":s.region,"জেলা":s.district,"উপজেলা":s.upazila,"নার্সারি":s.nurseryName,"ঠিকানা":s.address||"","মোবাইল":s.mobile,"জিও":s.geoLocation||"","ধরন":"","নাম":"","বয়স":"","চারা":"","কলম":"","তারিখ":s.submittedAt});
+CATEGORIES.forEach(function(cat){(s[cat.key]||[]).forEach(function(e){rows.push({"ক্রম":rows.length+1,"অঞ্চল":s.region,"জেলা":s.district,"উপজেলা":s.upazila,"নার্সারি":s.nurseryName,"ঠিকানা":s.address||"","মোবাইল":s.mobile,"জিও":s.geoLocation||"","ধরন":cat.label,"নাম":e.name,"বয়স":e.age,"চারা":parseInt(e.count)||0,"কলম":parseInt(e.graftingCount)||0,"তারিখ":s.submittedAt})})});
+});
+var ws=XLSX.utils.json_to_sheet(rows);ws["!cols"]=[{wch:5},{wch:10},{wch:10},{wch:12},{wch:18},{wch:22},{wch:12},{wch:16},{wch:8},{wch:12},{wch:12},{wch:8},{wch:8},{wch:16}];
+var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"নার্সারি তথ্য");XLSX.writeFile(wb,"নার্সারি_তথ্য_"+new Date().toISOString().slice(0,10)+".xlsx");
+};
+
+// ── Admin ──
+window.renderAdminTable=function(){
+var subs=getFiltered("admin"),tb=document.getElementById("adminTableBody"),nd=document.getElementById("adminNoData");
+if(!subs.length){tb.innerHTML="";nd.classList.remove("hidden");return}nd.classList.add("hidden");
+tb.innerHTML=subs.map(function(s,i){var c=countSeedlings(s),t=c.fruit+c.forest+c.medicinal;return '<tr class="border-b"><td class="px-2 py-2">'+(i+1).toLocaleString("bn-BD")+'</td><td class="px-2 py-2">'+s.region+'</td><td class="px-2 py-2">'+s.district+'</td><td class="px-2 py-2">'+s.upazila+'</td><td class="px-2 py-2">'+s.nurseryName+'</td><td class="px-2 py-2">'+s.mobile+'</td><td class="px-2 py-2 font-semibold">'+t+'</td><td class="px-2 py-2 text-gray-400 text-xs">'+new Date(s.submittedAt).toLocaleDateString("bn-BD")+'</td><td class="px-2 py-2 text-center whitespace-nowrap"><button onclick="adminEdit(\''+s.id+'\')" style="background:#dbeafe;color:#1d4ed8;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;border:none;cursor:pointer;margin-right:4px">✏️</button><button onclick="adminDelete(\''+s.id+'\')" style="background:#fee2e2;color:#b91c1c;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;border:none;cursor:pointer">🗑️</button></td></tr>'}).join("");
+};
+window.adminEdit=function(id){
+var s=getSubmissions().find(function(x){return x.id===id});if(!s)return;
+document.getElementById("eId").value=s.id;document.getElementById("eRegion").value=s.region;onEditRegionChange();
+setTimeout(function(){document.getElementById("eDistrict").value=s.district;onEditDistrictChange();
+document.getElementById("eUpazila").value=s.upazila||"";
+document.getElementById("eNursery").value=s.nurseryName;document.getElementById("eMobile").value=s.mobile;document.getElementById("eAddress").value=s.address||"";docume

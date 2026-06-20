@@ -1,0 +1,35 @@
+nt.getElementById("eGeo").value=s.geoLocation||"";
+document.getElementById("editSeedlingSections").innerHTML=buildSeedlingSections("editSeedlingSections",s);document.getElementById("editModal").classList.remove("hidden")},60);
+};
+window.closeEditModal=function(){document.getElementById("editModal").classList.add("hidden")};
+document.getElementById("editForm").addEventListener("submit",function(e){
+e.preventDefault();var mob=document.getElementById("eMobile").value.trim();
+if(!validateMobile(mob)){alert("মোবাইল নম্বর অবশ্যই ১১ ডিজিট (017XXXXXXXX)");return}
+var upEl=document.getElementById("eUpazila"),upVal=upEl&&upEl.value.trim();
+if(!upVal||!document.getElementById("eRegion").value||!document.getElementById("eDistrict").value||!document.getElementById("eNursery").value){alert("সকল প্রয়োজনীয় তথ্য পূরণ করুন");return}
+var subs=getSubmissions(),idx=subs.findIndex(function(s){return s.id===document.getElementById("eId").value});
+if(idx===-1){closeEditModal();return}
+subs[idx]=Object.assign({},subs[idx],{region:document.getElementById("eRegion").value,district:document.getElementById("eDistrict").value,upazila:upVal,nurseryName:document.getElementById("eNursery").value.trim(),mobile:mob,address:document.getElementById("eAddress").value.trim(),geoLocation:document.getElementById("eGeo").value.trim()},collectSeedlingsFromDOM("editSeedlingSections"));
+saveSubmissions(subs);closeEditModal();renderAdminTable();
+});
+window.adminDelete=function(id){if(!confirm("আপনি কি নিশ্চিত?"))return;saveSubmissions(getSubmissions().filter(function(s){return s.id!==id}));renderAdminTable()};
+document.getElementById("editModal").addEventListener("click",function(e){if(e.target===this)closeEditModal()});
+
+// ── Init ──
+try{
+populateRegionDD(document.getElementById("fRegion"));
+populateRegionDD(document.getElementById("dashRegion"));
+populateRegionDD(document.getElementById("adminRegion"));
+document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",null);
+fetchGeoLocation();
+}catch(err){
+console.error("Init error:",err);
+// Retry seedling sections build
+setTimeout(function(){
+try{document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",null)}catch(e2){console.error("Retry error:",e2)}
+},500);
+}
+})();
+</script>
+</body>
+</html>

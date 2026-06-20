@@ -1,0 +1,125 @@
+
+// ── Seedling Builder ──
+function buildSeedlingHTML(prefix,type,idx,data){
+var cat=CATEGORIES.find(function(c){return c.key===type});
+var ageOpts=AGE_OPTS.map(function(a){return '<option value="'+a+'" '+(data&&data.age===a?"selected":"")+'>'+(a||"বয়স নির্বাচন করুন")+'</option>'}).join("");
+var nameVal=data&&data.name?data.name.replace(/"/g,"&quot;"):"";
+return '<div class="bg-white rounded-lg p-3.5" style="border:1px solid '+cat.border+'" data-type="'+type+'" data-idx="'+idx+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><span style="font-size:12px;font-weight:600;color:#4b5563">'+cat.label+" #"+(idx+1)+'</span>'+(idx>0?'<button type="button" onclick="this.closest(\'[data-type]\').remove()" style="color:#f87171;background:none;border:none;cursor:pointer;padding:4px;border-radius:50%" title="সরান">&#10005;</button>':"")+'</div><div class="grid grid-cols-2 lg:grid-cols-4 gap-2"><input type="text" name="'+prefix+'Name" placeholder="নাম" value="'+nameVal+'" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;outline:none;width:100%"><select name="'+prefix+'Age" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;background:#fff;outline:none;width:100%">'+ageOpts+'</select><input type="number" name="'+prefix+'Count" min="0" placeholder="চারা সংখ্যা" value="'+(data&&data.count?data.count:"")+'" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;outline:none;width:100%"><input type="number" name="'+prefix+'Graft" min="0" placeholder="কলম সংখ্যা" value="'+(data&&data.graftingCount?data.graftingCount:"")+'" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;outline:none;width:100%"></div></div>';
+}
+function buildSeedlingSections(prefix,data){
+return CATEGORIES.map(function(cat,ci){var entries=data&&data[cat.key]?data[cat.key]:[{}];
+return '<fieldset style="border:2px solid '+cat.border+';background:'+cat.bg+'" class="rounded-xl p-4 sm:p-5"><legend style="background:'+cat.legend+'" class="px-3 py-1 rounded-lg text-white font-bold text-sm">'+(ci+2)+". "+cat.label+'</legend><div class="space-y-2 mt-2" id="'+prefix+"_"+cat.key+'">'+entries.map(function(e,i){return buildSeedlingHTML(prefix+"_"+ci,cat.key,i,e)}).join("")+'</div><button type="button" onclick="document.getElementById(\''+prefix+"_"+cat.key+'\').insertAdjacentHTML(\'beforeend\',buildSeedlingHTML(\''+prefix+"_"+ci+"','"+cat.key+"',document.querySelectorAll('#"+prefix+"_"+cat.key+'>div\').length))" style="width:100%;margin-top:12px;border:2px dashed '+cat.border+';background:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#6b7280">&#43; আরেকটি যোগ করুন</button></fieldset>';
+}).join("");
+}
+window.buildSeedlingHTML=buildSeedlingHTML;
+
+function collectSeedlingsFromDOM(containerId){
+var result={};
+CATEGORIES.forEach(function(cat,ci){
+  var c=document.getElementById(containerId+"_"+cat.key);
+  if(!c)return;
+  var items=Array.from(c.querySelectorAll("[data-type='"+cat.key+"']")).map(function(card){
+    var inp=card.querySelectorAll("input,select");
+    return{
+      name:(inp[0]&&inp[0].value||"").trim(),
+      age:(inp[1]&&inp[1].value||"").trim(),
+      count:(inp[2]&&inp[2].value||"0").trim(),
+      graftingCount:(inp[3]&&inp[3].value||"0").trim()
+    };
+  });
+  result[cat.key]=items.filter(function(item){
+    var cnt=parseInt(item.count)||0;
+    var grf=parseInt(item.graftingCount)||0;
+    return item.name!==""||item.age!==""||cnt>0||grf>0;
+  });
+});
+return result;
+}
+
+// ── Validation ──
+function validateMobile(v){return /^0\d{10}$/.test(v)}
+function validateForm(prefix){
+var ok=true;
+[{id:prefix+"Region",msg:"অঞ্চল আবশ্যক"},{id:prefix+"District",msg:"জেলা আবশ্যক"},{id:prefix+"Nursery",msg:"রোপণকারীর নাম আবশ্যক"}].forEach(function(r){
+var el=document.getElementById(r.id),err=el?el.nextElementSibling:null;
+if(!el||!el.value.trim()){if(el){el.classList.add("shake");el.style.borderColor="#ef4444"}if(err){err.textContent=r.msg;err.classList.remove("hidden")}ok=false;setTimeout(function(){if(el){el.classList.remove("shake");el.style.borderColor="#d1d5db"}},350)}
+else{if(el){el.classList.remove("shake");el.style.borderColor="#d1d5db"}if(err)err.classList.add("hidden")}
+});
+var upEl=document.getElementById(prefix+"Upazila"),upErr=upEl?upEl.nextElementSibling:null;
+var upVal=upEl&&upEl.value.trim();
+if(!upVal){if(upEl){upEl.classList.add("shake");upEl.style.borderColor="#ef4444"}if(upErr){upErr.textContent="উপজেলা আবশ্যক";upErr.classList.remove("hidden")}ok=false;setTimeout(function(){if(upEl){upEl.classList.remove("shake");upEl.style.borderColor="#d1d5db"}},350)}else{if(upEl){upEl.classList.remove("shake");upEl.style.borderColor="#d1d5db"}if(upErr)upErr.classList.add("hidden")}
+var mobEl=document.getElementById(prefix+"Mobile"),mobErr=mobEl?mobEl.nextElementSibling:null;
+if(!mobEl||!mobEl.value.trim()){if(mobErr){mobErr.textContent="মোবাইল নম্বর আবশ্যক";mobErr.classList.remove("hidden")}if(mobEl){mobEl.classList.add("shake");mobEl.style.borderColor="#ef4444"}ok=false;setTimeout(function(){if(mobEl){mobEl.classList.remove("shake");mobEl.style.borderColor="#d1d5db"}},350)}
+else if(!validateMobile(mobEl.value.trim())){if(mobErr){mobErr.textContent="মোবাইল নম্বর অবশ্যই ১১ ডিজিট (017XXXXXXXX)";mobErr.classList.remove("hidden")}if(mobEl){mobEl.classList.add("shake");mobEl.style.borderColor="#ef4444"}ok=false;setTimeout(function(){if(mobEl){mobEl.classList.remove("shake");mobEl.style.borderColor="#d1d5db"}},350)}
+else{if(mobErr)mobErr.classList.add("hidden");if(mobEl)mobEl.style.borderColor="#d1d5db"}
+
+var careMobEl=document.getElementById(prefix+"CaretakerMobile"),careMobErr=careMobEl?careMobEl.nextElementSibling:null;
+if(careMobEl && careMobEl.value.trim()){
+  if(!validateMobile(careMobEl.value.trim())){
+    if(careMobErr){careMobErr.textContent="তদারককারীর মোবাইল অবশ্যই ১১ ডিজিট (01XXXXXXXXX)";careMobErr.classList.remove("hidden")}
+    careMobEl.classList.add("shake");careMobEl.style.borderColor="#ef4444";
+    ok=false;
+    setTimeout(function(){careMobEl.classList.remove("shake");careMobEl.style.borderColor="#d1d5db"},350);
+  } else {
+    if(careMobErr)careMobErr.classList.add("hidden");
+    careMobEl.style.borderColor="#d1d5db";
+  }
+} else if(careMobErr) {
+  careMobErr.classList.add("hidden");
+  if(careMobEl) careMobEl.style.borderColor="#d1d5db";
+}
+return ok;
+}
+
+function buildPayload(prefix){
+var upEl=document.getElementById(prefix+"Upazila");
+var pDateEl=document.getElementById(prefix+"PlantingDate");
+var pDateVal=pDateEl?pDateEl.value.trim():new Date().toISOString().slice(0, 10);
+return{
+region:document.getElementById(prefix+"Region").value.trim(),
+district:document.getElementById(prefix+"District").value.trim(),
+upazila:upEl&&upEl.value.trim(),
+nurseryName:document.getElementById(prefix+"Nursery").value.trim(),
+mobile:document.getElementById(prefix+"Mobile").value.trim(),
+caretakerName:(document.getElementById(prefix+"CaretakerName")&&document.getElementById(prefix+"CaretakerName").value.trim())||"",
+caretakerMobile:(document.getElementById(prefix+"CaretakerMobile")&&document.getElementById(prefix+"CaretakerMobile").value.trim())||"",
+address:(document.getElementById(prefix+"Address")&&document.getElementById(prefix+"Address").value.trim())||"",
+geoLocation:(document.getElementById(prefix+"Geo")&&document.getElementById(prefix+"Geo").value.trim())||"",
+officerName:(document.getElementById(prefix+"CaretakerName")&&document.getElementById(prefix+"CaretakerName").value.trim())||"",
+remarks:(document.getElementById(prefix+"Remarks")&&document.getElementById(prefix+"Remarks").value.trim())||"",
+plantingDate:pDateVal,
+submittedAt:new Date().toISOString()
+};
+}
+function sendToWebhook(p){try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),redirect:"follow"}).catch(function(){})}catch(e){}}
+
+// ── Form Submit ──
+document.getElementById("nurseryForm").addEventListener("submit",async function(e){
+e.preventDefault();hideBanner("successBanner");hideBanner("errorBanner");
+if(!validateForm("f"))return;
+var btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="জমা হচ্ছে...";
+try{
+var seedlings=collectSeedlingsFromDOM("seedlingSections");
+var payload=Object.assign({},buildPayload("f"),seedlings);
+var editId=document.getElementById("editId").value;
+var subs=getSubmissions();
+if(editId){var idx=subs.findIndex(function(s){return s.id===editId});if(idx>-1){subs[idx]=Object.assign({},subs[idx],payload);saveSubmissions(subs)}document.getElementById("editId").value="";showBanner("successBanner");resetForm()}
+else{payload.id=genId();subs.push(payload);saveSubmissions(subs);sendToWebhook(payload);showBanner("successBanner");resetForm()}
+}catch(err){console.error("Submit error:",err);showBanner("errorBanner","তথ্য জমা করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")}
+btn.disabled=false;btn.textContent="তথ্য জমা দিন";
+setTimeout(function(){hideBanner("successBanner")},4000);
+});
+
+window.resetForm=function(){
+document.getElementById("nurseryForm").reset();document.getElementById("editId").value="";
+document.getElementById("formTitle").textContent="📄 নতুন তথ্য জমা দিন";
+document.getElementById("cancelBtn").classList.add("hidden");document.getElementById("submitBtn").textContent="তথ্য জমা দিন";
+populateRegionDD(document.getElementById("fRegion"));
+document.getElementById("fDistrict").innerHTML='<option value="">জেলা নির্বাচন করুন</option>';
+document.getElementById("fUpazila").innerHTML='<option value="">উপজেলা নির্বাচন করুন</option>';
+document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",null);
+document.querySelectorAll("[data-error]").forEach(function(el){el.classList.add("hidden")});
+document.getElementById("fGeo").value="";
+var pDateEl=document.getElementById("fPlantingDate"); if(pDateEl){pDateEl.value=new Date().toISOString().slice(0, 10);}
+fetchGeoLocation();
+};
