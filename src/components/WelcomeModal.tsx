@@ -110,6 +110,12 @@ export default function WelcomeModal() {
                   <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 leading-snug tracking-tight">
                     “৫ বছরে ২৫ কোটি বৃক্ষ রোপণ”
                   </h2>
+                  <img
+                    src="/logo.png"
+                    alt="DAE Logo"
+                    className="w-24 h-24 object-contain self-center mt-2"
+                    referrerPolicy="no-referrer"
+                  />
                   
                   {/* Provided Main Introduction Block */}
                   <p className="text-sm text-gray-700 font-medium leading-relaxed bg-emerald-50/40 p-3.5 rounded-2xl border border-emerald-500/5 shadow-inner">
