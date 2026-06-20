@@ -62,14 +62,26 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
   const fetchSubmissions = () => {
     try {
       const dataStr = localStorage.getItem('nursery_submissions');
+      const sheetDataStr = localStorage.getItem('google_sheet_submissions');
+      
+      let localSubmissions: Submission[] = [];
+      let sheetSubmissions: Submission[] = [];
+      
       if (dataStr) {
         const parsed = JSON.parse(dataStr) as Submission[];
         if (Array.isArray(parsed)) {
-          setSubmissions(parsed);
+          localSubmissions = parsed;
         }
-      } else {
-        setSubmissions([]);
       }
+      
+      if (sheetDataStr) {
+        const parsed = JSON.parse(sheetDataStr) as Submission[];
+        if (Array.isArray(parsed)) {
+          sheetSubmissions = parsed;
+        }
+      }
+      
+      setSubmissions([...localSubmissions, ...sheetSubmissions]);
       setLastUpdated(new Date().toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US'));
     } catch (e) {
       console.error('Error reading submissions from localStorage:', e);
