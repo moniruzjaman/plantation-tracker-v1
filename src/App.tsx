@@ -25,7 +25,8 @@ export default function App() {
       <MobileControlCenter 
         networkState={networkState} 
         geoState={geoState} 
-        submissions={submissions} 
+        submissions={submissions}
+        userEmail="mithun.hstu@gmail.com"
       />
       <WelcomeModal />
       <PWAInstaller />

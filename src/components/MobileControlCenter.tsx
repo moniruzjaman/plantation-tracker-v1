@@ -17,7 +17,9 @@ import {
   Copy,
   Check,
   CheckCircle2,
-  HardDrive
+  HardDrive,
+  Share2,
+  User
 } from 'lucide-react';
 
 import { GeoState } from './GeolocationIndicator';
@@ -28,11 +30,12 @@ interface MobileControlCenterProps {
   networkState: NetworkStatusData | null;
   geoState: GeoState | null;
   submissions: Submission[];
+  userEmail: string;
 }
 
-export default function MobileControlCenter({ networkState, geoState, submissions }: MobileControlCenterProps) {
+export default function MobileControlCenter({ networkState, geoState, submissions, userEmail }: MobileControlCenterProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'db' | 'net' | 'gps'>('db');
+  const [activeTab, setActiveTab] = useState<'db' | 'net' | 'gps' | 'mydata'>('db');
   const [language, setLanguage] = useState<'bn' | 'en'>('bn');
   const [copied, setCopied] = useState(false);
 
@@ -159,14 +162,14 @@ export default function MobileControlCenter({ networkState, geoState, submission
   };
 
   return (
-    <div className="md:hidden block fixed bottom-3 right-3 z-50 pointer-events-none font-sans" id="mobileControlCenterLayout">
+    <div className="md:hidden block fixed top-3 right-3 z-50 pointer-events-none font-sans" id="mobileControlCenterLayout">
       <div className="flex flex-col items-end gap-2 pointer-events-auto">
         
         {/* Floating Toggle Hub FAB Button */}
         <motion.button
           id="mobileControlCenterFAB"
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full shadow-2xl border backdrop-blur-md transition-all text-[11px] font-bold cursor-pointer ${
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-full shadow-xl border backdrop-blur-md transition-all text-[10px] font-bold cursor-pointer ${
             totalLogs > 0
               ? 'bg-emerald-600 border-emerald-500 text-white'
               : 'bg-slate-900 border-slate-800 text-white'
@@ -175,37 +178,53 @@ export default function MobileControlCenter({ networkState, geoState, submission
           whileTap={{ scale: 0.95 }}
         >
           {/* Status LEDs inside button */}
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-0.5">
             {/* Database dot */}
             {totalLogs > 0 ? (
-              <span className="inline-block w-2 h-2 rounded-full bg-orange-400 border border-white animate-pulse" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-400 border border-white animate-pulse" />
             ) : (
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-400" />
+              <span className="inline-block w-1 h-1 rounded-full bg-gray-400" />
             )}
             {/* Network dot */}
             {isOnline ? (
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 border border-white" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 border border-white" />
             ) : (
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-400 border border-white animate-pulse" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 border border-white animate-pulse" />
             )}
             {/* GPS dot */}
             {hasGpsError ? (
-              <span className="inline-block w-2 h-2 rounded-full bg-red-400 border border-white animate-pulse" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 border border-white animate-pulse" />
             ) : geoState?.loading ? (
-              <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 border border-white" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 border border-white" />
             ) : (
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 border border-white" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 border border-white" />
             )}
           </span>
 
-          <Activity className="w-3.5 h-3.5" />
+          <Activity className="w-3 h-3" />
           <span>
-            {language === 'bn' ? 'স্ট্যাটাস' : 'System'}{' '}
-            <strong className="bg-white/20 px-1.5 py-0.5 rounded ml-0.5">
+            {language === 'bn' ? 'স্ট্যাটাস' : 'Status'}{' '}
+            <strong className="bg-white/20 px-1 py-0 rounded ml-0.5">
               {toBnNum(totalLogs)}
             </strong>
           </span>
         </motion.button>
+        
+        {/* Sharing Button */}
+        <button
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({
+                title: 'Plantation Tracker',
+                text: 'Check out this plantation tracking application.',
+                url: window.location.href,
+              }).catch(console.error);
+            }
+          }}
+          className="p-2.5 bg-white text-gray-800 rounded-full shadow-lg border border-gray-150 cursor-pointer hover:bg-slate-50 transition-all"
+        >
+          <Share2 className="w-3.5 h-3.5" />
+        </button>
 
         {/* Dynamic Slide-Up Bottom Drawer sheet popup */}
         <AnimatePresence>
@@ -259,7 +278,7 @@ export default function MobileControlCenter({ networkState, geoState, submission
                 </div>
 
                 {/* Grid Tabs Selection Row */}
-                <div className="grid grid-cols-3 gap-1 bg-gray-50 border border-gray-100 p-1 rounded-xl">
+                <div className="grid grid-cols-4 gap-1 bg-gray-50 border border-gray-100 p-1 rounded-xl">
                   {/* Tab 1: DB */}
                   <button
                     onClick={() => setActiveTab('db')}
@@ -298,11 +317,60 @@ export default function MobileControlCenter({ networkState, geoState, submission
                     <MapPin className="w-3.5 h-3.5" />
                     {t.gps}
                   </button>
-                </div>
+                  
+                  {/* Tab 4: My Data */}
+                  <button
+                    onClick={() => setActiveTab('mydata')}
+                    className={`py-1.5 rounded-lg text-[10.5px] font-semibold flex flex-col items-center justify-center gap-1 transition-all ${
+                      activeTab === 'mydata'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-gray-600 active:bg-gray-100'
+                    }`}
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    {language === 'bn' ? 'আমার তথ্য' : 'MyData'}
+                  </button>
+                  </div>
 
                 {/* Tab Contents Frame */}
                 <div className="flex-1 min-h-[160px] max-h-[280px] overflow-y-auto py-1">
                   
+                  {/* SECTION 4: MY DATA */}
+                  {activeTab === 'mydata' && (
+                    <div className="flex flex-col gap-3 animate-in" id="mobileControlCenterTabMyData">
+                      <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold">
+                            {userEmail.substring(0,2).toUpperCase()}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900">{userEmail.split('@')[0]}</h4>
+                            <p className="text-[10px] text-gray-500">{userEmail}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="p-3 bg-emerald-50 rounded-lg">
+                            <span className="text-[9px] text-emerald-600 font-bold uppercase">Total Entry</span>
+                            <p className="text-lg font-black text-emerald-900">{toBnNum(totalLogs)}</p>
+                          </div>
+                          <div className="p-3 bg-cyan-50 rounded-lg">
+                            <span className="text-[9px] text-cyan-600 font-bold uppercase">Total Plantation</span>
+                            <p className="text-lg font-black text-cyan-900">{toBnNum(totalSeedlings)}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h5 className="text-[10px] uppercase font-black text-gray-400">Profile Details</h5>
+                          <div className="text-[11px] space-y-1 text-gray-600">
+                            <p><strong>Area:</strong> {submissions[0]?.district || 'Not set'}</p>
+                            <p><strong>Role:</strong> DAE Officer</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* SECTION 1: DATABASE CODES */}
                   {activeTab === 'db' && (
                     <div className="flex flex-col gap-3 animate-in" id="mobileControlCenterTabDB">
