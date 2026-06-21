@@ -148,12 +148,12 @@ async function run() {
       console.log('Updating Android launcher resource mipmaps...');
       
       const androidMips = [
-        { name: 'mipmap-ldpi', size: 36 },
-        { name: 'mipmap-mdpi', size: 48 },
-        { name: 'mipmap-hdpi', size: 72 },
-        { name: 'mipmap-xhdpi', size: 96 },
-        { name: 'mipmap-xxhdpi', size: 144 },
-        { name: 'mipmap-xxxhdpi', size: 192 }
+        { name: 'mipmap-ldpi', size: 36, adaptiveSize: 81 },
+        { name: 'mipmap-mdpi', size: 48, adaptiveSize: 108 },
+        { name: 'mipmap-hdpi', size: 72, adaptiveSize: 162 },
+        { name: 'mipmap-xhdpi', size: 96, adaptiveSize: 216 },
+        { name: 'mipmap-xxhdpi', size: 144, adaptiveSize: 324 },
+        { name: 'mipmap-xxxhdpi', size: 192, adaptiveSize: 432 }
       ];
 
       for (const mip of androidMips) {
@@ -180,9 +180,34 @@ async function run() {
             .png()
             .toFile(path.join(mipFolder, 'ic_launcher_round.png'));
 
-          // Generate adaptive foreground
-          await sharp(sourceImgPath)
-            .resize(mip.size, mip.size)
+          // Generate adaptive background (solid brand green) to fix potential corruption
+          await sharp({
+            create: {
+              width: mip.adaptiveSize,
+              height: mip.adaptiveSize,
+              channels: 4,
+              background: { r: 21, g: 128, b: 61, alpha: 1 } // #15803d brand backdrop
+            }
+          })
+            .png()
+            .toFile(path.join(mipFolder, 'ic_launcher_background.png'));
+
+          // Generate adaptive foreground: centered source logo with safe zone padding on transparent background
+          const fgIconSize = Math.round(mip.adaptiveSize * 0.66);
+          const fgIconBuffer = await sharp(sourceImgPath)
+            .resize(fgIconSize, fgIconSize, { fit: 'contain' })
+            .png()
+            .toBuffer();
+
+          await sharp({
+            create: {
+              width: mip.adaptiveSize,
+              height: mip.adaptiveSize,
+              channels: 4,
+              background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent
+            }
+          })
+            .composite([{ input: fgIconBuffer, gravity: 'center' }])
             .png()
             .toFile(path.join(mipFolder, 'ic_launcher_foreground.png'));
         }

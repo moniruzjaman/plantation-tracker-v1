@@ -39,6 +39,95 @@ document.getElementById("editModal").addEventListener("click",function(e){if(e.t
 var mapInstance = null;
 var mapMarkers = [];
 
+// NDVI Simulation Parameters
+var ndviEnabled = false;
+var ndviYear = 2026;
+
+window.toggleNdviMode = function() {
+  var toggle = document.getElementById("ndviToggle");
+  ndviEnabled = toggle ? toggle.checked : false;
+  
+  var controls = document.getElementById("ndviControls");
+  var legendNormal = document.getElementById("mapLegendNormal");
+  var legendNdvi = document.getElementById("mapLegendNdvi");
+  
+  if (ndviEnabled) {
+    if (controls) controls.classList.remove("opacity-50", "pointer-events-none");
+    if (legendNormal) { legendNormal.classList.add("hidden"); legendNormal.classList.remove("block"); }
+    if (legendNdvi) { legendNdvi.classList.remove("hidden"); legendNdvi.classList.add("flex"); }
+  } else {
+    if (controls) controls.classList.add("opacity-50", "pointer-events-none");
+    if (legendNormal) { legendNormal.classList.remove("hidden"); legendNormal.classList.add("block"); }
+    if (legendNdvi) { legendNdvi.classList.add("hidden"); legendNdvi.classList.remove("flex"); }
+  }
+  
+  window.renderMap();
+};
+
+window.updateNdviYear = function(val) {
+  ndviYear = parseInt(val) || 2026;
+  var label = document.getElementById("ndviYearLabel");
+  if (label) {
+    var yearsBn = {
+      2026: '২০২৬ (বর্তমান)',
+      2027: '২০২৭ (১ম বছর)',
+      2028: '২০২৮ (২য় বছর)',
+      2029: '২০২৯ (৩য় বছর)',
+      2030: '২০৩০ (৪র্থ বছর)',
+      2031: '২০৩১ (পরিপক্ক)'
+    };
+    label.textContent = yearsBn[ndviYear] || String(ndviYear);
+  }
+  
+  updateNdviMetrics();
+  window.renderMap();
+};
+
+function updateNdviMetrics() {
+  var subs = getFiltered("map");
+  var totalSeedlings = 0;
+  subs.forEach(function(s) {
+    var t = countSeedlings(s);
+    totalSeedlings += (t.fruit + t.forest + t.medicinal);
+  });
+  
+  var baseNdvi = 0.24;
+  if (totalSeedlings > 0) {
+    var diff = (ndviYear - 2026) * 0.11;
+    baseNdvi = Math.min(0.85, 0.24 + diff + (totalSeedlings > 10000 ? 0.05 : 0));
+  } else {
+    baseNdvi = 0.12;
+  }
+  
+  var scoreValEl = document.getElementById("ndviScoreVal");
+  var healthTextEl = document.getElementById("ndviHealthText");
+  var co2ValEl = document.getElementById("ndviCo2Val");
+  
+  if (scoreValEl) scoreValEl.textContent = baseNdvi.toFixed(2);
+  
+  if (healthTextEl) {
+    if (baseNdvi <= 0.15) {
+      healthTextEl.textContent = "শুষ্ক / অনাবাদী";
+      healthTextEl.style.color = "#d97706";
+    } else if (baseNdvi <= 0.40) {
+      healthTextEl.textContent = "তরুণ চারা চাদর (Young)";
+      healthTextEl.style.color = "#16a34a";
+    } else if (baseNdvi <= 0.65) {
+      healthTextEl.textContent = "বাড়ন্ত সবুজ চাদর (Growing)";
+      healthTextEl.style.color = "#15803d";
+    } else {
+      healthTextEl.textContent = "সতেজ নিবিড় বনাঞ্চল (Lush)";
+      healthTextEl.style.color = "#14532d";
+    }
+  }
+  
+  if (co2ValEl) {
+    var co2Factor = 5 + (ndviYear - 2026) * 3.4;
+    var totalCo2Tons = (totalSeedlings * co2Factor) / 1000;
+    co2ValEl.textContent = totalCo2Tons.toFixed(1) + " টন/বছর";
+  }
+}
+
 window.zoomToMyGeoLocation = function() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(pos) {
@@ -77,7 +166,7 @@ window.renderMap = function() {
       }).addTo(mapInstance);
     }
     
-    // Clear old markers
+    // Clear old markers & overlays
     mapMarkers.forEach(function(m) { mapInstance.removeLayer(m); });
     mapMarkers = [];
     
@@ -87,6 +176,9 @@ window.renderMap = function() {
     var bounds = [];
     var mappedCount = 0;
     var totalCount = subs.length;
+    
+    // Update live metrics
+    updateNdviMetrics();
     
     subs.forEach(function(s) {
       var geoStr = (s.geoLocation || "").trim();
@@ -103,54 +195,115 @@ window.renderMap = function() {
       var t = countSeedlings(s);
       var totalScCount = t.fruit + t.forest + t.medicinal;
       
-      // Seedlings detailed details
-      var detailsHtml = '<div style="font-family: inherit; font-size:12px; line-height:1.5; min-width: 200px;">';
-      detailsHtml += '<p style="font-weight:700; color:#15803d; font-size:13px; margin:0 0 4px 0;">' + s.nurseryName + '</p>';
-      detailsHtml += '<p style="margin:2px 0;"><b>মোবাইল:</b> <a href="tel:' + s.mobile + '" style="color:#2563eb; font-weight:600; text-decoration:underline;">' + s.mobile + '</a></p>';
-      if (s.caretakerName) {
-        detailsHtml += '<p style="margin:2px 0;"><b>তদারককারী:</b> ' + s.caretakerName + (s.caretakerMobile ? ' (<a href="tel:' + s.caretakerMobile + '" style="color:#2563eb; text-decoration:underline;">' + s.caretakerMobile + '</a>)' : '') + '</p>';
+      var detailsHtml = "";
+      
+      if (!ndviEnabled) {
+        // Standard Detail Popup
+        detailsHtml = '<div style="font-family: inherit; font-size:12px; line-height:1.5; min-width: 200px;">';
+        detailsHtml += '<p style="font-weight:700; color:#15803d; font-size:13px; margin:0 0 4px 0;">' + s.nurseryName + '</p>';
+        detailsHtml += '<p style="margin:2px 0;"><b>মোবাইল:</b> <a href="tel:' + s.mobile + '" style="color:#2563eb; font-weight:600; text-decoration:underline;">' + s.mobile + '</a></p>';
+        if (s.caretakerName) {
+          detailsHtml += '<p style="margin:2px 0;"><b>তদারককারী:</b> ' + s.caretakerName + (s.caretakerMobile ? ' (<a href="tel:' + s.caretakerMobile + '" style="color:#2563eb; text-decoration:underline;">' + s.caretakerMobile + '</a>)' : '') + '</p>';
+        }
+        var pD = s.plantingDate ? new Date(s.plantingDate).toLocaleDateString("bn-BD") : (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString("bn-BD") : "");
+        if (pD) {
+          detailsHtml += '<p style="margin:2px 0;"><b>রোপণের তারিখ:</b> ' + pD + '</p>';
+        }
+        detailsHtml += '<p style="margin:2px 0;"><b>রোপণকৃত বৃক্ষের অবস্থান:</b> ' + (s.address || "উল্লেখ নেই") + '</p>';
+        detailsHtml += '<p style="font-size:10px; color:#6b7280; margin:2px 0;">(' + s.region + ' > ' + s.district + ' > ' + s.upazila + ')</p>';
+        detailsHtml += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size:10px; margin-top:6px;">';
+        detailsHtml += '<div style="background:#fff7ed; border-radius:4px; padding:3px;"><span style="color:#ea580c; font-weight:bold;">' + t.fruit + '</span><br><span style="color:#6b7280;">ফলদ</span></div>';
+        detailsHtml += '<div style="background:#ecfdf5; border-radius:4px; padding:3px;"><span style="color:#047857; font-weight:bold;">' + t.forest + '</span><br><span style="color:#6b7280;">বনজ</span></div>';
+        detailsHtml += '<div style="background:#eff6ff; border-radius:4px; padding:3px;"><span style="color:#1d4ed8; font-weight:bold;">' + t.medicinal + '</span><br><span style="color:#6b7280;">ঔষধি</span></div>';
+        detailsHtml += '</div>';
+        detailsHtml += '<button onclick="parent.window.editMySubmission ? parent.window.editMySubmission(\''+s.id+'\') : editMySubmission(\''+s.id+'\')" style="width:100%; margin-top:8px; background:#dbeafe; color:#1d4ed8; border:none; padding:5px; border-radius:6px; font-weight:700; cursor:pointer; font-size:11px;">✏️ তথ্য সম্পাদনা</button>';
+        detailsHtml += '</div>';
+        
+        var markerBg = '#10b981';
+        if (totalScCount >= 10000) markerBg = '#f97316';
+        else if (totalScCount >= 5000) markerBg = '#3b82f6';
+        
+        var customIcon = L.divIcon({
+          html: '<div style="background-color: ' + markerBg + '; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transform: scale(1);" title="' + s.nurseryName + '">🌳</div>',
+          className: 'custom-tree-icon',
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+        
+        var marker = L.marker([lat, lng], { icon: customIcon }).addTo(mapInstance).bindPopup(detailsHtml);
+        mapMarkers.push(marker);
+      } else {
+        // NDVI Simulated View
+        var pNdvi = 0.18 + (ndviYear - 2026) * 0.11;
+        if (t.forest > t.fruit) pNdvi += 0.05;
+        if (totalScCount > 8000) pNdvi += 0.04;
+        pNdvi = Math.max(0.12, Math.min(0.85, pNdvi));
+        
+        var baseRadius = 40 + Math.min(250, totalScCount / 60);
+        var cRadius = baseRadius + (ndviYear - 2026) * 35;
+        
+        var ndviColor = '#fef08a';
+        var ndviLabel = 'অনাবাদী / তরুণ চারা';
+        if (pNdvi > 0.65) {
+          ndviColor = '#14532d';
+          ndviLabel = 'নিবিড় বনাঞ্চল (Lush Canopy)';
+        } else if (pNdvi > 0.40) {
+          ndviColor = '#16a34a';
+          ndviLabel = 'মাঝারি বাড়ন্ত বনায়ন';
+        } else if (pNdvi > 0.15) {
+          ndviColor = '#86efac';
+          ndviLabel = 'নবজাতক চারা কানোপি';
+        }
+        
+        var ndviBufferCircle = L.circle([lat, lng], {
+          color: ndviColor,
+          fillColor: ndviColor,
+          fillOpacity: 0.45,
+          radius: cRadius,
+          weight: 1.5
+        }).addTo(mapInstance);
+        mapMarkers.push(ndviBufferCircle);
+        
+        detailsHtml = '<div style="font-family: inherit; font-size:12px; line-height:1.5; min-width: 220px;">';
+        detailsHtml += '<p style="font-weight:800; color:#15803d; font-size:13px; margin:0 0 5px 0; display:flex; align-items:center; gap:4px;">✨ 🛰️ NDVI উপগ্রহ বিশ্লেষণ</p>';
+        detailsHtml += '<p style="font-weight:700; color:#1f2937; font-size:12px; margin:0 0 4px 0;">' + s.nurseryName + '</p>';
+        detailsHtml += '<div style="background:#f0fdf4; border: 1px solid #bbf7d0; border-radius:8px; padding:6px; margin:6px 0; font-size:11px;">';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>সিমুলেশন বছর:</span><b>' + ndviYear + '</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>এনডিভিআই সূচক:</span><b style="color:' + (pNdvi > 0.40 ? '#15803d' : '#854d0e') + ';">' + pNdvi.toFixed(2) + '</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>সবুজ ক্যানোপি ব্যাস:</span><b>' + Math.round(cRadius * 2) + ' মিটার</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>ক্যানোপি অবস্থা:</span><b style="color:#047857;">' + ndviLabel + '</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between;"><span>সঞ্চিত কার্বন অফসেট:</span><b style="color:#1d4ed8;">' + ((totalScCount * (3.1 + (ndviYear-2026)*1.8))/1000).toFixed(1) + ' টন/বছর</b></div>';
+        detailsHtml += '</div>';
+        detailsHtml += '<p style="margin:2px 0; font-size:11.5px; color:#4b5563;"><b>রোপণ করা চারা:</b> ' + totalScCount.toLocaleString("bn-BD") + ' টি</p>';
+        detailsHtml += '<p style="margin:2px 0; font-size:11px; color:#6b7280;">(' + s.region + ' > ' + s.district + ')</p>';
+        detailsHtml += '</div>';
+        
+        var satelliteIcon = L.divIcon({
+          html: '<div style="background-color: #047857; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(4,120,87,0.6);" title="' + s.nurseryName + '">🛰️</div>',
+          className: 'ndvi-node-icon',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        });
+        
+        var marker = L.marker([lat, lng], { icon: satelliteIcon }).addTo(mapInstance).bindPopup(detailsHtml);
+        mapMarkers.push(marker);
       }
-      var pD = s.plantingDate ? new Date(s.plantingDate).toLocaleDateString("bn-BD") : (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString("bn-BD") : "");
-      if (pD) {
-        detailsHtml += '<p style="margin:2px 0;"><b>রোপণের তারিখ:</b> ' + pD + '</p>';
-      }
-      detailsHtml += '<p style="margin:2px 0;"><b>রোপণকৃত বৃক্ষের অবস্থান:</b> ' + (s.address || "উল্লেখ নেই") + '</p>';
-      detailsHtml += '<p style="font-size:10px; color:#6b7280; margin:2px 0;">(' + s.region + ' > ' + s.district + ' > ' + s.upazila + ')</p>';
-      detailsHtml += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size:10px; margin-top:6px;">';
-      detailsHtml += '<div style="background:#fff7ed; border-radius:4px; padding:3px;"><span style="color:#ea580c; font-weight:bold;">' + t.fruit + '</span><br><span style="color:#6b7280;">ফলদ</span></div>';
-      detailsHtml += '<div style="background:#ecfdf5; border-radius:4px; padding:3px;"><span style="color:#047857; font-weight:bold;">' + t.forest + '</span><br><span style="color:#6b7280;">বনজ</span></div>';
-      detailsHtml += '<div style="background:#eff6ff; border-radius:4px; padding:3px;"><span style="color:#1d4ed8; font-weight:bold;">' + t.medicinal + '</span><br><span style="color:#6b7280;">ঔষধি</span></div>';
-      detailsHtml += '</div>';
-      detailsHtml += '<button onclick="parent.window.editMySubmission ? parent.window.editMySubmission(\''+s.id+'\') : editMySubmission(\''+s.id+'\')" style="width:100%; margin-top:8px; background:#dbeafe; color:#1d4ed8; border:none; padding:5px; border-radius:6px; font-weight:700; cursor:pointer; font-size:11px;">✏️ তথ্য সম্পাদনা</button>';
-      detailsHtml += '</div>';
-      
-      // Marker color logic: Larger is Orange, Medium is Blue, Small is Emerald
-      var markerBg = '#10b981'; // Green
-      if (totalScCount >= 10000) markerBg = '#f97316'; // Orange
-      else if (totalScCount >= 5000) markerBg = '#3b82f6'; // Blue
-      
-      var customIcon = L.divIcon({
-        html: '<div style="background-color: ' + markerBg + '; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transform: scale(1);" title="' + s.nurseryName + '">🌳</div>',
-        className: 'custom-tree-icon',
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
-      });
-      
-      var marker = L.marker([lat, lng], { icon: customIcon }).addTo(mapInstance).bindPopup(detailsHtml);
-      mapMarkers.push(marker);
     });
     
     // Update footer text statistics
     var statsText = document.getElementById("mapStatsText");
     if (statsText) {
-      statsText.textContent = "মোট রোপণকারী: " + totalCount + " | ম্যাপে প্রদর্শিত: " + mappedCount;
+      if (!ndviEnabled) {
+        statsText.textContent = "মোট রোপণকারী: " + totalCount + " | ম্যাপে প্রদর্শিত: " + mappedCount;
+      } else {
+        statsText.textContent = "प्रক্ষেপণ বছর: " + ndviYear + " | সচল এনডিভিআই ক্যানোপি ওভারলে";
+      }
     }
     
     // Zoom/fit map bounds
     if (bounds.length > 0) {
       mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
     } else {
-      // Zoom to general Bangladesh bounds or default to Kurigram center
       mapInstance.setView([25.8113, 89.6582], 9);
     }
     

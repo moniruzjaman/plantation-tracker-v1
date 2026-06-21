@@ -235,13 +235,76 @@
 </button>
 </div>
 </div>
+
+<!-- Satellite NDVI Simulation Control Center Panel -->
+<div class="bg-white rounded-xl shadow p-4 mb-4 border-l-4 border-emerald-600">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+    <div>
+      <p class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+        <span>🛰️</span> উপগ্রহ এনডিভিআই সিমুলেটর ও বৃদ্ধি ট্র্যাকিং (Satellite NDVI & Canopy Growth Tracker)
+      </p>
+      <p class="text-[11px] text-gray-500 mt-0.5">সবুজ চাদরের ঘনত্ব ও গাছ বৃদ্ধির ভবিষ্যৎ প্রক্ষেপণ সিমুলেশন</p>
+    </div>
+    <!-- Mini Switch for NDVI Mode -->
+    <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+      <label class="relative inline-flex items-center cursor-pointer select-none">
+        <input type="checkbox" id="ndviToggle" onchange="toggleNdviMode()" class="sr-only peer">
+        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+        <span class="ml-2 text-xs font-bold text-gray-700">এনডিভিআই মোড সক্রিয় করুন</span>
+      </label>
+    </div>
+  </div>
+
+  <div id="ndviControls" class="opacity-50 pointer-events-none transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+      <!-- Year Slider for Projection -->
+      <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-xs font-semibold text-gray-600">বৃদ্ধির সময়কাল (Simulated Projection Year):</span>
+          <span id="ndviYearLabel" class="text-sm font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">২০২৬ (বর্তমান)</span>
+        </div>
+        <input type="range" id="ndviYearSlider" min="2026" max="2031" value="2026" oninput="updateNdviYear(this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+        <div class="flex justify-between text-[9px] text-gray-400 mt-1 font-mono">
+          <span>২০২৬ (চারা)</span>
+          <span>২০২৭</span>
+          <span>২০主动</span>
+          <span>২০২৯</span>
+          <span>২০৩০</span>
+          <span>২০৩১ (পরিপক্ক)</span>
+        </div>
+      </div>
+
+      <!-- Quick Analysis Metrics -->
+      <div class="grid grid-cols-2 gap-2 text-center text-xs">
+        <div class="bg-emerald-50/65 rounded-lg p-2.5 border border-emerald-105 flex flex-col justify-center">
+          <span class="text-[10px] text-emerald-800 uppercase font-bold">গড় এনডিভিআই সূচক</span>
+          <span id="ndviScoreVal" class="text-lg font-extrabold text-emerald-700 mt-1 font-mono">0.24</span>
+          <span id="ndviHealthText" class="text-[9px] text-emerald-600 font-medium mt-0.5">নতুন রোপণকৃত কুঁড়ি</span>
+        </div>
+        <div class="bg-lime-50/65 rounded-lg p-2.5 border border-lime-105 flex flex-col justify-center">
+          <span class="text-[10px] text-lime-800 uppercase font-bold">প্রাক্কলিত কার্বন শোষণ</span>
+          <span id="ndviCo2Val" class="text-lg font-extrabold text-lime-700 mt-1 font-mono">১৮.৩ টন/বছর</span>
+          <span class="text-[9px] text-lime-600 font-medium mt-0.5">কার্বন অফসেট মাত্রা</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="bg-white rounded-xl shadow p-3 mb-6 relative">
 <div id="leafletMap" class="w-full h-[450px] sm:h-[550px] rounded-lg border border-gray-200" style="z-index: 10;"></div>
 <div class="mt-3 flex flex-wrap justify-between items-center text-xs text-gray-500 gap-2 px-1">
-<div>
+<div id="mapLegendNormal" class="block">
 <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> ফলদ/বৃক্ষ সংখ্যা > ১০,০০০ (বৃহৎ)</span>
 <span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> ৫,০০০ - ১০,০০০ চারা</span>
 <span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> < ৫,০০০ চারা</span>
+</div>
+<div id="mapLegendNdvi" class="hidden flex flex-wrap gap-2 items-center">
+<span class="text-[10px] font-bold text-gray-500 uppercase mr-1">এনডিভিআই স্কেল:</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#14532d] inline-block rounded border border-white shadow-sm"></span> +0.65 থেকে +0.85 (নিবিড় বনাঞ্চল)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#16a34a] inline-block rounded border border-white shadow-sm"></span> +0.40 থেকে +0.65 (মাঝারি চারা)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#86efac] inline-block rounded border border-white shadow-sm"></span> +0.15Wrapper থেকে +0.40 (নবজাতক)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#fef08a] inline-block rounded border border-white shadow-sm"></span> -0.10 থেকে +0.15 (শুষ্ক/অনাবাদী)</span>
 </div>
 <div id="mapStatsText" class="font-semibold text-green-700"></div>
 </div>
