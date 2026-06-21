@@ -6,8 +6,8 @@ const jarDest = path.join(process.cwd(), 'android', 'gradle', 'wrapper', 'gradle
 
 // Official reliable URLs to get an uncorrupted standard gradle-wrapper.jar
 const jarUrls = [
-  'https://raw.githubusercontent.com/gradle/gradle/v8.5.0/gradle/wrapper/gradle-wrapper.jar',
   'https://raw.githubusercontent.com/gradle/gradle/v8.14.3/gradle/wrapper/gradle-wrapper.jar',
+  'https://raw.githubusercontent.com/gradle/gradle/v8.5.0/gradle/wrapper/gradle-wrapper.jar',
   'https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar'
 ];
 
