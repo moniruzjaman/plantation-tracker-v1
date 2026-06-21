@@ -662,12 +662,12 @@ window.exportToGovExcel = function(prefix) {
   // Exact 9 columns as requested by the user:
   data.push([
     "ক্র. নং",
-    "বৃক্ষরোপণের জেলা,উপজেলা,ইউনিয়ন ও গ্রামের নাম",
+    "বৃক্ষরোপণের জেলা, উপজেলা, ইউনিয়ন ও গ্রামের নাম",
     "রোপণকৃত বৃক্ষের প্রজাতির নাম",
     "রোপণকৃত বৃক্ষের সংখ্যা",
     "বৃক্ষরোপণের তারিখ",
     "বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওغرافিক্যাল কোঅর্ডিনেটসহ)",
-    "পরিচর্যাকানীর নাম ও ফোন নম্বর",
+    "পরিচর্যাকারীর নাম ও ফোন নম্বর",
     "মনিটরিং অফিসারের নাম ও ফোন নম্বর",
     "মন্তব্য"
   ]);
@@ -685,15 +685,18 @@ window.exportToGovExcel = function(prefix) {
     var fullLocation = "জেলা: " + s.district + ", উপজেলা: " + s.upazila + (s.address ? ", অবস্থান/গ্রাম: " + s.address : "");
     var geoLoc = s.geoLocation || "উল্লেখ নেই";
     
-    // Caretaker and Planter info
-    var caretakerInfo = "";
-    if (s.caretakerName) {
-      caretakerInfo = s.caretakerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
-    } else {
-      caretakerInfo = s.nurseryName + (s.mobile ? " (" + s.mobile + ")" : "");
-    }
+    // Caretaker/Farmer info
+    var caretakerInfo = s.nurseryName + (s.mobile ? " (" + s.mobile + ")" : "");
     
-    var officerInfo = caretakerInfo;
+    // Monitoring Officer info
+    var officerInfo = "";
+    if (s.caretakerName) {
+      officerInfo = s.caretakerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
+    } else if (s.officerName) {
+      officerInfo = s.officerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
+    } else {
+      officerInfo = "উল্লেখ নেই";
+    }
     var remarks = s.remarks || "";
 
     var has = (s.fruitSeedlings && s.fruitSeedlings.length || 0) + 
