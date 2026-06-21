@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Database, 
@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   HardDrive,
   Share2,
-  User
+  User,
+  Download
 } from 'lucide-react';
 
 import { GeoState } from './GeolocationIndicator';
@@ -40,43 +41,46 @@ export default function MobileControlCenter({ networkState, geoState, submission
   const [copied, setCopied] = useState(false);
 
   // Compute stats
-  const totalLogs = submissions.length;
-  
-  let totalSeedlings = 0;
-  let fruitCount = 0;
-  let forestCount = 0;
-  let medicinalCount = 0;
+  const { totalLogs, totalSeedlings, fruitCount, forestCount, medicinalCount, sortedDistricts } = useMemo(() => {
+    let tLogs = submissions.length;
+    let tSeedlings = 0;
+    let fCount = 0;
+    let foCount = 0;
+    let mCount = 0;
 
-  const districtMap: { [key: string]: number } = {};
+    const districtMap: { [key: string]: number } = {};
 
-  submissions.forEach(s => {
-    const countCategory = (list?: any[]) => {
-      let sum = 0;
-      if (list && Array.isArray(list)) {
-        list.forEach(item => {
-          sum += (parseInt(item.count) || 0) + (parseInt(item.graftingCount) || 0);
-        });
+    submissions.forEach(s => {
+      const countCategory = (list?: any[]) => {
+        let sum = 0;
+        if (list && Array.isArray(list)) {
+          list.forEach(item => {
+            sum += (parseInt(item.count) || 0) + (parseInt(item.graftingCount) || 0);
+          });
+        }
+        return sum;
+      };
+
+      const f = countCategory(s.fruitSeedlings);
+      const fo = countCategory(s.forestSeedlings);
+      const m = countCategory(s.medicinalSeedlings);
+
+      fCount += f;
+      foCount += fo;
+      mCount += m;
+      tSeedlings += (f + fo + m);
+
+      if (s.district) {
+        districtMap[s.district] = (districtMap[s.district] || 0) + 1;
       }
-      return sum;
-    };
+    });
 
-    const f = countCategory(s.fruitSeedlings);
-    const fo = countCategory(s.forestSeedlings);
-    const m = countCategory(s.medicinalSeedlings);
+    const sDistricts = Object.entries(districtMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
 
-    fruitCount += f;
-    forestCount += fo;
-    medicinalCount += m;
-    totalSeedlings += (f + fo + m);
-
-    if (s.district) {
-      districtMap[s.district] = (districtMap[s.district] || 0) + 1;
-    }
-  });
-
-  const sortedDistricts = Object.entries(districtMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+    return { totalLogs: tLogs, totalSeedlings: tSeedlings, fruitCount: fCount, forestCount: foCount, medicinalCount: mCount, sortedDistricts: sDistricts };
+  }, [submissions]);
 
   const toBnNum = (num: number): string => {
     if (language === 'en') return num.toLocaleString('en-US');
@@ -112,6 +116,41 @@ export default function MobileControlCenter({ networkState, geoState, submission
         setTimeout(() => setCopied(false), 2000);
       });
     }
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Date', 'District', 'Upazila', 'Region', 'Nursery', 'Fruit Seedlings', 'Forest Seedlings', 'Medicinal Seedlings'];
+    const rows = submissions.map(s => {
+      const countCategory = (list?: any[]) => {
+        let sum = 0;
+        if (list && Array.isArray(list)) {
+          list.forEach(item => {
+            sum += (parseInt(item.count) || 0) + (parseInt(item.graftingCount) || 0);
+          });
+        }
+        return sum;
+      };
+      return [
+        s.plantingDate || s.submittedAt || new Date().toISOString().split('T')[0],
+        s.district || '',
+        s.upazila || '',
+        s.region || '',
+        s.nurseryName || '',
+        countCategory(s.fruitSeedlings),
+        countCategory(s.forestSeedlings),
+        countCategory(s.medicinalSeedlings)
+      ].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'plantation_entries.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // GPS precision rating
@@ -366,6 +405,14 @@ export default function MobileControlCenter({ networkState, geoState, submission
                             <p><strong>Area:</strong> {submissions[0]?.district || 'Not set'}</p>
                             <p><strong>Role:</strong> DAE Officer</p>
                           </div>
+                          
+                          <button
+                            onClick={exportToCSV}
+                            className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold border border-emerald-100 hover:bg-emerald-100 transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            {language === 'bn' ? 'CSV এক্সপোর্ট করুন' : 'Export to CSV'}
+                          </button>
                         </div>
                       </div>
                     </div>
