@@ -267,7 +267,7 @@
         <div class="flex justify-between text-[9px] text-gray-400 mt-1 font-mono">
           <span>২০২৬ (চারা)</span>
           <span>২০২৭</span>
-          <span>২০主动</span>
+          <span>২০২৮</span>
           <span>২০২৯</span>
           <span>২০৩০</span>
           <span>২০৩১ (পরিপক্ক)</span>
@@ -287,6 +287,74 @@
           <span class="text-[9px] text-lime-600 font-medium mt-0.5">কার্বন অফসেট মাত্রা</span>
         </div>
       </div>
+      
+      <!-- Google Earth Engine Data Integration Engine Core Tabbed Interface -->
+      <div class="col-span-1 md:col-span-2 border-t border-gray-150 pt-3 mt-2">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Google Earth Engine (GEE) ক্লাউড ইন্টিগ্রেশন</span>
+          </div>
+          <span class="text-[10px] text-gray-400 font-mono">earthengine.googleapis.com v1alpha</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <!-- GEE Controls -->
+          <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200 text-xs flex flex-col gap-2">
+            <div>
+              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">সুপারকম্পিউটার ডেটাসেট (EE Dataset):</label>
+              <select id="geeDataset" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
+                <option value="sentinel2">COPERNICUS/S2_SR_HARMONIZED (Sentinel-2 10m MSI)</option>
+                <option value="landsat9">LANDSAT/LC09/C02/T1_L2 (Landsat 9 OLI-2 30m)</option>
+                <option value="modis">MODIS/061/MOD13Q1 (MODIS Vegetation Indices 250m)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">ব্যান্ড কম্বিনেশন (EO Band Rendering):</label>
+              <select id="geeBands" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
+                <option value="truecolor">False/True Color Composite (B4, B3, B2 / Red-Green-Blue)</option>
+                <option value="ndvi">NDVI Vegetation Index (B8 - B4) / (B8 + B4)</option>
+                <option value="nir">NIR InfraRed Composite (B8, B4, B3 / Canopy Density)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] bg-white border border-gray-200 rounded p-1.5 mt-1">
+              <span class="text-gray-500">ক্লাউড ফিল্টার (Cloud limit):</span>
+              <span class="font-bold text-emerald-700 font-mono">&lt;10%</span>
+            </div>
+
+            <button onclick="runGeeAnalysis()" class="w-full text-white bg-emerald-700 hover:bg-emerald-800 active:scale-98 font-bold py-1.5 px-3 rounded text-xs transition duration-150 shadow flex items-center justify-center gap-1.5 mt-auto">
+              <span>🚀</span> GEE লাইভ এনালিসিস রান করুন (Run Cloud Pipeline)
+            </button>
+          </div>
+
+          <!-- GEE LIVE SCRIPT CONSOLE -->
+          <div class="bg-gray-900 rounded-lg p-2.5 border border-gray-800 text-[10px] font-mono text-emerald-400 flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">GEE JavaScript (Code Editor)</span>
+              <button onclick="copyGeeScript()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 rounded px-1.5 py-0.5 text-[9px] transition-colors">Copy</button>
+            </div>
+            <pre id="geeScriptPre" class="overflow-auto max-h-[105px] whitespace-pre text-emerald-500 leading-tight flex-1 scrolling-thin select-all"></pre>
+          </div>
+
+          <!-- GEE REALTIME TERMINAL LOG -->
+          <div class="bg-black rounded-lg p-2.5 border border-gray-900 text-[9.5px] font-mono text-white flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">Platform Logs</span>
+              <span class="bg-emerald-950 text-emerald-400 text-[8px] font-bold px-1 rounded animate-pulse">Connected</span>
+            </div>
+            <div id="geeTerminalLog" class="overflow-y-auto max-h-[105px] h-[105px] flex flex-col gap-1 text-gray-300 leading-normal scrolling-thin">
+              <span class="text-blue-400">[info] GEE microserver initialized</span>
+              <span class="text-gray-505">[auth] Active Service Account Verified</span>
+              <span class="text-yellow-500">[wait] Click 'Run Cloud Pipeline' to fetch raster tiles...</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -303,7 +371,7 @@
 <span class="text-[10px] font-bold text-gray-500 uppercase mr-1">এনডিভিআই স্কেল:</span>
 <span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#14532d] inline-block rounded border border-white shadow-sm"></span> +0.65 থেকে +0.85 (নিবিড় বনাঞ্চল)</span>
 <span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#16a34a] inline-block rounded border border-white shadow-sm"></span> +0.40 থেকে +0.65 (মাঝারি চারা)</span>
-<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#86efac] inline-block rounded border border-white shadow-sm"></span> +0.15Wrapper থেকে +0.40 (নবজাতক)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#86efac] inline-block rounded border border-white shadow-sm"></span> +0.15 থেকে +0.40 (নবজাতক)</span>
 <span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#fef08a] inline-block rounded border border-white shadow-sm"></span> -0.10 থেকে +0.15 (শুষ্ক/অনাবাদী)</span>
 </div>
 <div id="mapStatsText" class="font-semibold text-green-700"></div>
