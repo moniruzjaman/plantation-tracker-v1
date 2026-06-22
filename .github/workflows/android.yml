@@ -89,3 +89,42 @@ jobs:
         with:
           name: plantation-tracker-signed-apk (APK)
           path: android/app/build/outputs/apk/release/app-release.apk
+        
+        # 7. Decode release keystore from base64 secret
+      - name: Decode Release Keystore
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > android/app/release-key.jks
+
+      # 8. Build signed Release AAB
+      - name: Build Android App Bundle (Release AAB)
+        env:
+          RELEASE_KEYSTORE_PATH: release-key.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew bundleRelease
+
+      # 9. Build signed Release APK
+      - name: Build Release APK (Signed)
+        env:
+          RELEASE_KEYSTORE_PATH: release-key.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      # 10. Upload the signed artifacts
+      - name: Upload Release AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plantation-tracker-release-bundle (AAB)
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Signed APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plantation-tracker-signed-apk (APK)
+          path: android/app/build/outputs/apk/release/app-release.apk
