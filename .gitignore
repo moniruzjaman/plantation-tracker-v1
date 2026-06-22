@@ -6,5 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Release signing keystore - NEVER commit this, it's injected via GitHub Actions secrets
 *.jks
 *.keystore
+android/app/release.jks
