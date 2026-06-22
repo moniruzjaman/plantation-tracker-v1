@@ -42,36 +42,50 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      # 5b. Force-restore clean Gradle Wrapper JAR to prevent any Git-based binary corruption
+      # # 5b. Force-restore clean Gradle Wrapper JAR
       - name: Force Restore Clean gradle-wrapper.jar
         run: |
           mkdir -p android/gradle/wrapper
           curl -L -o android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.14.3/gradle/wrapper/gradle-wrapper.jar
 
-      # 6. Set executable permission on Gradle Wrapper
       - name: Set Gradlew Executable
         run: chmod +x android/gradlew
 
-      # 7. Build Native debug/release App and Bundle (AAB for Google Play Console)
-      - name: Build Android App Bundle (Release AAB)
+      # 6b. Decode release keystore from secrets
+      - name: Decode Release Keystore
         run: |
-          cd android
-          ./gradlew bundleRelease
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.jks
 
-      - name: Build Test APK (Release Unsigned APK)
-        run: |
-          cd android
-          ./gradlew assembleRelease
+      - name: Build Signed Release AAB
+        env:
+          RELEASE_KEYSTORE_PATH: release.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION_CODE: ${{ github.run_number }}
+        run: cd android && ./gradlew bundleRelease
 
-      # 8. Upload the artifacts for direct download
-      - name: Upload Release AAB Artifact
+      - name: Build Signed Release APK
+        env:
+          RELEASE_KEYSTORE_PATH: release.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION_CODE: ${{ github.run_number }}
+        run: cd android && ./gradlew assembleRelease
+
+      - name: Clean Up Keystore
+        if: always()
+        run: rm -f android/app/release.jks
+
+      - name: Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
           name: plantation-tracker-release-bundle (AAB)
-          path: android/app/build/outputs/bundle/release/app-release-unsigned.aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
 
-      - name: Upload Test APK Artifact
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: plantation-tracker-test-apk (APK)
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          name: plantation-tracker-signed-apk (APK)
+          path: android/app/build/outputs/apk/release/app-release.apk
