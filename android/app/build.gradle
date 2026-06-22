@@ -6,7 +6,6 @@ def _ksPass = System.getenv("RELEASE_KEYSTORE_PASSWORD")
 def _ksAlias = System.getenv("RELEASE_KEY_ALIAS")
 def _ksKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
 
-// Fallback: embedded keystore when no secrets are injected
 def _embeddedPath = null
 if (_ksPath == null && _ksPass == null) {
     def _ksOut = new File("${buildDir}/release-key.jks")
