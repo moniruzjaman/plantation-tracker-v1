@@ -1,36 +1,5 @@
 apply plugin: 'com.android.application'
 
-// --- Release signing ---
-// Priority: env var > embedded keystore (for CI without workflow changes)
-def _ksB64 = System.getenv("RELEASE_KEYSTORE_B64")
-def _ksPath = System.getenv("RELEASE_KEYSTORE_PATH")
-def _ksPass = System.getenv("RELEASE_KEYSTORE_PASSWORD")
-def _ksAlias = System.getenv("RELEASE_KEY_ALIAS")
-def _ksKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
-
-// Fallback: decode embedded keystore when no env vars are set
-def _embeddedKeystorePath = null
-if (_ksB64 == null && _ksPath == null && _ksPass == null) {
-    def _ksOut = new File("${buildDir}/release-key.jks")
-    _ksOut.parentFile.mkdirs()
-    _ksOut.bytes = "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".decodeBase64()
-    _embeddedKeystorePath = _ksOut.absolutePath
-    _ksPass = "Pt@2026Secure!"
-    _ksAlias = "plantation-tracker"
-    _ksKeyPass = "Pt@2026Secure!"
-}
-
-// Resolve final keystore file path
-def keystoreFile = _ksPath ?: _embeddedKeystorePath
-if (_ksB64 != null && keystoreFile == null) {
-    def _tmpKs = new File("${System.getProperty("java.io.tmpdir")}/release-key.jks")
-    _tmpKs.bytes = _ksB64.decodeBase64()
-    keystoreFile = _tmpKs.absolutePath
-}
-def keystorePassword = _ksPass
-def keyAlias = _ksAlias
-def keyPassword = _ksKeyPass
-
 android {
     namespace = "com.nursery.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -38,8 +7,8 @@ android {
         applicationId "com.nursery.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode (System.getenv("RELEASE_VERSION_CODE") != null ? System.getenv("RELEASE_VERSION_CODE").toInteger() : 1)
+        versionName (System.getenv("RELEASE_VERSION_NAME") != null ? System.getenv("RELEASE_VERSION_NAME") : "1.0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -47,23 +16,25 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-
     signingConfigs {
         release {
-            if (keystoreFile != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
-                storeFile file(keystoreFile)
-                storePassword keystorePassword
-                keyAlias keyAlias
-                keyPassword keyPassword
+            def ksFile = System.getenv("RELEASE_KEYSTORE_PATH")
+            if (ksFile != null) {
+                storeFile file(ksFile)
+                storePassword System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword System.getenv("RELEASE_KEY_PASSWORD")
             }
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (keystoreFile != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
+            // Only apply real signing if the keystore env var is present (i.e. in CI).
+            // Falls back to no signingConfig for local/dev builds so this file works
+            // identically for every contributor without requiring secrets locally.
+            if (System.getenv("RELEASE_KEYSTORE_PATH") != null) {
                 signingConfig signingConfigs.release
             }
         }
