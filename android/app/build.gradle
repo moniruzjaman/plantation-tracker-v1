@@ -1,6 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Auto-decode keystore from base64 variable (GitHub repo variables are auto-injected as env vars)
+def keystoreB64 = System.getenv("RELEASE_KEYSTORE_B64")
 def keystoreFile = System.getenv("RELEASE_KEYSTORE_PATH")
+if (keystoreB64 != null && keystoreFile == null) {
+    def ksOut = new File("${System.getProperty("java.io.tmpdir")}/release-key.jks")
+    ksOut.bytes = keystoreB64.decodeBase64()
+    keystoreFile = ksOut.absolutePath
+}
 def keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
 def keyAlias = System.getenv("RELEASE_KEY_ALIAS")
 def keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
