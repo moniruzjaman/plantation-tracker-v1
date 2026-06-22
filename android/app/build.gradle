@@ -18,10 +18,10 @@ if (_ksPath == null && _ksPass == null) {
     _ksKeyPass = "Pt@2026Secure!"
 }
 
-def keystoreFile = _ksPath ?: _embeddedPath
-def keystorePassword = _ksPass
-def keyAlias = _ksAlias
-def keyPassword = _ksKeyPass
+def _storeFile = _ksPath ?: _embeddedPath
+def _storePass = _ksPass
+def _keyAlias = _ksAlias
+def _keyPass = _ksKeyPass
 
 android {
     namespace = "com.nursery.app"
@@ -34,18 +34,16 @@ android {
         versionName (System.getenv("RELEASE_VERSION_NAME") != null ? System.getenv("RELEASE_VERSION_NAME") : "1.0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
     signingConfigs {
         release {
-            if (keystoreFile != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
-                storeFile file(keystoreFile)
-                storePassword keystorePassword
-                keyAlias keyAlias
-                keyPassword keyPassword
+            if (_storeFile != null && _storePass != null && _keyAlias != null && _keyPass != null) {
+                storeFile file(_storeFile)
+                storePassword _storePass
+                keyAlias _keyAlias
+                keyPassword _keyPass
             }
         }
     }
@@ -53,7 +51,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (keystoreFile != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
+            if (_storeFile != null && _storePass != null && _keyAlias != null && _keyPass != null) {
                 signingConfig signingConfigs.release
             }
         }
@@ -61,7 +59,7 @@ android {
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
@@ -85,6 +83,6 @@ try {
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch (Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
