@@ -11,6 +11,7 @@ import PWAInstaller from './components/PWAInstaller';
 import SyncToast from './components/SyncToast';
 import OfflinePlantationDashboard, { Submission } from './components/OfflinePlantationDashboard';
 import MobileControlCenter from './components/MobileControlCenter';
+import ExcelReadyForm from './components/ExcelReadyForm';
 
 export default function App() {
   const [networkState, setNetworkState] = useState<NetworkStatusData | null>(null);
@@ -31,6 +32,7 @@ export default function App() {
       <WelcomeModal />
       <PWAInstaller />
       <SyncToast />
+      <ExcelReadyForm />
       <iframe 
         src="legacy-nursery.html" 
         style={{ display: 'block', width: '100%', height: '100%', border: 'none' }}
