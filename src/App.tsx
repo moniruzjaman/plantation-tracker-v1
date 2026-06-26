@@ -1,9 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import FormTab from './components/tabs/FormTab';
-import DashboardTab from './components/tabs/DashboardTab';
-import MapTab from './components/tabs/MapTab';
-import MyTab from './components/tabs/MyTab';
 import NetworkStatus from './components/NetworkStatus';
 import GeolocationIndicator from './components/GeolocationIndicator';
 import WelcomeModal from './components/WelcomeModal';
@@ -11,7 +7,13 @@ import PWAInstaller from './components/PWAInstaller';
 import SyncToast from './components/SyncToast';
 import { useSubmissions } from './hooks/useSubmissions';
 import { toBn } from './data/bdData';
-import { FileText, BarChart3, Map, User, Wifi, WifiOff, MapPin, AlertTriangle } from 'lucide-react';
+import { FileText, BarChart3, Map, User, Wifi, WifiOff, MapPin, AlertTriangle, Loader2 } from 'lucide-react';
+
+// Lazy-load tab components — each chunk only downloads when tab is first visited
+const FormTab      = lazy(() => import('./components/tabs/FormTab'));
+const DashboardTab = lazy(() => import('./components/tabs/DashboardTab'));
+const MapTab       = lazy(() => import('./components/tabs/MapTab'));
+const MyTab        = lazy(() => import('./components/tabs/MyTab'));
 
 type Tab = 'form' | 'dashboard' | 'map' | 'my';
 
@@ -101,7 +103,12 @@ export default function App() {
 
       {/* ── CONTENT ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto pb-20 md:pb-6">
-        <AnimatePresence mode="wait">
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64 text-green-600">
+            <Loader2 className="w-8 h-8 animate-spin" />
+          </div>
+        }>
+          <AnimatePresence mode="wait">
           {activeTab === 'form' && (
             <motion.div key="form" initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-6 }} transition={{ duration:0.15 }}>
               <FormTab editTarget={editTarget} onEditDone={handleEditDone} />
@@ -123,6 +130,7 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
+        </Suspense>
       </main>
 
       {/* ── MOBILE BOTTOM NAV ── */}
