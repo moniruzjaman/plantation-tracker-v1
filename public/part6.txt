@@ -509,6 +509,23 @@ window.LATEST_DEVICE_COORDS = null;
 
 // Listen for live high-precision geolocation messages from parent React template container
 window.addEventListener("message", function(event) {
+  if (event && event.data && event.data.type === 'rural-data-saver-change') {
+    var enabled = event.data.enabled;
+    if (enabled) {
+      localStorage.setItem('rural_data_saver_active', 'true');
+      if (window.setMapLayer) {
+        window.setMapLayer('normal');
+      }
+      showBanner("successBanner", "🌾 গ্রামীণ ডাটা সেভার সক্রিয় করা হয়েছে! মেগাবাইট ও ব্যাটারি সাশ্রয় করতে স্যাটেলাইট ম্যাপ ও অতিরিক্ত এআই ডাটা সিঙ্ক সীমাবদ্ধ করা হয়েছে।");
+    } else {
+      localStorage.setItem('rural_data_saver_active', 'false');
+      showBanner("successBanner", "🌾 গ্রামীণ ডাটা সেভার বন্ধ করা হয়েছে।");
+    }
+    if (typeof window.updateRuralToggleUI === 'function') {
+      window.updateRuralToggleUI();
+    }
+  }
+
   if (event && event.data && event.data.type === 'device-location') {
     var coords = event.data.coords;
     if (coords && coords.latitude && coords.longitude) {

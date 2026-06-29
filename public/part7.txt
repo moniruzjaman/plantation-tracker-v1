@@ -83,6 +83,9 @@ window.updateBaseLayers = function() {
   activeTileLayers = [];
   
   var layerMode = window.currentMapLayerMode;
+  if (localStorage.getItem('rural_data_saver_active') === 'true') {
+    layerMode = 'normal';
+  }
   
   if (layerMode === 'normal') {
     // Normal OpenStreetMap
@@ -124,6 +127,10 @@ window.updateBaseLayers = function() {
 };
 
 window.setMapLayer = function(layerMode) {
+  if (localStorage.getItem('rural_data_saver_active') === 'true' && layerMode !== 'normal') {
+    layerMode = 'normal';
+    showBanner("successBanner", "🌾 গ্রামীণ ডাটা সেভার সক্রিয় রয়েছে! ম্যাপ লেয়ার পরিবর্তন করতে প্রথমে ডাটা সেভার বন্ধ করুন।");
+  }
   window.currentMapLayerMode = layerMode;
   
   // Set ndviEnabled state for backward compatibility

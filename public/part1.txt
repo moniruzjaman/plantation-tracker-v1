@@ -477,9 +477,64 @@ tbody tr{border-bottom:1px solid #e5e7eb}
 <p class="text-green-100 text-xs sm:text-sm mt-0.5 font-medium" style="color:#dcfce7">কৃষি সম্প্রসারণ অধিদপ্তর</p>
 </div>
 </div>
+<div class="flex items-center gap-2 flex-wrap">
+<button id="iframeRuralToggleBtn" onclick="toggleIframeRuralDataSaver()" class="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/25 text-amber-100 font-bold py-2 px-3 sm:px-4 rounded-xl border border-amber-400/20 text-xs sm:text-sm transition active:scale-95 cursor-pointer no-print shadow-sm flex-shrink-0 whitespace-nowrap">
+  🌾 ডাটা সেভার: <span id="iframeRuralToggleText" class="text-white font-black">বন্ধ</span>
+</button>
 <button onclick="window.openHelpGuide && window.openHelpGuide()" class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-bold py-2 px-4 rounded-xl border border-white/25 text-xs sm:text-sm transition active:scale-95 cursor-pointer no-print shadow-sm flex-shrink-0 whitespace-nowrap">
   📖 সহায়িকা ও ইউজার গাইড
 </button>
+</div>
+<script>
+function toggleIframeRuralDataSaver() {
+  var isCurrentlyOn = localStorage.getItem('rural_data_saver_active') === 'true';
+  var nextVal = !isCurrentlyOn;
+  localStorage.setItem('rural_data_saver_active', nextVal ? 'true' : 'false');
+  
+  // Notify parent React app so state syncs perfectly across iframe and react!
+  try {
+    window.parent.postMessage({
+      type: 'rural-data-saver-change',
+      enabled: nextVal
+    }, '*');
+  } catch(e) {}
+  
+  // Update local UI
+  window.updateRuralToggleUI();
+  
+  if (nextVal) {
+    if (window.setMapLayer) {
+      window.setMapLayer('normal');
+    }
+    showBanner("successBanner", "🌾 গ্রামীণ ডাটা সেভার সক্রিয় করা হয়েছে! স্যাটেলাইট ম্যাপ ও অতিরিক্ত এআই ডাটা ব্যবহার সীমাবদ্ধ করা হয়েছে।");
+  } else {
+    showBanner("successBanner", "🌾 গ্রামীণ ডাটা সেভার বন্ধ করা হয়েছে।");
+  }
+}
+
+window.updateRuralToggleUI = function() {
+  var isOn = localStorage.getItem('rural_data_saver_active') === 'true';
+  var textEl = document.getElementById('iframeRuralToggleText');
+  var btnEl = document.getElementById('iframeRuralToggleBtn');
+  if (textEl) {
+    textEl.textContent = isOn ? 'চালু' : 'বন্ধ';
+    textEl.className = isOn ? 'text-amber-300 font-extrabold' : 'text-gray-300 font-bold';
+  }
+  if (btnEl) {
+    if (isOn) {
+      btnEl.classList.add('bg-amber-500/35', 'border-amber-400/50');
+      btnEl.classList.remove('bg-amber-500/10', 'border-amber-400/20');
+    } else {
+      btnEl.classList.remove('bg-amber-500/35', 'border-amber-400/50');
+      btnEl.classList.add('bg-amber-500/10', 'border-amber-400/20');
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(window.updateRuralToggleUI, 100);
+});
+</script>
 </div>
 </header>
 

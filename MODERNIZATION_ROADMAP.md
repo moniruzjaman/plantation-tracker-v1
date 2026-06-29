@@ -401,6 +401,13 @@ To make the platform highly robust for remote fieldwork in rural Bangladesh, we 
     *   **AI Leaf Snapshot Compression:** Photos taken for AI plant diagnostics are automatically compressed on-the-fly inside the browser using HTML5 Canvas scaling down to 450px Max Dimension and saved as 0.65 quality JPEG. This reduces cellular data usage by up to 99% per image upload while retaining full pathology diagnostic features.
 *   **Inter-Frame Synchronization:** Real-time synchronized toggle is implemented between the React App UI and the embedded Leaflet GIS iframe using HTML5 `window.postMessage` API listeners.
 
+### 3. Plantation Health Monitor & Growth Prognosis (Implemented)
+*   **Core Mathematical Model:** Calculates expected height, expected canopy diameter, and survival probability percent based on tree species, elapsed planting date, and tropical seasonal parameters.
+*   **Localized Bangladesh Weather Modeling:** Evaluates planting month against Bangladesh meteorological seasons (Monsoon, Autumn, Winter, Summer/Drought) to determine survival indices and generate expert silviculture advisory tips in both Bengali and English.
+*   **Dual Mode Capability:**
+    *   **Interactive Batch Tracking:** Automatically pulls species list and planting date from any selected offline-logged batch.
+    *   **Custom Predictive Planner:** Allows manual configuration of any of the 20 standard Bangladeshi species (such as Shal, Teak, Mango, Neem, Arjun) and planting dates to plan future plantations directly in the dashboard.
+
 ---
 
 ## 14. Changelog
@@ -408,4 +415,5 @@ To make the platform highly robust for remote fieldwork in rural Bangladesh, we 
 *   **v1.1.0 (Current Baseline):** Restructured backend fallback pipelines, optimized map view tab switching to prevent null-reference errors.
 *   **v2.0.0 (Target Specs):** Full React 19 / TypeScript migration, Dexie offline-first database, Gemini AI field diagnostics integration, true multi-spectral GEE analytics maps.
 *   **v2.1.0 (Rural Bangladesh Release):** Optimized GPS tracking to 1.1–2.9 meter precision. Integrated the Rural Data Saver mode to perform image downscaling (saving 99% bandwidth) and automatic satellite-layer disabling. Synchronized real-time state with parent-iframe message bus.
+*   **v2.2.0 (Plantation Health Monitor Release):** Developed the real-time growth model for 20 local trees. Designed the Interactive Plantation Health Monitor tab in the offline dashboard panel with localized bilingual expert advisories.
 
