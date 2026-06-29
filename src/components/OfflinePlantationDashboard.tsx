@@ -61,9 +61,13 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string>('custom');
   const [selectedSpecies, setSelectedSpecies] = useState<string>('আম');
   const [customPlantingDate, setCustomPlantingDate] = useState<string>('2026-03-15');
+  const [customDistrict, setCustomDistrict] = useState<string>('Rajshahi');
 
   // Get currently selected submission
   const selectedSubmission = submissions.find(s => s.id === selectedSubmissionId);
+
+  // Determine planting district/region to use
+  const activeDistrict = selectedSubmission?.district || customDistrict;
 
   // Extract all species present in the selected submission
   const submissionSpeciesList = useMemo(() => {
@@ -100,8 +104,8 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
 
   // Run the health prognosis model!
   const healthPrognosis = useMemo(() => {
-    return calculateGrowthPrognosis(selectedSpecies, activePlantingDate);
-  }, [selectedSpecies, activePlantingDate]);
+    return calculateGrowthPrognosis(selectedSpecies, activePlantingDate, activeDistrict);
+  }, [selectedSpecies, activePlantingDate, activeDistrict]);
 
   // Invoke callback when submissions list updates
   useEffect(() => {
@@ -522,7 +526,7 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
                   </div>
 
                   {/* Species & Date Pickers */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid gap-2 ${selectedSubmissionId === 'custom' ? 'grid-cols-3' : 'grid-cols-2'}`}>
                     <div className="flex flex-col gap-1">
                       <label className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wider">
                         {language === 'bn' ? 'গাছের প্রজাতি' : 'Tree Species'}
@@ -579,6 +583,25 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
                         </div>
                       )}
                     </div>
+
+                    {selectedSubmissionId === 'custom' && (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wider">
+                          {language === 'bn' ? 'জলবায়ু অঞ্চল' : 'Climate Zone'}
+                        </label>
+                        <select
+                          id="selectHealthDistrict"
+                          value={customDistrict}
+                          onChange={(e) => setCustomDistrict(e.target.value)}
+                          className="w-full bg-white border border-gray-200 hover:border-gray-300 rounded-lg p-1.5 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer"
+                        >
+                          <option value="Rajshahi">{language === 'bn' ? 'বরেন্দ্র (রাজশাহী)' : 'Barind (Rajshahi)'}</option>
+                          <option value="Dhaka">{language === 'bn' ? 'পলল সমতল (ঢাকা)' : 'Plain (Dhaka)'}</option>
+                          <option value="Sylhet">{language === 'bn' ? 'পাহাড়ি বনাঞ্চল (সিলেট)' : 'Hills (Sylhet)'}</option>
+                          <option value="Khulna">{language === 'bn' ? 'লবণাক্ত উপকূল (খুলনা)' : 'Coastal (Khulna)'}</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
 
                   {/* Growth & Health Prognosis Metrics Card */}
@@ -699,6 +722,148 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
                       </span>
                     </div>
 
+                  </div>
+
+                  {/* Regional Benchmark & Threshold Alerts */}
+                  <div className={`p-3 rounded-xl border flex flex-col gap-2.5 ${
+                    healthPrognosis.growthAlertLevel === 'optimal' ? 'bg-emerald-50/25 border-emerald-500/20 text-emerald-950' :
+                    healthPrognosis.growthAlertLevel === 'normal' ? 'bg-lime-50/25 border-lime-500/20 text-lime-950' :
+                    healthPrognosis.growthAlertLevel === 'underperforming' ? 'bg-amber-50/30 border-amber-500/30 text-amber-950 animate-pulse' :
+                    'bg-rose-50/30 border-rose-500/30 text-rose-950'
+                  }`}>
+                    {/* Header */}
+                    <div className="flex items-center gap-1.5 border-b border-gray-150/40 pb-1.5 justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp className={`w-3.5 h-3.5 ${
+                          healthPrognosis.growthAlertLevel === 'optimal' ? 'text-emerald-600' :
+                          healthPrognosis.growthAlertLevel === 'normal' ? 'text-lime-600' :
+                          healthPrognosis.growthAlertLevel === 'underperforming' ? 'text-amber-600' :
+                          'text-rose-600'
+                        }`} />
+                        <span className="font-bold text-[11px] text-gray-800">
+                          {language === 'bn' ? 'আঞ্চলিক প্রবৃদ্ধি সূচক ও অ্যালার্ট' : 'Regional Growth Benchmark & Alert'}
+                        </span>
+                      </div>
+                      
+                      <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase ${
+                        healthPrognosis.growthAlertLevel === 'optimal' ? 'bg-emerald-100 text-emerald-800' :
+                        healthPrognosis.growthAlertLevel === 'normal' ? 'bg-lime-100 text-lime-800' :
+                        healthPrognosis.growthAlertLevel === 'underperforming' ? 'bg-amber-100 text-amber-800' :
+                        'bg-rose-100 text-rose-800'
+                      }`}>
+                        {healthPrognosis.growthAlertLevel === 'optimal' && (language === 'bn' ? 'অনুকূল প্রবৃদ্ধি' : 'Optimal')}
+                        {healthPrognosis.growthAlertLevel === 'normal' && (language === 'bn' ? 'স্বাভাবিক প্রবৃদ্ধি' : 'Normal')}
+                        {healthPrognosis.growthAlertLevel === 'underperforming' && (language === 'bn' ? 'মন্থর চারা' : 'Underperforming')}
+                        {healthPrognosis.growthAlertLevel === 'severely_underperforming' && (language === 'bn' ? 'মারাত্মক মন্থর' : 'Stunted')}
+                      </span>
+                    </div>
+
+                    {/* Regional Info Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="flex flex-col bg-white/40 border border-gray-100 rounded-lg p-1.5 text-left">
+                        <span className="text-gray-400 font-bold uppercase text-[7.5px] tracking-wider">
+                          {language === 'bn' ? 'অঞ্চল ও মাটি' : 'Region & Soil'}
+                        </span>
+                        <span className="font-semibold text-gray-700 mt-0.5 leading-snug">
+                          {language === 'bn' ? healthPrognosis.regionalBenchmark.regionNameBn : healthPrognosis.regionalBenchmark.regionNameEn}
+                        </span>
+                        <span className="text-[8.5px] text-gray-500 italic mt-0.5">
+                          {language === 'bn' ? healthPrognosis.regionalBenchmark.soilTypeBn : healthPrognosis.regionalBenchmark.soilTypeEn}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col bg-white/40 border border-gray-100 rounded-lg p-1.5 text-left">
+                        <span className="text-gray-400 font-bold uppercase text-[7.5px] tracking-wider">
+                          {language === 'bn' ? 'আঞ্চলিক উপযোগিতা' : 'Regional Suitability'}
+                        </span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="font-black text-xs text-emerald-800">
+                            {toBnNum(healthPrognosis.regionalBenchmark.suitabilityScore)}/১০০
+                          </span>
+                          <span className="text-[8.5px] text-gray-400 font-medium">
+                            ({healthPrognosis.regionalBenchmark.suitabilityScore >= 90 ? (language === 'bn' ? 'দারুণ' : 'High') :
+                              healthPrognosis.regionalBenchmark.suitabilityScore >= 75 ? (language === 'bn' ? 'অনুকূল' : 'Good') :
+                              healthPrognosis.regionalBenchmark.suitabilityScore >= 60 ? (language === 'bn' ? 'মধ্যম' : 'Moderate') :
+                              (language === 'bn' ? 'সীমাবদ্ধ' : 'Low')})
+                          </span>
+                        </div>
+                        <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden mt-1">
+                          <div 
+                            className="h-full bg-emerald-500 rounded-full" 
+                            style={{ width: `${healthPrognosis.regionalBenchmark.suitabilityScore}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Growth Performance Comparison Progress Bar */}
+                    <div className="flex flex-col bg-white/50 border border-gray-100 rounded-lg p-2 gap-1.5">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-gray-500 font-medium">
+                          {language === 'bn' ? 'আঞ্চলিক বেঞ্চমার্কের তুলনায় প্রবৃদ্ধি' : 'Growth vs. Regional Benchmark'}
+                        </span>
+                        <span className={`font-extrabold ${
+                          healthPrognosis.growthAlertLevel === 'optimal' ? 'text-emerald-700' :
+                          healthPrognosis.growthAlertLevel === 'normal' ? 'text-lime-700' :
+                          healthPrognosis.growthAlertLevel === 'underperforming' ? 'text-amber-700' :
+                          'text-rose-700'
+                        }`}>
+                          {toBnNum(healthPrognosis.performanceIndexPercent)}%
+                        </span>
+                      </div>
+
+                      <div className="w-full h-2 bg-gray-150 rounded-full overflow-hidden relative flex">
+                        {/* Underperformance danger line at 85% */}
+                        <div className="absolute top-0 bottom-0 left-[85%] w-0.5 bg-amber-500/40 z-10" />
+                        {/* Stunted danger line at 70% */}
+                        <div className="absolute top-0 bottom-0 left-[70%] w-0.5 bg-rose-500/40 z-10" />
+                        
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            healthPrognosis.growthAlertLevel === 'optimal' ? 'bg-emerald-500' :
+                            healthPrognosis.growthAlertLevel === 'normal' ? 'bg-lime-500' :
+                            healthPrognosis.growthAlertLevel === 'underperforming' ? 'bg-amber-500' :
+                            'bg-rose-500'
+                          }`}
+                          style={{ width: `${Math.min(100, healthPrognosis.performanceIndexPercent)}%` }}
+                        />
+                      </div>
+
+                      {/* Growth speed comparison */}
+                      <div className="flex justify-between text-[9px] text-gray-500 border-t border-gray-100 pt-1 mt-0.5 font-mono">
+                        <div className="flex flex-col text-left">
+                          <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wider">{language === 'bn' ? 'প্রকৃত প্রবৃদ্ধি হার' : 'Simulated Growth'}</span>
+                          <span className="font-extrabold text-gray-700 mt-0.5">{toBnNum(healthPrognosis.actualGrowthRateMetersPerYear)} {language === 'bn' ? 'মিটার/বছর' : 'm/year'}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wider">{language === 'bn' ? 'বেঞ্চমার্ক প্রবৃদ্ধি' : 'Regional Benchmark'}</span>
+                          <span className="font-extrabold text-gray-700 mt-0.5">{toBnNum(healthPrognosis.regionalBenchmark.benchmarkGrowthMetersPerYear)} {language === 'bn' ? 'মিটার/বছর' : 'm/year'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alert Message Box */}
+                    <div className={`p-2 rounded-lg border text-[9.5px] leading-relaxed text-left flex gap-1.5 ${
+                      healthPrognosis.growthAlertLevel === 'optimal' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-900' :
+                      healthPrognosis.growthAlertLevel === 'normal' ? 'bg-lime-500/5 border-lime-500/10 text-lime-900' :
+                      healthPrognosis.growthAlertLevel === 'underperforming' ? 'bg-amber-500/5 border-amber-500/15 text-amber-900' :
+                      'bg-rose-500/5 border-rose-500/15 text-rose-900'
+                    }`}>
+                      <span className="text-xs shrink-0 select-none mt-0.5">
+                        {healthPrognosis.growthAlertLevel === 'optimal' ? '✅' :
+                         healthPrognosis.growthAlertLevel === 'normal' ? '🌱' :
+                         healthPrognosis.growthAlertLevel === 'underperforming' ? '⚠️' :
+                         '🚨'}
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-bold">
+                          {language === 'bn' ? 'প্রবৃদ্ধি স্থিতি:' : 'Growth Alert Status:'}
+                        </span>
+                        <p className="text-gray-700 font-sans mt-0.5 leading-relaxed">
+                          {language === 'bn' ? healthPrognosis.growthAlertMsgBn : healthPrognosis.growthAlertMsgEn}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Agricultural Advisory Box */}
