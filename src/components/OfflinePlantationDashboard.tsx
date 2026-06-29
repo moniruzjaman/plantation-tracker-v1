@@ -12,8 +12,10 @@ import {
   Clock,
   Settings,
   Flame,
-  Globe2
+  Globe2,
+  TreePine
 } from 'lucide-react';
+import { calculateCarbonSequestration } from '../utils/carbonMath';
 
 export interface Seedling {
   name: string;
@@ -120,6 +122,8 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
   // Track districts represented in offline submissions
   const districtMap: { [key: string]: number } = {};
 
+  let totalCarbon = 0;
+
   submissions.forEach(s => {
     // Calculate seedling counts
     const countCategory = (list?: Seedling[]) => {
@@ -140,6 +144,22 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
     forestCount += fo;
     medicinalCount += m;
     totalSeedlings += (f + fo + m);
+
+    // Calculate carbon sequestration for this submission
+    const mapToSeedlingItems = (list?: Seedling[]) => {
+      if (!list) return [];
+      return list.map(item => ({
+        speciesName: item.name,
+        count: parseInt(item.count as string) || 0,
+        graftingCount: parseInt(item.graftingCount as string) || 0
+      }));
+    };
+    const c = calculateCarbonSequestration(
+      mapToSeedlingItems(s.fruitSeedlings),
+      mapToSeedlingItems(s.forestSeedlings),
+      mapToSeedlingItems(s.medicinalSeedlings)
+    );
+    totalCarbon += c;
 
     // Track district stats
     if (s.district) {
@@ -264,6 +284,26 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
                   <Leaf className="w-4 h-4 text-lime-600 mb-1" />
                   <span className="text-[10px] font-medium text-lime-800 opacity-80 uppercase tracking-wider">{t.totalPlanted}</span>
                   <span className="text-xl font-extrabold text-lime-700 mt-1">{toBnNum(totalSeedlings)}</span>
+                </div>
+
+                {/* Metric 3: Carbon Offsets (Full Width) */}
+                <div className="col-span-2 bg-gradient-to-r from-emerald-50/30 to-teal-50/30 border border-teal-100 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-700 shrink-0">
+                      <TreePine className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-[9.5px] font-bold text-teal-900 opacity-80 uppercase tracking-wider">
+                        {language === 'bn' ? 'বার্ষিক কার্বন ডাই-অক্সাইড শোষণ' : 'Est. Annual CO2 Absorption'}
+                      </span>
+                      <span className="text-xs text-gray-500 font-medium">
+                        {language === 'bn' ? 'আইপিসিসি টিয়ার-২ সূত্র দ্বারা পরিমাপকৃত' : 'IPCC Tier-2 scientific standard'}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-sm font-black text-emerald-700 font-mono shrink-0">
+                    {language === 'bn' ? `${toBnNum(parseFloat(totalCarbon.toFixed(2)))} টন` : `${totalCarbon.toFixed(2)} Tons`}
+                  </span>
                 </div>
 
               </div>

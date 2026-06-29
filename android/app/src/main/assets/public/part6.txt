@@ -33,6 +33,188 @@ window.reverseGeocode = function(lat, lng, targetId) {
         if (parts.length > 0) {
           addressStr = parts.join(", ");
         }
+
+        // --- Auto Fill Region, District, Upazila ---
+        try {
+          var EN_TO_BN_DISTRICTS = {
+            "dhaka": "ঢাকা", "narayanganj": "নারায়ণগঞ্জ", "gazipur": "গাজীপুর", "narsingdi": "নরসিংদী", "munshiganj": "মুন্সীগঞ্জ", "manikganj": "মানিকগঞ্জ", "tangail": "টাঙ্গাইল", "kishoreganj": "কিশোরগঞ্জ",
+            "mymensingh": "ময়মনসিংহ", "jamalpur": "জামালপুর", "sherpur": "শেরপুর", "netrokona": "নেত্রকোণা", "netrakona": "নেত্রকোণা",
+            "comilla": "কুমিল্লা", "cumilla": "কুমিল্লা", "chandpur": "চাঁদপুর", "brahmanbaria": "ব্রাহ্মণবাড়িয়া",
+            "moulvibazar": "مৌলভীবাজার", "sylhet": "সিলেট", "sunamganj": "সুনামগঞ্জ", "habiganj": "হবিগঞ্জ",
+            "chittagong": "চট্টগ্রাম", "chattogram": "চট্টগ্রাম", "cox's bazar": "কক্সবাজার", "coxs bazar": "কক্সবাজার", "coxsbazar": "কক্সবাজার", "noakhali": "নোয়াখালী", "feni": "ফেনী", "lakshmipur": "লক্ষীপুর", "laxmipur": "লক্ষীপুর",
+            "rangamati": "রাঙ্গামাটি", "khagrachhari": "خাগড়াছড়ি", "khagrachari": "খাগড়াছড়ি", "bandarban": "বান্দরবান",
+            "rangpur": "রংপুর", "gaibandha": "গাইবান্ধা", "kurigram": "কুড়িগ্রাম", "lalmonirhat": "লালমনিরহাট", "nilphamari": "নীলফামারী",
+            "rajshahi": "রাজশাহী", "naogaon": "নওগাঁ", "natore": "নাটোর", "chapainawabganj": "চাঁপাইনবাবগঞ্জ", "nawabganj": "চাঁপাইনবাবগঞ্জ",
+            "bogra": "বগুড়া", "bogura": "বগুড়া", "joypurhat": "জয়ুপুরহাট", "pabna": "পাবনা", "sirajganj": "সিরাজগঞ্জ",
+            "dinajpur": "দিনাজপুর", "thakurgaon": "ঠাকুরগাঁও", "panchagarh": "পঞ্চগড়",
+            "khulna": "খুলনা", "bagerhat": "বাগেরহাট", "satkhira": "সাতক্ষীরা", "narail": "নড়াইল",
+            "jessore": "যশোর", "jashore": "যশোর", "jhenaidah": "ঝিনাইদহ", "magura": "মাগুরা", "kushtia": "কুষ্টিয়া", "chuadanga": "চুয়াডাঙ্গা", "meherpur": "মেহেরপুর",
+            "faridpur": "ফরিদপুর", "madaripur": "মাদারীপুর", "shariatpur": "শরীয়তপুর", "rajbari": "রাজবাড়ী", "gopalganj": "গোপালগঞ্জ",
+            "barisal": "বরিশাল", "barishal": "বরিশাল", "jhalokati": "ঝালকাঠি", "jhalokathi": "ঝালকাঠি", "pirojpur": "পিরোজপুর", "patuakhali": "পটুয়াখালী", "barguna": "বরগুনা", "bhola": "ভোলা"
+          };
+
+          var normalizeName = function(str) {
+            if (!str) return "";
+            str = String(str).trim();
+            str = str.replace(/ বিভাগ+/g, "");
+            str = str.replace(/ জেলা+/g, "");
+            str = str.replace(/ উপজেলা+/g, "");
+            str = str.replace(/ পৌরসভা+/g, "");
+            str = str.replace(/ সদর+/g, "");
+            str = str.replace(/ Division/gi, "");
+            str = str.replace(/ District/gi, "");
+            str = str.replace(/ Upazila/gi, "");
+            str = str.replace(/ Thana/gi, "");
+            str = str.replace(/ Sub-district/gi, "");
+            str = str.replace(/ Subdistrict/gi, "");
+            str = str.replace(/ Municipality/gi, "");
+            str = str.replace(/ Sadar/gi, "");
+            return str.trim();
+          };
+
+          var transliterateBnToEn = function(bn) {
+            if (!bn) return "";
+            var map = {
+              'অ': 'o', 'আ': 'a', 'ই': 'i', 'ঈ': 'i', 'উ': 'u', 'ঊ': 'u', 'ঋ': 'ri', 'এ': 'e', 'ঐ': 'oi', 'ও': 'o', 'ঔ': 'ou',
+              'ক': 'k', 'খ': 'kh', 'গ': 'g', 'ঘ': 'gh', 'ঙ': 'ng',
+              'চ': 'ch', 'ছ': 'ch', 'জ': 'j', 'ঝ': 'jh', 'ঞ': 'n',
+              'ট': 't', 'ঠ': 'th', 'ড': 'd', 'ঢ': 'dh', 'ণ': 'n',
+              'ত': 't', 'থ': 'th', 'দ': 'd', 'ধ': 'dh', 'ন': 'n',
+              'প': 'p', 'ফ': 'f', 'ব': 'b', 'ভ': 'bh', 'ম': 'm',
+              'য': 'j', 'র': 'r', 'ল': 'l', 'শ': 'sh', 'ষ': 'sh', 'স': 's', 'হ': 'h',
+              'ড়': 'r', 'ঢ়': 'r', 'য়': 'y', 'ৎ': 't', 'ং': 'ng', 'ঃ': 'h', 'ঁ': '',
+              'া': 'a', 'ি': 'i', 'ী': 'i', 'ু': 'u', 'ূ': 'u', 'ৃ': 'ri', 'ে': 'e', 'ৈ': 'oi', 'ো': 'o', 'ৌ': 'ou', '্য': 'y', '্র': 'r'
+            };
+            var res = "";
+            for (var i = 0; i < bn.length; i++) {
+              var char = bn[i];
+              res += map[char] || char;
+            }
+            return res.toLowerCase().replace(/[^a-z0-9]/g, "");
+          };
+
+          var districtCandidates = [a.district, a.state_district, a.city, a.county].filter(Boolean);
+          var upazilaCandidates = [a.subdistrict, a.county, a.municipality, a.town, a.city_district].filter(Boolean);
+
+          var matchedDistrict = "";
+          var normalizedDstCand = districtCandidates.map(function(c) { return normalizeName(c).toLowerCase(); }).filter(Boolean);
+
+          var allDistricts = [];
+          Object.keys(BD).forEach(function(reg) {
+            BD[reg].forEach(function(dst) {
+              if (allDistricts.indexOf(dst) === -1) allDistricts.push(dst);
+            });
+          });
+
+          // Match District (Bengali names first)
+          for (var i = 0; i < allDistricts.length; i++) {
+            var dst = allDistricts[i];
+            for (var j = 0; j < normalizedDstCand.length; j++) {
+              var cand = normalizedDstCand[j];
+              if (cand === dst || cand.indexOf(dst) !== -1 || dst.indexOf(cand) !== -1) {
+                matchedDistrict = dst;
+                break;
+              }
+            }
+            if (matchedDistrict) break;
+          }
+
+          // Match District (English name backup)
+          if (!matchedDistrict) {
+            for (var j = 0; j < normalizedDstCand.length; j++) {
+              var cand = normalizedDstCand[j];
+              if (EN_TO_BN_DISTRICTS[cand]) {
+                matchedDistrict = EN_TO_BN_DISTRICTS[cand];
+                break;
+              }
+              var keys = Object.keys(EN_TO_BN_DISTRICTS);
+              for (var k = 0; k < keys.length; k++) {
+                var key = keys[k];
+                if (cand.indexOf(key) !== -1 || key.indexOf(cand) !== -1) {
+                  matchedDistrict = EN_TO_BN_DISTRICTS[key];
+                  break;
+                }
+              }
+              if (matchedDistrict) break;
+            }
+          }
+
+          if (matchedDistrict) {
+            var matchedRegion = "";
+            Object.keys(BD).forEach(function(reg) {
+              if (BD[reg].indexOf(matchedDistrict) !== -1) {
+                matchedRegion = reg;
+              }
+            });
+
+            if (matchedRegion) {
+              var matchedUpazila = "";
+              var upazilas = BD_UPAZILA[matchedDistrict] || [];
+              var normalizedUpCand = upazilaCandidates.map(function(c) { return normalizeName(c).toLowerCase(); }).filter(Boolean);
+
+              // Match Upazila (Bengali names first)
+              for (var i = 0; i < upazilas.length; i++) {
+                var up = upazilas[i];
+                for (var j = 0; j < normalizedUpCand.length; j++) {
+                  var cand = normalizedUpCand[j];
+                  if (cand === up || cand.indexOf(up) !== -1 || up.indexOf(cand) !== -1) {
+                    matchedUpazila = up;
+                    break;
+                  }
+                }
+                if (matchedUpazila) break;
+              }
+
+              // Match Upazila (English transliteration check)
+              if (!matchedUpazila && upazilas.length > 0) {
+                for (var i = 0; i < upazilas.length; i++) {
+                  var up = upazilas[i];
+                  var enUp = transliterateBnToEn(up);
+                  var enUpAlt = enUp.replace(/bh/g, "v").replace(/b/g, "v").replace(/sh/g, "s");
+                  
+                  for (var j = 0; j < normalizedUpCand.length; j++) {
+                    var cand = normalizedUpCand[j];
+                    var candEn = cand.replace(/[^a-z0-9]/g, "");
+                    var candEnAlt = candEn.replace(/bh/g, "v").replace(/b/g, "v").replace(/sh/g, "s");
+                    
+                    if (candEn.indexOf(enUp) !== -1 || enUp.indexOf(candEn) !== -1 ||
+                        candEnAlt.indexOf(enUpAlt) !== -1 || enUpAlt.indexOf(candEnAlt) !== -1) {
+                      matchedUpazila = up;
+                      break;
+                    }
+                  }
+                  if (matchedUpazila) break;
+                }
+              }
+
+              // Apply values to dropdown selectors
+              var prefix = targetId.charAt(0); // 'f' or 'e'
+              var regSelect = document.getElementById(prefix + "Region");
+              var dstSelect = document.getElementById(prefix + "District");
+              var upSelect = document.getElementById(prefix + "Upazila");
+
+              if (regSelect && dstSelect && upSelect) {
+                regSelect.value = matchedRegion;
+                var onRegionChangeName = prefix === "e" ? "onEditRegionChange" : "onFormRegionChange";
+                if (typeof window[onRegionChangeName] === "function") {
+                  window[onRegionChangeName]();
+                }
+                
+                dstSelect.value = matchedDistrict;
+                var onDistrictChangeName = prefix === "e" ? "onEditDistrictChange" : "onFormDistrictChange";
+                if (typeof window[onDistrictChangeName] === "function") {
+                  window[onDistrictChangeName]();
+                }
+                
+                if (matchedUpazila) {
+                  upSelect.value = matchedUpazila;
+                }
+              }
+            }
+          }
+        } catch (fillErr) {
+          console.error("Auto filling of region/district/upazila failed:", fillErr);
+        }
       }
       addrField.value = addressStr;
     }
@@ -49,23 +231,370 @@ window.onGeoLocationChange = function(inputEl, targetAddressId) {
     var lat = parseFloat(m[1]).toFixed(6);
     var lng = parseFloat(m[2]).toFixed(6);
     window.reverseGeocode(lat, lng, targetAddressId);
+    
+    var prefix = targetAddressId.charAt(0);
+    if (prefix === "f") {
+      if (typeof window.updateMiniFormMapPin === "function") {
+        window.updateMiniFormMapPin(parseFloat(lat), parseFloat(lng));
+      }
+    } else {
+      if (typeof window.updateMiniEditMapPin === "function") {
+        window.updateMiniEditMapPin(parseFloat(lat), parseFloat(lng));
+      }
+    }
   }
 };
 
-window.fetchGeoLocation=function(){
-try{
-var geoField=document.getElementById("fGeo"),geoStatus=document.getElementById("geoStatus"),geoStatusText=document.getElementById("geoStatusText"),geoBtnText=document.getElementById("geoBtnText");
-if(!navigator.geolocation){geoStatusText.textContent="⚠️ আপনার ব্রাউজার লোকেশন সাপোর্ট করে না।";geoStatus.classList.remove("hidden");return}
-geoBtnText.textContent="অপেক্ষা...";
-geoStatusText.textContent="📡 লোকেশন খোঁজা হচ্ছে...";geoStatus.classList.remove("hidden");geoStatus.style.color="#2563eb";
-navigator.geolocation.getCurrentPosition(function(pos){
-var lat=pos.coords.latitude.toFixed(6),lng=pos.coords.longitude.toFixed(6);
-geoField.value=lat+", "+lng;
-geoStatusText.textContent="✅ লোকেশন সফলভাবে পাওয়া গেছে";geoStatus.style.color="#15803d";geoBtnText.textContent="আপডেট";
-setTimeout(function(){geoStatus.classList.add("hidden")},3000);
-window.reverseGeocode(lat, lng, "fAddress");
-},function(err){var msg="";switch(err.code){case 1:msg="❌ লোকেশন অনুমতি দেওয়া হয়নি। ব্রাউজার সেটিংস থেকে অনুমতি দিন।";break;case 2:msg="⚠️ লোকেশন পাওয়া যায়নি।";break;case 3:msg="⏱️ লোকেশন খোঁজার সময় শেষ হয়ে গেছে।";break;default:msg="⚠️ অজানা ত্রুটি হয়েছে।"}geoStatusText.textContent=msg;geoStatus.style.color="#dc2626";geoBtnText.textContent="আবার চেষ্টা"},{enableHighAccuracy:true,timeout:10000,maximumAge:300000});
-}catch(e){console.error("Geo error:",e)}
+// ── Integrated Leaflet Mini Maps ──
+window.miniFormMapInstance = null;
+window.miniFormMarker = null;
+window.miniEditMapInstance = null;
+window.miniEditMarker = null;
+
+window.initMiniFormMap = function() {
+  try {
+    var container = document.getElementById("miniFormMap");
+    if (!container) return;
+    
+    if (window.miniFormMapInstance) {
+      setTimeout(function() {
+        if (window.miniFormMapInstance) {
+          window.miniFormMapInstance.invalidateSize();
+        }
+      }, 100);
+      return;
+    }
+    
+    var defaultLat = 23.8103;
+    var defaultLng = 90.4125;
+    
+    var fGeoVal = document.getElementById("fGeo").value;
+    if (fGeoVal) {
+      var parts = fGeoVal.split(",");
+      if (parts.length === 2) {
+        var lat = parseFloat(parts[0]);
+        var lng = parseFloat(parts[1]);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          defaultLat = lat;
+          defaultLng = lng;
+        }
+      }
+    } else if (window.LATEST_DEVICE_COORDS) {
+      defaultLat = window.LATEST_DEVICE_COORDS.latitude;
+      defaultLng = window.LATEST_DEVICE_COORDS.longitude;
+    }
+    
+    window.miniFormMapInstance = L.map('miniFormMap').setView([defaultLat, defaultLng], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(window.miniFormMapInstance);
+    
+    window.miniFormMarker = L.marker([defaultLat, defaultLng], {
+      draggable: true
+    }).addTo(window.miniFormMapInstance);
+    
+    if (fGeoVal) {
+      window.miniFormMarker.bindPopup("<b>রোপণকৃত অবস্থান</b>").openPopup();
+    }
+    
+    window.miniFormMarker.on('dragend', function() {
+      var pos = window.miniFormMarker.getLatLng();
+      var lat = pos.lat.toFixed(6);
+      var lng = pos.lng.toFixed(6);
+      document.getElementById("fGeo").value = lat + ", " + lng;
+      if (window.reverseGeocode) {
+        window.reverseGeocode(lat, lng, "fAddress");
+      }
+    });
+    
+    window.miniFormMapInstance.on('click', function(e) {
+      var lat = e.latlng.lat.toFixed(6);
+      var lng = e.latlng.lng.toFixed(6);
+      document.getElementById("fGeo").value = lat + ", " + lng;
+      window.miniFormMarker.setLatLng(e.latlng);
+      window.miniFormMarker.bindPopup("<b>মনোনীত করা অবস্থান</b>").openPopup();
+      if (window.reverseGeocode) {
+        window.reverseGeocode(lat, lng, "fAddress");
+      }
+    });
+    
+    setTimeout(function() {
+      if (window.miniFormMapInstance) {
+        window.miniFormMapInstance.invalidateSize();
+      }
+    }, 200);
+    
+  } catch (err) {
+    console.error("Error creating mini form map:", err);
+  }
+};
+
+window.initMiniEditMap = function() {
+  try {
+    var container = document.getElementById("miniEditMap");
+    if (!container) return;
+    
+    if (window.miniEditMapInstance) {
+      setTimeout(function() {
+        if (window.miniEditMapInstance) {
+          window.miniEditMapInstance.invalidateSize();
+        }
+      }, 100);
+      return;
+    }
+    
+    var defaultLat = 23.8103;
+    var defaultLng = 90.4125;
+    
+    var eGeoVal = document.getElementById("eGeo").value;
+    if (eGeoVal) {
+      var parts = eGeoVal.split(",");
+      if (parts.length === 2) {
+        var lat = parseFloat(parts[0]);
+        var lng = parseFloat(parts[1]);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          defaultLat = lat;
+          defaultLng = lng;
+        }
+      }
+    }
+    
+    window.miniEditMapInstance = L.map('miniEditMap').setView([defaultLat, defaultLng], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(window.miniEditMapInstance);
+    
+    window.miniEditMarker = L.marker([defaultLat, defaultLng], {
+      draggable: true
+    }).addTo(window.miniEditMapInstance);
+    
+    if (eGeoVal) {
+      window.miniEditMarker.bindPopup("<b>রোপণকৃত অবস্থান</b>").openPopup();
+    }
+    
+    window.miniEditMarker.on('dragend', function() {
+      var pos = window.miniEditMarker.getLatLng();
+      var lat = pos.lat.toFixed(6);
+      var lng = pos.lng.toFixed(6);
+      document.getElementById("eGeo").value = lat + ", " + lng;
+      if (window.reverseGeocode) {
+        window.reverseGeocode(lat, lng, "eAddress");
+      }
+    });
+    
+    window.miniEditMapInstance.on('click', function(e) {
+      var lat = e.latlng.lat.toFixed(6);
+      var lng = e.latlng.lng.toFixed(6);
+      document.getElementById("eGeo").value = lat + ", " + lng;
+      window.miniEditMarker.setLatLng(e.latlng);
+      window.miniEditMarker.bindPopup("<b>মনোনীত করা অবস্থান</b>").openPopup();
+      if (window.reverseGeocode) {
+        window.reverseGeocode(lat, lng, "eAddress");
+      }
+    });
+    
+    setTimeout(function() {
+      if (window.miniEditMapInstance) {
+        window.miniEditMapInstance.invalidateSize();
+      }
+    }, 200);
+    
+  } catch (err) {
+    console.error("Error creating mini edit map:", err);
+  }
+};
+
+window.updateMiniFormMapPin = function(lat, lng, showPopup) {
+  try {
+    if (!window.miniFormMapInstance) {
+      window.initMiniFormMap();
+    }
+    if (lat === undefined || lng === undefined) {
+      var val = document.getElementById("fGeo").value;
+      if (!val) return;
+      var parts = val.split(",");
+      if (parts.length === 2) {
+        lat = parseFloat(parts[0]);
+        lng = parseFloat(parts[1]);
+      }
+    }
+    if (isNaN(lat) || isNaN(lng)) return;
+    
+    var latlng = L.latLng(lat, lng);
+    if (window.miniFormMarker) {
+      window.miniFormMarker.setLatLng(latlng);
+    } else {
+      window.miniFormMarker = L.marker(latlng, { draggable: true }).addTo(window.miniFormMapInstance);
+    }
+    
+    window.miniFormMapInstance.setView(latlng, 14);
+    if (showPopup !== false) {
+      window.miniFormMarker.bindPopup("<b>চিহ্নিত লোকেশন</b>").openPopup();
+    }
+  } catch (e) {
+    console.error("Error updating form map pin:", e);
+  }
+};
+
+window.updateMiniEditMapPin = function(lat, lng, showPopup) {
+  try {
+    if (!window.miniEditMapInstance) {
+      window.initMiniEditMap();
+    }
+    if (lat === undefined || lng === undefined) {
+      var val = document.getElementById("eGeo").value;
+      if (!val) return;
+      var parts = val.split(",");
+      if (parts.length === 2) {
+        lat = parseFloat(parts[0]);
+        lng = parseFloat(parts[1]);
+      }
+    }
+    if (isNaN(lat) || isNaN(lng)) return;
+    
+    var latlng = L.latLng(lat, lng);
+    if (window.miniEditMarker) {
+      window.miniEditMarker.setLatLng(latlng);
+    } else {
+      window.miniEditMarker = L.marker(latlng, { draggable: true }).addTo(window.miniEditMapInstance);
+    }
+    
+    window.miniEditMapInstance.setView(latlng, 14);
+    if (showPopup !== false) {
+      window.miniEditMarker.bindPopup("<b>চিহ্নিত লোকেশন</b>").openPopup();
+    }
+  } catch (e) {
+    console.error("Error updating edit map pin:", e);
+  }
+};
+
+// Global cache to hold coordinates received from standard Capacitor/React GPS state
+window.LATEST_DEVICE_COORDS = null;
+
+// Listen for live high-precision geolocation messages from parent React template container
+window.addEventListener("message", function(event) {
+  if (event && event.data && event.data.type === 'device-location') {
+    var coords = event.data.coords;
+    if (coords && coords.latitude && coords.longitude) {
+      window.LATEST_DEVICE_COORDS = coords;
+      
+      // Auto-populate when appropriate (for instance, if fields are empty)
+      var isEditOpen = false;
+      var editModal = document.getElementById("editModal");
+      if (editModal && !editModal.classList.contains("hidden")) {
+        isEditOpen = true;
+      }
+      
+      var formButton = document.querySelector('[data-tab="form"]');
+      var isFormActive = formButton && formButton.classList.contains("active");
+      
+      if (isEditOpen || isFormActive) {
+        var prefix = isEditOpen ? "e" : "f";
+        var geoField = document.getElementById(prefix + "Geo");
+        var targetAddr = prefix + "Address";
+        
+        if (geoField && !geoField.value) {
+          var newStr = coords.latitude.toFixed(6) + ", " + coords.longitude.toFixed(6);
+          geoField.value = newStr;
+          if (window.reverseGeocode) {
+            window.reverseGeocode(coords.latitude.toFixed(6), coords.longitude.toFixed(6), targetAddr);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Broadcast request-location to React shell on start so coordinates fill immediately on tab loading
+try {
+  window.parent.postMessage({ type: 'request-location' }, '*');
+} catch (e) {
+  // Silent fallback
+}
+
+window.fetchGeoLocation = function() {
+  try {
+    var geoField = document.getElementById("fGeo");
+    var geoStatus = document.getElementById("geoStatus");
+    var geoStatusText = document.getElementById("geoStatusText");
+    var geoBtnText = document.getElementById("geoBtnText");
+    
+    // First, prefer the hyper-accurate, verified coordinates synced from parent React/Capacitor engine
+    if (window.LATEST_DEVICE_COORDS) {
+      var lat = window.LATEST_DEVICE_COORDS.latitude.toFixed(6);
+      var lng = window.LATEST_DEVICE_COORDS.longitude.toFixed(6);
+      geoField.value = lat + ", " + lng;
+      geoStatusText.textContent = "✅ লোকেশন সফলভাবে পাওয়া গেছে (সিঙ্কড)";
+      if (geoStatus) {
+        geoStatus.classList.remove("hidden");
+        geoStatus.style.color = "#15803d";
+      }
+      geoBtnText.textContent = "আপডেট";
+      setTimeout(function() {
+        if (geoStatus) {
+          geoStatus.classList.add("hidden");
+        }
+      }, 3000);
+      window.reverseGeocode(lat, lng, "fAddress");
+      if (typeof window.updateMiniFormMapPin === "function") {
+        window.updateMiniFormMapPin(parseFloat(lat), parseFloat(lng));
+      }
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      if (geoStatusText) geoStatusText.textContent = "⚠️ আপনার ব্রাউজার লোকেশন সাপোর্ট করে না।";
+      if (geoStatus) geoStatus.classList.remove("hidden");
+      return;
+    }
+    
+    geoBtnText.textContent = "অপেক্ষা...";
+    if (geoStatusText) geoStatusText.textContent = "📡 লোকেশন খোঁজা হচ্ছে...";
+    if (geoStatus) {
+      geoStatus.classList.remove("hidden");
+      geoStatus.style.color = "#2563eb";
+    }
+
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      geoField.value = lat + ", " + lng;
+      if (geoStatusText) geoStatusText.textContent = "✅ লোকেশন সফলভাবে পাওয়া গেছে";
+      if (geoStatus) geoStatus.style.color = "#15803d";
+      geoBtnText.textContent = "আপডেট";
+      setTimeout(function() {
+        if (geoStatus) geoStatus.classList.add("hidden");
+      }, 3000);
+      window.reverseGeocode(lat, lng, "fAddress");
+      if (typeof window.updateMiniFormMapPin === "function") {
+        window.updateMiniFormMapPin(parseFloat(lat), parseFloat(lng));
+      }
+    }, function(err) {
+      var msg = "";
+      switch (err.code) {
+        case 1:
+          msg = "❌ লোকেশন অনুমতি দেওয়া হয়নি। ব্রাউজার সেটিংস থেকে অনুমতি দিন।";
+          break;
+        case 2:
+          msg = "⚠️ লোকেশন পাওয়া যায়নি।";
+          break;
+        case 3:
+          msg = "⏱️ লোকেশন খোঁজার সময় শেষ হয়ে গেছে।";
+          break;
+        default:
+          msg = "⚠️ অজানা ত্রুটি হয়েছে।";
+      }
+      if (geoStatusText) geoStatusText.textContent = msg;
+      if (geoStatus) geoStatus.style.color = "#dc2626";
+      geoBtnText.textContent = "আবার চেষ্টা";
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 });
+  } catch(e) {
+    console.error("Geo error:", e);
+  }
 };
 
 // ── Lookup ──
@@ -75,7 +604,29 @@ if(!mob){showBanner("errorBanner","মোবাইল নম্বর দিন"
 var subs=getSubmissions().filter(function(s){return s.mobile===mob});
 var container=document.getElementById("mySubmissionsList");
 if(!subs.length){container.innerHTML='<div style="background:#fefce8;border:1px solid #fde047;border-radius:12px;padding:16px;text-align:center"><p style="color:#a16207;font-size:14px;font-weight:600">এই মোবাইল নম্বরে কোনো তথ্য পাওয়া যায়নি।</p></div>';return}
-container.innerHTML=subs.map(function(s){var t=countSeedlings(s);return '<div class="bg-white rounded-xl shadow p-4 anim-in"><div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:8px"><div><p class="font-semibold text-green-700 text-sm">'+s.nurseryName+'</p><p class="text-xs text-gray-500">'+s.region+" > "+s.district+" > "+s.upazila+'</p><p class="text-xs text-gray-400">'+new Date(s.submittedAt).toLocaleDateString("bn-BD")+'</p></div><div style="display:flex;gap:4px"><button onclick="editMySubmission(\''+s.id+'\')" style="background:#dbeafe;color:#1d4ed8;font-size:12px;padding:4px 10px;border-radius:8px;font-weight:600;border:none;cursor:pointer">✏️ সম্পাদনা</button><button onclick="deleteMySubmission(\''+s.id+'\')" style="background:#fee2e2;color:#b91c1c;font-size:12px;padding:4px 10px;border-radius:8px;font-weight:600;border:none;cursor:pointer">🗑️ মুছুন</button></div></div><div class="grid grid-cols-3 gap-2 text-xs"><div style="background:#fff7ed;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#ea580c">'+t.fruit+'</p><p style="color:#6b7280">ফলদ</p></div><div style="background:#ecfdf5;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#047857">'+t.forest+'</p><p style="color:#6b7280">বনজ</p></div><div style="background:#eff6ff;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#1d4ed8">'+t.medicinal+'</p><p style="color:#6b7280">ঔষধি</p></div></div></div>'}).join("");
+container.innerHTML=subs.map(function(s){
+  var isSeed = String(s.id).indexOf("seed_") !== -1;
+  var catBadge = isSeed ? '<span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">🛒 চারা সরবরাহকারী</span>' : '<span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">🏡 বাস্তব রোপণ</span>';
+  var t=countSeedlings(s);
+  return '<div class="bg-white rounded-xl shadow p-4 anim-in">' +
+         '<div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:8px">' +
+         '<div>' +
+           '<p class="font-semibold text-green-700 text-sm">'+s.nurseryName+'</p>' +
+           '<p class="text-xs text-gray-500">'+s.region+" > "+s.district+" > "+s.upazila+'</p>' +
+           catBadge + '<p class="text-[10px] text-gray-400 mt-1">'+new Date(s.submittedAt).toLocaleDateString("bn-BD")+'</p>' +
+         '</div>' +
+         '<div style="display:flex;gap:4px">' +
+           '<button onclick="editMySubmission(\''+s.id+'\')" style="background:#dbeafe;color:#1d4ed8;font-size:12px;padding:4px 10px;border-radius:8px;font-weight:600;border:none;cursor:pointer">✏️ সম্পাদনা</button>' +
+           '<button onclick="deleteMySubmission(\''+s.id+'\')" style="background:#fee2e2;color:#b91c1c;font-size:12px;padding:4px 10px;border-radius:8px;font-weight:600;border:none;cursor:pointer">🗑️ মুছুন</button>' +
+         '</div>' +
+         '</div>' +
+         '<div class="grid grid-cols-3 gap-2 text-xs">' +
+           '<div style="background:#fff7ed;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#ea580c">'+t.fruit+'</p><p style="color:#6b7280">ফলদ</p></div>' +
+           '<div style="background:#ecfdf5;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#047857">'+t.forest+'</p><p style="color:#6b7280">বনজ</p></div>' +
+           '<div style="background:#eff6ff;border-radius:8px;padding:8px;text-align:center"><p class="font-bold" style="color:#1d4ed8">'+t.medicinal+'</p><p style="color:#6b7280">ঔষধি</p></div>' +
+         '</div>' +
+         '</div>';
+}).join("");
 };
 function countSeedlings(s){var r={fruit:0,forest:0,medicinal:0};["fruitSeedlings","forestSeedlings","medicinalSeedlings"].forEach(function(k,i){(s[k]||[]).forEach(function(e){r[["fruit","forest","medicinal"][i]]+=(parseInt(e.count)||0)+(parseInt(e.graftingCount)||0)})});return r}
 
@@ -89,12 +640,19 @@ document.getElementById("fRegion").value=s.region;onFormRegionChange();
 setTimeout(function(){
 document.getElementById("fDistrict").value=s.district;onFormDistrictChange();
 document.getElementById("fUpazila").value=s.upazila||"";
-document.getElementById("fNursery").value=s.nurseryName;document.getElementById("fMobile").value=s.mobile;document.getElementById("fAddress").value=s.address||"";document.getElementById("fGeo").value=s.geoLocation||"";
+document.getElementById("fUnion").value=s.union||"";
+document.getElementById("fVillage").value=s.village||"";
+document.getElementById("fNursery").value=s.nurseryName;document.getElementById("fMobile").value=s.mobile;
+document.getElementById("fSaaoName").value=s.saaoName||"";document.getElementById("fSaaoMobile").value=s.saaoMobile||"";
+document.getElementById("fAddress").value=s.address||"";document.getElementById("fGeo").value=s.geoLocation||"";
 document.getElementById("fCaretakerName").value=s.caretakerName||"";document.getElementById("fCaretakerMobile").value=s.caretakerMobile||"";
 document.getElementById("fRemarks").value=s.remarks||"";
 document.getElementById("fPlantingDate").value=s.plantingDate||(s.submittedAt?s.submittedAt.slice(0, 10):new Date().toISOString().slice(0, 10));
 document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",s);
 document.getElementById("tab-form").scrollIntoView({behavior:"smooth"});
+if (typeof window.updateMiniFormMapPin === "function") {
+  setTimeout(function() { window.updateMiniFormMapPin(); }, 250);
+}
 },100);
 },100);
 };
@@ -125,6 +683,12 @@ window.setDashboardViewMode = function(mode) {
 
 window.renderDashboard=function(){
 try{
+  if (typeof window.initTargetDistrictSelect === "function") {
+    window.initTargetDistrictSelect();
+  }
+  if (typeof window.updateDistrictTargetWidget === "function") {
+    window.updateDistrictTargetWidget();
+  }
 var subs=getFiltered("dash");var totalS=0,totalG=0,nurs=new Set();
 subs.forEach(function(s){nurs.add(s.nurseryName);CATEGORIES.forEach(function(c){(s[c.key]||[]).forEach(function(e){totalS+=(parseInt(e.count)||0);totalG+=(parseInt(e.graftingCount)||0)})})});
 document.getElementById("statTotal").textContent=subs.length;document.getElementById("statNurseries").textContent=nurs.size;
@@ -149,12 +713,13 @@ if(window.currentDashboardViewMode === "gov") {
   if (th) {
     th.innerHTML = '<tr style="background:#0284c7;color:#ffffff">' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">ক্র. নং</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">ক্যাটাগরি (Type)</th>' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">জেলা, উপজেলা ও গ্রাম/অবস্থান</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">রোপণকৃত প্রজাতির নাম</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">রোপণকৃত বৃক্ষের সংখ্যা</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">বৃক্ষরোপণের তারিখ</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">সুনির্দিষ্ট এলাকা (জিওغرافিক্যাল কোঅর্ডিনেটসহ)</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">তদারককারী / মনিটরিং অফিসার ও ফোন</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">প্রজাতি ও বিবরণ</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">সংখ্যা / পরিমাণ</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">তারিখ</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">সুনির্দিষ্ট এলাকা (জিওগ্রাফিক্যাল কোঅর্ডিনেটসহ)</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">তদারককারী / উদ্যোক্তা ও ফোন</th>' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">মন্তব্য</th>' +
       '</tr>';
   }
@@ -162,6 +727,8 @@ if(window.currentDashboardViewMode === "gov") {
   var rowsHtml = [];
   var rowIndex = 1;
   subs.forEach(function(s) {
+    var isSeed = String(s.id).indexOf("seed_") !== -1;
+    var catBadge = isSeed ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">🛒 চারা সরবরাহকারী</span>' : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">🏡 বাস্তব রোপণ</span>';
     var pD = s.plantingDate ? new Date(s.plantingDate).toLocaleDateString("bn-BD") : (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString("bn-BD") : "");
     var fullLocation = "জেলা: " + s.district + ", উপজেলা: " + s.upazila + (s.address ? ", গ্রাম/অবস্থান: " + s.address : "");
     var geoLoc = s.geoLocation || "কোনো কোঅর্ডিনেট নেই";
@@ -181,8 +748,9 @@ if(window.currentDashboardViewMode === "gov") {
     if (!has) {
       rowsHtml.push('<tr class="border-b hover:bg-gray-50 transition" style="font-size:12px">' +
         '<td class="px-2 py-2">' + rowIndex.toLocaleString("bn-BD") + '</td>' +
+        '<td class="px-2 py-2">' + catBadge + '</td>' +
         '<td class="px-2 py-2">' + fullLocation + '</td>' +
-        '<td class="px-2 py-2 text-gray-400 font-medium">কোনো চারা রোপণ বিবরণী নেই</td>' +
+        '<td class="px-2 py-2 text-gray-400 font-medium">' + (isSeed ? "কোনো চারা বিবরণী নেই" : "কোনো চারা রোপণ বিবরণী নেই") + '</td>' +
         '<td class="px-2 py-2">০</td>' +
         '<td class="px-2 py-2">' + pD + '</td>' +
         '<td class="px-2 py-2 font-mono text-cyan-700">' + geoLoc + '</td>' +
@@ -196,6 +764,7 @@ if(window.currentDashboardViewMode === "gov") {
           var countVal = (parseInt(e.count) || 0) + (parseInt(e.graftingCount) || 0);
           rowsHtml.push('<tr class="border-b hover:bg-gray-50 transition" style="font-size:12px">' +
             '<td class="px-2 py-2">' + rowIndex.toLocaleString("bn-BD") + '</td>' +
+            '<td class="px-2 py-2">' + catBadge + '</td>' +
             '<td class="px-2 py-2">' + fullLocation + '</td>' +
             '<td class="px-2 py-2 font-semibold text-gray-800">' + (e.name || "নামহীন প্রজাতি") + ' <span class="text-xs text-gray-400">(' + cat.label + ')</span></td>' +
             '<td class="px-2 py-2 font-bold text-green-700">' + countVal.toLocaleString("bn-BD") + '</td>' +
@@ -214,23 +783,27 @@ if(window.currentDashboardViewMode === "gov") {
   if (th) {
     th.innerHTML = '<tr style="background:#f0fdf4;color:#166534">' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">ক্রম</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">ক্যাটাগরি</th>' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">অঞ্চল</th>' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">জেলা</th>' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">উপজেলা</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">রোপণকারীর নাম</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">উদ্যোক্তা / রোপণকারী</th>' +
       '<th class="px-2 py-2 text-left whitespace-nowrap">মোবাইল</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap" style="color:#b45309">ফলদ</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap" style="color:#047857">বনজ</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap" style="color:#1d4ed8">ঔষধি</th>' +
-      '<th class="px-2 py-2 text-left whitespace-nowrap">রোপণের তারিখ</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap" style="color:#b45309">ফলদ (Fruit)</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap" style="color:#047857">বনজ (Forest)</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap" style="color:#1d4ed8">ঔষধি (Medicinal)</th>' +
+      '<th class="px-2 py-2 text-left whitespace-nowrap">তারিখ</th>' +
       '</tr>';
   }
   if (tb) {
     tb.innerHTML=subs.map(function(s,i){
+      var isSeed = String(s.id).indexOf("seed_") !== -1;
+      var catBadge = isSeed ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">🛒 চারা সরবরাহকারী</span>' : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">🏡 বাস্তব রোপণ</span>';
       var c=countSeedlings(s);
       var pD = s.plantingDate ? new Date(s.plantingDate).toLocaleDateString("bn-BD") : (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString("bn-BD") : "");
       return '<tr class="border-b" style="font-size:12px">' +
         '<td class="px-2 py-2">'+(i+1).toLocaleString("bn-BD")+'</td>' +
+        '<td class="px-2 py-2">'+catBadge+'</td>' +
         '<td class="px-2 py-2">'+s.region+'</td>' +
         '<td class="px-2 py-2">'+s.district+'</td>' +
         '<td class="px-2 py-2">'+s.upazila+'</td>' +
@@ -633,113 +1206,168 @@ window.apiSyncNow = function() {
   })
   .then(function(text) {
     writeToSyncLog("[SUCCESS] Synchronization complete! Raw response from backend:", "success");
-    writeToSyncLog(text || "(Empty Success Response)", "success");
-    showBanner("successBanner", "সার্ভারের সাথে ডাটা সিঙ্ক সম্পন্ন হয়েছে!");
-    setTimeout(function() { hideBanner("successBanner"); }, 3000);
+    writeToSyncLog(text || "(Empty Response)", "default");
+    
+    // Mark local submissions as synced
+    var list = getSubmissions();
+    list.forEach(function(item) {
+      item.synced = true;
+    });
+    saveSubmissions(list);
+    writeToSyncLog("[SUCCESS] Marked all local entries as synced.", "success");
+    writeToSyncLog("[INFO] You may close this console or run a new sync.", "info");
+    
+    // Refresh table / map views to reflect synced icon states
+    if (typeof renderAdminTable === "function") renderAdminTable();
+    if (typeof renderDashboard === "function") renderDashboard();
   })
   .catch(function(err) {
-    writeToSyncLog("[WARNING] Direct API Sync was blocked (Network error or CORS policy restrictions).", "error");
-    writeToSyncLog("[DETAIL] Reason: " + err.message, "error");
-    writeToSyncLog("[INFO] Standard Web Browsers often block client-side fetch requests to external URLs due to CORS policies.", "info");
-    writeToSyncLog("[SOLUTION] You can copy the ready-to-use JSON payload printed below to insert directly into KoBo or Server import tools manually:", "success");
-    writeToSyncLog(JSON.stringify(payload, null, 2), "default");
+    writeToSyncLog("[FATAL ERROR] Server communication failure:", "error");
+    writeToSyncLog(err.message || String(err), "error");
+    writeToSyncLog("[HELP] Verify your Endpoint URL is correct, CORS is enabled, and your internet is active.", "info");
   });
 };
 
-// ── Government Template Specialized Export ──
-window.exportToGovExcel = function(prefix) {
-  if (typeof XLSX === "undefined") {
-    showBanner("errorBanner", "Excel লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ নিশ্চিত করুন।");
-    return;
-  }
-  var subs = getFiltered(prefix || "dash");
-  if (!subs.length) {
-    showBanner("errorBanner", "রপ্তানি করার মতো কোনো ডাটা পাওয়া যায়নি।");
+// ── Google Sheets Apps Script Sync API ──
+window.sheetSyncNow = function() {
+  var logBox = document.getElementById("syncLog");
+  if (logBox) logBox.innerHTML = ""; // Clear
+  
+  writeToSyncLog("[SHEET-SYNC] Initializing secure synchronization with Google Sheets...", "info");
+  
+  var payload = generateSyncPayload();
+  if (payload.length === 0) {
+    writeToSyncLog("[SHEET-SYNC] No offline plantation records to sync.", "error");
     return;
   }
   
-  var data = [];
-  // Exact 9 columns as requested by the user:
-  data.push([
-    "ক্র. নং",
-    "বৃক্ষরোপণের জেলা,উপজেলা,ইউনিয়ন ও গ্রামের নাম",
-    "রোপণকৃত বৃক্ষের প্রজাতির নাম",
-    "রোপণকৃত বৃক্ষের সংখ্যা",
-    "বৃক্ষরোপণের তারিখ",
-    "বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওغرافিক্যাল কোঅর্ডিনেটসহ)",
-    "পরিচর্যাকানীর নাম ও ফোন নম্বর",
-    "মনিটরিং অফিসারের নাম ও ফোন নম্বর",
-    "মন্তব্য"
-  ]);
-
-  // Index numbering line requested by the user
-  data.push([
-    "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"
-  ]);
-
-  var rowIndex = 1;
-  subs.forEach(function(s) {
-    var pDate = s.plantingDate || (s.submittedAt ? s.submittedAt.slice(0, 10) : "");
-    
-    // Combine district, upazila, and Union & Village / address as requested
-    var fullLocation = "জেলা: " + s.district + ", উপজেলা: " + s.upazila + (s.address ? ", অবস্থান/গ্রাম: " + s.address : "");
-    var geoLoc = s.geoLocation || "উল্লেখ নেই";
-    
-    // Caretaker and Planter info
-    var caretakerInfo = "";
-    if (s.caretakerName) {
-      caretakerInfo = s.caretakerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
+  writeToSyncLog("[SHEET-SYNC] Preparing data package containing " + payload.length + " entries.", "info");
+  writeToSyncLog("[SHEET-SYNC] Destination Apps Script: " + WEBHOOK_URL, "info");
+  
+  // Apps Script requires simple key-values or handles JSON parsing depending on setup
+  // We send the whole raw payload string as a unified JSON parameter or body
+  fetch(WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8" // bypass CORS preflight with text/plain
+    },
+    body: JSON.stringify(payload),
+    mode: "cors"
+  })
+  .then(function(res) {
+    writeToSyncLog("[SHEET-SYNC] Network request succeeded. Response status: " + res.status, "success");
+    return res.json();
+  })
+  .then(function(resData) {
+    if (resData && resData.status === "success") {
+      writeToSyncLog("[SHEET-SYNC SUCCESS] Spreadsheet synced successfully!", "success");
+      writeToSyncLog("[SHEET-SYNC] Response message: " + (resData.message || "Rows added/updated."), "info");
+      
+      // Update local storage status
+      var list = getSubmissions();
+      list.forEach(function(item) {
+        item.synced = true;
+      });
+      saveSubmissions(list);
+      writeToSyncLog("[SHEET-SYNC] Local entries synced successfully.", "success");
+      
+      if (typeof renderAdminTable === "function") renderAdminTable();
+      if (typeof renderDashboard === "function") renderDashboard();
     } else {
-      caretakerInfo = s.nurseryName + (s.mobile ? " (" + s.mobile + ")" : "");
+      writeToSyncLog("[SHEET-SYNC FAILED] API returned error response:", "error");
+      writeToSyncLog(JSON.stringify(resData || {}), "error");
     }
-    
-    var officerInfo = caretakerInfo;
-    var remarks = s.remarks || "";
+  })
+  .catch(function(err) {
+    writeToSyncLog("[FATAL ERROR] Apps Script integration failure:", "error");
+    writeToSyncLog(err.message || String(err), "error");
+    writeToSyncLog("[HELP] Verify that WEBHOOK_URL in code has been deployed as Web App, that access is set to 'Anyone', and that you are online.", "info");
+  });
+};
 
-    var has = (s.fruitSeedlings && s.fruitSeedlings.length || 0) + 
-              (s.forestSeedlings && s.forestSeedlings.length || 0) + 
-              (s.medicinalSeedlings && s.medicinalSeedlings.length || 0);
+// ── Dynamic District Seedling Target Integration ──
+var BANGLADESH_DISTRICT_TARGETS = {
+  // Dhaka Division
+  "ঢাকা": 22000, "নারায়ণগঞ্জ": 15000, "গাজীপুর": 18000, "নরসিংদী": 12000, "মুন্সীগঞ্জ": 11000, "মানিকগঞ্জ": 10000, "টাঙ্গাইল": 25000, "কিশোরগঞ্জ": 20000,
+  // Mymensingh Division
+  "ময়মনসিংহ": 30000, "জামালপুর": 15000, "শেরপুর": 12000, "নেত্রকোণা": 16000,
+  // Comilla/Chittagong Division
+  "কুমিল্লা": 24000, "চাঁদপুর": 15000, "ব্রাহ্মণবাড়িয়া": 17000, "চট্টগ্রাম": 35000, "কক্সবাজার": 18000, "নোয়াখালী": 20000, "ফেনী": 12000, "লক্ষীপুর": 14000,
+  // Sylhet Division
+  "সিলেট": 28000, "মৌলভীবাজার": 22000, "সুনামগঞ্জ": 19000, "হবিগঞ্জ": 18000,
+  // Rangamati Division
+  "রাঙ্গামাটি": 30000, "খাগড়াছড়ি": 25000, "বান্দরবান": 26000,
+  // Rangpur Division
+  "রংপুর": 25000, "গাইবান্ধা": 15000, "কুড়িগ্রাম": 18000, "লালমনিরহাট": 12000, "নীলফামারী": 14000,
+  // Dinajpur Division
+  "দিনাজপুর": 22000, "ঠাকুরগাঁও": 15000, "পঞ্চগড়": 13000,
+  // Rajshahi Division
+  "রাজশাহী": 26000, "নওগাঁ": 18000, "নাটোর": 15000, "চাঁপাইনবাবগঞ্জ": 16000,
+  // Bogra Division
+  "বগুড়া": 20000, "জয়পুরহাট": 11000, "পাবনা": 18000, "সিরাজগঞ্জ": 19000,
+  // Khulna Division
+  "খুলনা": 28000, "বাগেরহাট": 20000, "সাতক্ষীরা": 22000, "নড়াইল": 10000,
+  // Jessore Division
+  "যশোর": 24000, "ঝিনাইদহ": 15000, "মাগুরা": 11000, "কুষ্টিয়া": 16000, "চুয়াডাঙ্গা": 12000, "মেহেরপুর": 9000,
+  // Faridpur Division
+  "ফরিদপুর": 18000, "মাদারীপুর": 12000, "শরীয়তপুর": 11000, "রাজবাড়ী": 10000, "গোপালগঞ্জ": 14000,
+  // Barisal Division
+  "বরিশাল": 25000, "ঝালকাঠি": 11000, "পিরোজপুর": 13000, "পটুয়াখালী": 18000, "বরগুনা": 12000, "ভোলা": 15000
+};
 
-    if (!has) {
-      data.push([
-        rowIndex++,
-        fullLocation,
-        "কোনো চারা রোপণ বিবরণী নেই",
-        0,
-        pDate,
-        geoLoc,
-        caretakerInfo,
-        officerInfo,
-        remarks
-      ]);
-    } else {
+window.initTargetDistrictSelect = function() {
+  var selector = document.getElementById("targetWidgetDistrictSelector");
+  if (!selector) return;
+  if (selector.options.length > 1) return; // Prevent duplicate init
+  
+  var sortedDistricts = Object.keys(BANGLADESH_DISTRICT_TARGETS).sort();
+  sortedDistricts.forEach(function(district) {
+    var option = document.createElement("option");
+    option.value = district;
+    option.textContent = district;
+    // Default select e.g. "ঢাকা"
+    if (district === "ঢাকা") option.selected = true;
+    selector.appendChild(option);
+  });
+};
+
+window.updateDistrictTargetWidget = function() {
+  var selector = document.getElementById("targetWidgetDistrictSelector");
+  if (!selector) return;
+  var selectedDistrict = selector.value;
+  var targetAmount = BANGLADESH_DISTRICT_TARGETS[selectedDistrict] || 10000;
+  
+  var subs = getSubmissions();
+  var actualPlanted = 0;
+  subs.forEach(function(s) {
+    if (s.district === selectedDistrict) {
       CATEGORIES.forEach(function(cat) {
         (s[cat.key] || []).forEach(function(e) {
-          var countVal = (parseInt(e.count) || 0) + (parseInt(e.graftingCount) || 0);
-          data.push([
-            rowIndex++,
-            fullLocation,
-            e.name || "নামহীন প্রজাতি (" + cat.label + ")",
-            countVal,
-            pDate,
-            geoLoc,
-            caretakerInfo,
-            officerInfo,
-            remarks
-          ]);
+          actualPlanted += (parseInt(e.count) || 0) + (parseInt(e.graftingCount) || 0);
         });
       });
     }
   });
 
-  var ws = XLSX.utils.aoa_to_sheet(data);
-  ws["!cols"] = [
-    {wch:8}, {wch:48}, {wch:25}, {wch:12}, {wch:15}, {wch:25}, {wch:30}, {wch:30}, {wch:25}
-  ];
-  var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "বৃক্ষরোপণ_সরকারি_ছক");
-  XLSX.writeFile(wb, "plantation_official_sheet_" + new Date().toISOString().slice(0, 10) + ".xlsx");
-  showBanner("successBanner", "সরকারি ছকে এক্সেল সফলভাবে ডাউনলোড হয়েছে!");
-  setTimeout(function() { hideBanner("successBanner"); }, 3000);
-};
+  var progressPercentage = Math.min((actualPlanted / targetAmount) * 100, 100).toFixed(1);
+  var targetTitleEl = document.getElementById("targetDistrictTitle");
+  var targetGoalEl = document.getElementById("targetDistrictGoal");
+  var targetActualEl = document.getElementById("targetDistrictActual");
+  var targetProgressEl = document.getElementById("targetDistrictProgressText");
+  var targetBarEl = document.getElementById("targetDistrictProgressBar");
 
+  if(targetTitleEl) targetTitleEl.textContent = "🎯 " + selectedDistrict + " জেলার রোপণ লক্ষ্যমাত্রা";
+  if(targetGoalEl) targetGoalEl.textContent = targetAmount.toLocaleString("bn-BD") + " টি";
+  if(targetActualEl) targetActualEl.textContent = actualPlanted.toLocaleString("bn-BD") + " টি";
+  if(targetProgressEl) targetProgressEl.textContent = progressPercentage + "% অর্জিত";
+  if(targetBarEl) {
+    targetBarEl.style.width = progressPercentage + "%";
+    if (parseFloat(progressPercentage) < 30) {
+      targetBarEl.style.backgroundColor = "@theme(--color-red-500)";
+    } else if (parseFloat(progressPercentage) < 75) {
+      targetBarEl.style.backgroundColor = "@theme(--color-amber-500)";
+    } else {
+      targetBarEl.style.backgroundColor = "@theme(--color-emerald-500)";
+    }
+  }
+};

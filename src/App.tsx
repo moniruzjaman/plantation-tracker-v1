@@ -1,160 +1,151 @@
-import React, { useState, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import NetworkStatus from './components/NetworkStatus';
-import GeolocationIndicator from './components/GeolocationIndicator';
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useState, useEffect } from 'react';
+import NetworkStatus, { NetworkStatusData } from './components/NetworkStatus';
+import GeolocationIndicator, { GeoState } from './components/GeolocationIndicator';
 import WelcomeModal from './components/WelcomeModal';
 import PWAInstaller from './components/PWAInstaller';
 import SyncToast from './components/SyncToast';
-import { useSubmissions } from './hooks/useSubmissions';
-import { toBn } from './data/bdData';
-import { FileText, BarChart3, Map, User, Wifi, WifiOff, MapPin, AlertTriangle, Loader2 } from 'lucide-react';
-
-// Lazy-load tab components — each chunk only downloads when tab is first visited
-const FormTab      = lazy(() => import('./components/tabs/FormTab'));
-const DashboardTab = lazy(() => import('./components/tabs/DashboardTab'));
-const MapTab       = lazy(() => import('./components/tabs/MapTab'));
-const MyTab        = lazy(() => import('./components/tabs/MyTab'));
-
-type Tab = 'form' | 'dashboard' | 'map' | 'my';
-
-const TABS: { key: Tab; labelBn: string; icon: React.ReactNode; badgeFn?: (n: number) => string }[] = [
-  { key: 'form',      labelBn: 'ফর্ম',       icon: <FileText  className="w-5 h-5" /> },
-  { key: 'dashboard', labelBn: 'ড্যাশবোর্ড', icon: <BarChart3  className="w-5 h-5" />, badgeFn: n => n > 0 ? toBn(n) : '' },
-  { key: 'map',       labelBn: 'ম্যাপ',       icon: <Map       className="w-5 h-5" /> },
-  { key: 'my',        labelBn: 'আমার',        icon: <User      className="w-5 h-5" /> },
-];
+import OfflinePlantationDashboard, { Submission } from './components/OfflinePlantationDashboard';
+import MobileControlCenter from './components/MobileControlCenter';
+import AIAssistant from './components/AIAssistant';
+import { Sparkles, MessageSquareCode } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('form');
-  const [networkState, setNetworkState] = useState<any>(null);
-  const [geoState, setGeoState]  = useState<any>(null);
-  const [editTarget, setEditTarget] = useState<any>(null);
+  const [networkState, setNetworkState] = useState<NetworkStatusData | null>(null);
+  const [geoState, setGeoState] = useState<GeoState | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [isAiOpen, setIsAiOpen] = useState(false);
+  const [aiInitialTab, setAiInitialTab] = useState<'chat' | 'diagnose' | undefined>(undefined);
+  const [aiInitialPrompt, setAiInitialPrompt] = useState<string | undefined>(undefined);
 
-  const { submissions, remove } = useSubmissions();
+  // Listen to cross-window requests and AI triggers from legacy-nursery.html iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.data) return;
 
-  const handleEditRequest = (sub: any) => {
-    setEditTarget(sub);
-    setActiveTab('form');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+      if (event.data.type === 'request-location') {
+        const iframe = document.querySelector('iframe');
+        if (iframe && iframe.contentWindow && geoState && geoState.coords) {
+          iframe.contentWindow.postMessage({
+            type: 'device-location',
+            coords: {
+              latitude: geoState.coords.latitude,
+              longitude: geoState.coords.longitude,
+              accuracy: geoState.coords.accuracy
+            }
+          }, '*');
+        }
+      }
 
-  const handleEditDone = () => {
-    setEditTarget(null);
-    setActiveTab('dashboard');
-  };
-
-  const isOnline   = networkState?.isOnline ?? true;
-  const hasGpsErr  = !!geoState?.error;
-
-  const switchTab = (t: Tab) => {
-    setActiveTab(t);
-    if (t !== 'form') setEditTarget(null);
-  };
+      if (event.data.type === 'open-ai-assistant') {
+        setAiInitialTab(event.data.tab || 'chat');
+        setAiInitialPrompt(event.data.prompt || undefined);
+        setIsAiOpen(true);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [geoState]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
       <NetworkStatus onStateChange={setNetworkState} />
       <GeolocationIndicator onStateChange={setGeoState} />
+      <OfflinePlantationDashboard onStateChange={setSubmissions} />
+      <MobileControlCenter 
+        networkState={networkState} 
+        geoState={geoState} 
+        submissions={submissions}
+        userEmail="mithun.hstu@gmail.com"
+      />
       <WelcomeModal />
       <PWAInstaller />
       <SyncToast />
-
-      {/* ── HEADER ── */}
-      <header className="bg-gradient-to-r from-green-700 via-green-800 to-green-900 text-white shadow-lg sticky top-0 z-40 no-print">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src="/logo.svg" alt="DAE" className="w-9 h-9 bg-white rounded-full p-0.5 shadow shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-green-200 text-[10px]">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার · কৃষি সম্প্রসারণ অধিদপ্তর</p>
-            <h1 className="text-xs sm:text-sm font-bold truncate">"০৫ বছরে ২৫ কোটি বৃক্ষরোপণ" – তথ্য সংগ্রহ পোর্টাল</h1>
+      
+      {/* Interactive AI Co-Pilot Floating FAB */}
+      <div className="fixed bottom-4 right-4 z-40 pointer-events-auto">
+        <motion.button
+          id="aiCoPilotFAB"
+          onClick={() => setIsAiOpen(!isAiOpen)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-2xl border transition-all text-xs font-extrabold cursor-pointer ${
+            isAiOpen 
+              ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-850' 
+              : 'bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-700'
+          }`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+        >
+          <div className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {isOnline ? <Wifi className="w-3.5 h-3.5 text-emerald-300" /> : <WifiOff className="w-3.5 h-3.5 text-amber-400 animate-pulse" />}
-            <MapPin className={`w-3.5 h-3.5 ${hasGpsErr ? 'text-red-400' : 'text-emerald-300'}`} />
-            {submissions.length > 0 && (
-              <span className="bg-amber-400 text-amber-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">{toBn(submissions.length)}</span>
-            )}
-          </div>
-        </div>
 
-        {/* Desktop nav */}
-        <nav className="max-w-5xl mx-auto hidden md:flex border-t border-green-600/40">
-          {TABS.map(tab => {
-            const badge = tab.badgeFn?.(submissions.length) || '';
-            const active = activeTab === tab.key;
-            return (
-              <button key={tab.key} onClick={() => switchTab(tab.key)}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-semibold relative transition-all
-                  ${active ? 'text-white bg-white/10' : 'text-green-200 hover:text-white hover:bg-white/5'}`}>
-                {tab.icon}
-                {tab.labelBn}
-                {badge && <span className="absolute top-1.5 right-1/4 bg-amber-400 text-amber-900 text-[9px] font-black px-1 rounded-full">{badge}</span>}
-                {active && <motion.div layoutId="nav-bar" className="absolute bottom-0 inset-x-6 h-0.5 bg-white rounded-full" />}
-              </button>
-            );
-          })}
-        </nav>
+          <Sparkles className="w-4 h-4 shrink-0" />
+          
+          <span className="font-sans">
+            {isAiOpen ? 'সহকারী বন্ধ করুন' : 'এআই সহকারী কো-পাইলট'}
+          </span>
+        </motion.button>
+      </div>
 
-        {!isOnline && (
-          <div className="bg-amber-500 text-amber-900 text-center text-xs font-semibold py-1 flex items-center justify-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" /> অফলাইন মোড — ডাটা ডিভাইসে সুরক্ষিত
-          </div>
+      {/* AI Assistant Modal Backdrop and Panel */}
+      <AnimatePresence>
+        {isAiOpen && (
+          <>
+            {/* Dark blur overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAiOpen(false)}
+              className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-45"
+            />
+
+            {/* AI Assistant container sheet panel */}
+            <motion.div
+              id="aiAssistantPanel"
+              initial={{ opacity: 0, x: 50, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 50, y: 50, scale: 0.95 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+              className="fixed bottom-20 right-4 z-50 w-[92vw] sm:w-[420px] h-[75vh] max-h-[600px] shadow-2xl rounded-2xl overflow-hidden"
+            >
+              <AIAssistant 
+                onClose={() => setIsAiOpen(false)} 
+                initialTab={aiInitialTab}
+                initialPrompt={aiInitialPrompt}
+              />
+            </motion.div>
+          </>
         )}
-      </header>
+      </AnimatePresence>
 
-      {/* ── CONTENT ── */}
-      <main className="flex-1 max-w-5xl w-full mx-auto pb-20 md:pb-6">
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-64 text-green-600">
-            <Loader2 className="w-8 h-8 animate-spin" />
-          </div>
-        }>
-          <AnimatePresence mode="wait">
-          {activeTab === 'form' && (
-            <motion.div key="form" initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-6 }} transition={{ duration:0.15 }}>
-              <FormTab editTarget={editTarget} onEditDone={handleEditDone} />
-            </motion.div>
-          )}
-          {activeTab === 'dashboard' && (
-            <motion.div key="dashboard" initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-6 }} transition={{ duration:0.15 }}>
-              <DashboardTab submissions={submissions} onRemove={remove} onEditRequest={handleEditRequest} />
-            </motion.div>
-          )}
-          {activeTab === 'map' && (
-            <motion.div key="map" initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-6 }} transition={{ duration:0.15 }}>
-              <MapTab submissions={submissions} />
-            </motion.div>
-          )}
-          {activeTab === 'my' && (
-            <motion.div key="my" initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-6 }} transition={{ duration:0.15 }}>
-              <MyTab />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        </Suspense>
-      </main>
-
-      {/* ── MOBILE BOTTOM NAV ── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-xl z-50 flex no-print">
-        {TABS.map(tab => {
-          const badge  = tab.badgeFn?.(submissions.length) || '';
-          const active = activeTab === tab.key;
-          return (
-            <button key={tab.key} onClick={() => switchTab(tab.key)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-bold relative transition-all ${active ? 'text-green-700' : 'text-gray-400'}`}>
-              <span className={`transition-transform ${active ? 'scale-110' : ''}`}>{tab.icon}</span>
-              {tab.labelBn}
-              {badge && <span className="absolute top-1 right-2 bg-amber-400 text-amber-900 text-[8px] font-black px-1 rounded-full">{badge}</span>}
-              {active && <motion.div layoutId="mob-bar" className="absolute bottom-0 inset-x-4 h-0.5 bg-green-600 rounded-full" />}
-            </button>
-          );
-        })}
-      </nav>
-
-      <footer className="bg-green-900 text-green-200 text-center py-3 text-xs hidden md:block no-print">
-        কৃষি সম্প্রসারণ অধিদপ্তর | গণপ্রজাতন্ত্রী বাংলাদেশ সরকার ·{' '}
-        <a href="mailto:krishiailive@gmail.com" className="underline hover:text-white">krishiailive@gmail.com</a>
-        {' · '}&copy; ২০২৬
-      </footer>
+      <iframe 
+        id="app-iframe"
+        src="legacy-nursery.html" 
+        style={{ display: 'block', width: '100%', height: '100%', border: 'none' }}
+        title="Plantation Form" 
+        allow="geolocation"
+        onLoad={(e) => {
+          try {
+            const win = e.currentTarget.contentWindow;
+            if (win) {
+              (win as any).VITE_GEE_PIPELINE_URL = import.meta.env.VITE_GEE_PIPELINE_URL;
+            }
+          } catch (err) {
+            console.error("Failed to inject env vars:", err);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -120,6 +120,9 @@ hideBanner("successBanner");hideBanner("errorBanner");
 if(tab==="dashboard")renderDashboard();
 if(tab==="admin"&&isAdmin)renderAdminTable();
 if(tab==="map")renderMap();
+if(tab==="form"&&typeof window.initMiniFormMap==="function") {
+  setTimeout(function() { window.initMiniFormMap(); }, 50);
+}
 window.scrollTo({top:0,behavior:"smooth"});
 }catch(err){console.error("Tab switch error:",err)}
 };

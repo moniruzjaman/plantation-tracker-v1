@@ -39,6 +39,7 @@ export default function MobileControlCenter({ networkState, geoState, submission
   const [activeTab, setActiveTab] = useState<'db' | 'net' | 'gps' | 'mydata'>('db');
   const [language, setLanguage] = useState<'bn' | 'en'>('bn');
   const [copied, setCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   // Compute stats
   const { totalLogs, totalSeedlings, fruitCount, forestCount, medicinalCount, sortedDistricts } = useMemo(() => {
@@ -114,6 +115,8 @@ export default function MobileControlCenter({ networkState, geoState, submission
       navigator.clipboard.writeText(text).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+      }).catch((err) => {
+        console.warn('Coordinates copying failed, likely due to iframe focus: ', err);
       });
     }
   };
@@ -252,17 +255,48 @@ export default function MobileControlCenter({ networkState, geoState, submission
         {/* Sharing Button */}
         <button
           onClick={() => {
+            const shareData = {
+              title: language === 'bn' ? 'বৃক্ষরোপণ ট্র্যাকার' : 'Plantation Tracker',
+              text: 'গাছ লাগাই গাছ বাচাই।',
+              url: 'https://plantation-tracker-v1-1073841706415.us-west1.run.app/',
+            };
             if (navigator.share) {
-              navigator.share({
-                title: 'Plantation Tracker',
-                text: 'Check out this plantation tracking application.',
-                url: window.location.href,
-              }).catch(console.error);
+              navigator.share(shareData).catch((err) => {
+                // If sharing was cancelled/aborted, do not fallback to clipboard copy or report errors
+                if (err.name === 'AbortError' || err.message?.toLowerCase().includes('cancel') || err.message?.toLowerCase().includes('abort')) {
+                  console.log('Sharing canceled or aborted by user.');
+                  return;
+                }
+                console.warn('Sharing failed, attempting clipboard fallback:', err);
+                navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`).then(() => {
+                  setShareCopied(true);
+                  setTimeout(() => setShareCopied(false), 2000);
+                }).catch((clipErr) => {
+                  console.warn('Clipboard fallback also failed:', clipErr);
+                });
+              });
+            } else {
+              navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`).then(() => {
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 2000);
+              }).catch((clipErr) => {
+                console.warn('Clipboard copy failed:', clipErr);
+              });
             }
           }}
-          className="p-2.5 bg-white text-gray-800 rounded-full shadow-lg border border-gray-150 cursor-pointer hover:bg-slate-50 transition-all"
+          className="p-2.5 bg-white text-gray-800 rounded-full shadow-lg border border-gray-150 cursor-pointer hover:bg-slate-50 transition-all flex items-center justify-center relative"
+          title={language === 'bn' ? 'শেয়ার করুন' : 'Share'}
         >
-          <Share2 className="w-3.5 h-3.5" />
+          {shareCopied ? (
+            <Check className="w-3.5 h-3.5 text-emerald-600" />
+          ) : (
+            <Share2 className="w-3.5 h-3.5" />
+          )}
+          {shareCopied && (
+            <span className="absolute -top-8 right-0 bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-md whitespace-nowrap font-sans">
+              {language === 'bn' ? 'লিঙ্ক কপি করা হয়েছে!' : 'Link Copied!'}
+            </span>
+          )}
         </button>
 
         {/* Dynamic Slide-Up Bottom Drawer sheet popup */}

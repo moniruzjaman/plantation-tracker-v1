@@ -87,19 +87,6 @@ export default defineConfig(({mode}) => {
         }
       })
     ],
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-motion': ['motion'],
-            'vendor-icons': ['lucide-react'],
-          },
-        },
-      },
-      // Warn if any chunk exceeds 300 kB
-      chunkSizeWarningLimit: 300,
-    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

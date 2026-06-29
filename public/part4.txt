@@ -117,9 +117,12 @@ var sec=document.getElementById("tab-"+tab);
 if(sec)sec.classList.remove("hidden");
 document.querySelectorAll('.nav-btn[data-tab="'+tab+'"]').forEach(function(b){b.classList.add("active")});
 hideBanner("successBanner");hideBanner("errorBanner");
-if(tab==="dashboard")renderDashboard();
-if(tab==="admin"&&isAdmin)renderAdminTable();
-if(tab==="map")renderMap();
+if(tab==="dashboard"&&typeof window.renderDashboard==="function")window.renderDashboard();
+if(tab==="admin"&&isAdmin&&typeof window.renderAdminTable==="function")window.renderAdminTable();
+if(tab==="map"&&typeof window.renderMap==="function")window.renderMap();
+if(tab==="form"&&typeof window.initMiniFormMap==="function") {
+  setTimeout(function() { window.initMiniFormMap(); }, 50);
+}
 window.scrollTo({top:0,behavior:"smooth"});
 }catch(err){console.error("Tab switch error:",err)}
 };
@@ -135,11 +138,151 @@ function populateUpazilaDD(dd,district,selected){dd.innerHTML='<option value="">
 
 
 // ── Cascading ──
-window.onMapFilterChange=function(){populateDistrictDD(document.getElementById("mapDistrict"),document.getElementById("mapRegion").value);renderMap()};
-window.onDashFilterChange=function(){populateDistrictDD(document.getElementById("dashDistrict"),document.getElementById("dashRegion").value);renderDashboard()};
+window.onMapFilterChange=function(){populateDistrictDD(document.getElementById("mapDistrict"),document.getElementById("mapRegion").value);if(typeof window.renderMap==="function")window.renderMap()};
+window.onDashFilterChange=function(){populateDistrictDD(document.getElementById("dashDistrict"),document.getElementById("dashRegion").value);if(typeof window.renderDashboard==="function")window.renderDashboard()};
 window.onFormRegionChange=function(){populateDistrictDD(document.getElementById("fDistrict"),document.getElementById("fRegion").value);document.getElementById("fUpazila").innerHTML='<option value="">উপজেলা নির্বাচন করুন</option>'};
 window.onFormDistrictChange=function(){populateUpazilaDD(document.getElementById("fUpazila"),document.getElementById("fDistrict").value)};
-window.onAdminRegionChange=function(){populateDistrictDD(document.getElementById("adminDistrict"),document.getElementById("adminRegion").value);renderAdminTable()};
-window.onAdminDistrictChange=function(){renderAdminTable()};
+window.onAdminRegionChange=function(){populateDistrictDD(document.getElementById("adminDistrict"),document.getElementById("adminRegion").value);if(typeof window.renderAdminTable==="function")window.renderAdminTable()};
+window.onAdminDistrictChange=function(){if(typeof window.renderAdminTable==="function")window.renderAdminTable()};
 window.onEditRegionChange=function(){populateDistrictDD(document.getElementById("eDistrict"),document.getElementById("eRegion").value);document.getElementById("eUpazila").innerHTML='<option value="">উপজেলা নির্বাচন করুন</option>'};
 window.onEditDistrictChange=function(){populateUpazilaDD(document.getElementById("eUpazila"),document.getElementById("eDistrict").value)};
+
+// ── Form Mode Selection ──
+window.selectFormType = function(type) {
+  try {
+    var btnPl = document.getElementById("btnFormPlantation");
+    var btnNu = document.getElementById("btnFormNursery");
+    var fType = document.getElementById("fFormType");
+    if (fType) {
+      fType.value = type;
+    }
+    
+    if (type === "plantation") {
+      if (btnPl) {
+        btnPl.className = "py-4 px-5 rounded-2xl font-extrabold text-sm transition-all duration-200 border-2 text-center flex items-center justify-center gap-3 cursor-pointer shadow-md bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700";
+      }
+      if (btnNu) {
+        btnNu.className = "py-4 px-5 rounded-2xl font-extrabold text-sm transition-all duration-200 border-2 text-center flex items-center justify-center gap-3 cursor-pointer shadow bg-white text-gray-500 border-gray-250 hover:bg-slate-50 hover:text-gray-700";
+      }
+      
+      var formTitle = document.getElementById("formTitle");
+      if (formTitle && formTitle.textContent.indexOf("সম্পাদনা") === -1) {
+        formTitle.innerHTML = "📄 বৃক্ষরোপণ তথ্য সংগ্রহ ও ট্র্যাকিং (Plantation Tracker)";
+      }
+      
+      var fNurseryLabel = document.querySelector("#fNursery")?.previousElementSibling;
+      if (fNurseryLabel) {
+        fNurseryLabel.innerHTML = 'পরিচর্যাকারী কৃষকের নাম <span style="color:#ef4444">*</span>';
+      }
+      
+      var fMobileLabel = document.querySelector("#fMobile")?.previousElementSibling;
+      if (fMobileLabel) {
+        fMobileLabel.innerHTML = 'কৃষকের মোবাইল নম্বর <span style="color:#ef4444">*</span>';
+      }
+      
+      var fAddressLabel = document.querySelector("#fAddress")?.previousElementSibling;
+      if (fAddressLabel) {
+        fAddressLabel.innerHTML = 'সুনির্দিষ্ট এলাকা/স্পটের নাম <span style="color:#ef4444">*</span>';
+      }
+      
+      var fPlantingDateLabel = document.querySelector("#fPlantingDate")?.previousElementSibling;
+      if (fPlantingDateLabel) {
+        fPlantingDateLabel.innerHTML = 'রোপণের তারিখ';
+      }
+      
+      var spotLegend = document.querySelector("#fAddress")?.closest("fieldset")?.querySelector("legend");
+      if (spotLegend) {
+        spotLegend.innerHTML = '৩. বৃক্ষরোপণের সুনির্দিষ্ট এলাকা ও লোকেশন (Planting Spot & Geolocation)';
+      }
+
+      var personnelLegend = document.querySelector("#fNursery")?.closest("fieldset")?.querySelector("legend");
+      if (personnelLegend) {
+        personnelLegend.innerHTML = '২. পরিচর্যাকারী, কর্তাব্যক্তি ও কর্মকর্তা (Personnel Details)';
+      }
+
+      var advLegend = document.querySelector("#fTimestampDisplay")?.closest("fieldset")?.querySelector("legend");
+      if (advLegend) {
+        advLegend.innerHTML = '৪. অ্যাডভান্সড ট্র্যাকিং (Date & NDVI Indicator)';
+      }
+      
+      var fruitLegend = document.querySelector("#seedlingSections_fruitSeedlings")?.closest("fieldset")?.querySelector("legend");
+      if (fruitLegend) {
+        fruitLegend.innerHTML = '২. ফলদ চারা (Fruit Seedlings)';
+      }
+      var forestLegend = document.querySelector("#seedlingSections_forestSeedlings")?.closest("fieldset")?.querySelector("legend");
+      if (forestLegend) {
+        forestLegend.innerHTML = '৩. বনজ চারা (Forest Seedlings)';
+      }
+      var medicinalLegend = document.querySelector("#seedlingSections_medicinalSeedlings")?.closest("fieldset")?.querySelector("legend");
+      if (medicinalLegend) {
+        medicinalLegend.innerHTML = '৪. ঔষধি চারা (Medicinal Seedlings)';
+      }
+    } else {
+      if (btnPl) {
+        btnPl.className = "py-4 px-5 rounded-2xl font-extrabold text-sm transition-all duration-200 border-2 text-center flex items-center justify-center gap-3 cursor-pointer shadow bg-white text-gray-500 border-gray-250 hover:bg-slate-50 hover:text-gray-700";
+      }
+      if (btnNu) {
+        btnNu.className = "py-4 px-5 rounded-2xl font-extrabold text-sm transition-all duration-200 border-2 text-center flex items-center justify-center gap-3 cursor-pointer shadow-md bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700";
+      }
+      
+      var formTitle = document.getElementById("formTitle");
+      if (formTitle && formTitle.textContent.indexOf("সম্পাদনা") === -1) {
+        formTitle.innerHTML = "📄 নার্সারি নিবন্ধন ও তথ্য সংগ্রহ (Nursery Registration)";
+      }
+      
+      var fNurseryLabel = document.querySelector("#fNursery")?.previousElementSibling;
+      if (fNurseryLabel) {
+        fNurseryLabel.innerHTML = 'নার্সারির নাম (Nursery Name) <span style="color:#ef4444">*</span>';
+      }
+      
+      var fMobileLabel = document.querySelector("#fMobile")?.previousElementSibling;
+      if (fMobileLabel) {
+        fMobileLabel.innerHTML = 'নার্সারি মালিকের মোবাইল নম্বর <span style="color:#ef4444">*</span>';
+      }
+      
+      var fAddressLabel = document.querySelector("#fAddress")?.previousElementSibling;
+      if (fAddressLabel) {
+        fAddressLabel.innerHTML = 'নার্সারির সুনির্দিষ্ট ঠিকানা ও জমির বিবরণ <span style="color:#ef4444">*</span>';
+      }
+      
+      var fPlantingDateLabel = document.querySelector("#fPlantingDate")?.previousElementSibling;
+      if (fPlantingDateLabel) {
+        fPlantingDateLabel.innerHTML = 'নার্সারি স্থাপনের তারিখ';
+      }
+      
+      var spotLegend = document.querySelector("#fAddress")?.closest("fieldset")?.querySelector("legend");
+      if (spotLegend) {
+        spotLegend.innerHTML = '৩. নার্সারির সুনির্দিষ্ট ঠিকানা ও লোকেশন (Nursery Spot & Geolocation)';
+      }
+
+      var personnelLegend = document.querySelector("#fNursery")?.closest("fieldset")?.querySelector("legend");
+      if (personnelLegend) {
+        personnelLegend.innerHTML = '২. নার্সারি মালিক ও তদারককারী তথ্য (Nursery Details & Officers)';
+      }
+
+      var advLegend = document.querySelector("#fTimestampDisplay")?.closest("fieldset")?.querySelector("legend");
+      if (advLegend) {
+        advLegend.innerHTML = '৪. নার্সারি অ্যাডভান্সড ট্র্যাকিং (Date & Stock Inventory)';
+      }
+
+      var fruitLegend = document.querySelector("#seedlingSections_fruitSeedlings")?.closest("fieldset")?.querySelector("legend");
+      if (fruitLegend) {
+        fruitLegend.innerHTML = '২. ফলদ চারা স্টক বিবরণ (Fruit Seedlings Stock)';
+      }
+      var forestLegend = document.querySelector("#seedlingSections_forestSeedlings")?.closest("fieldset")?.querySelector("legend");
+      if (forestLegend) {
+        forestLegend.innerHTML = '৩. বনজ চারা স্টক বিবরণ (Forest Seedlings Stock)';
+      }
+      var medicinalLegend = document.querySelector("#seedlingSections_medicinalSeedlings")?.closest("fieldset")?.querySelector("legend");
+      if (medicinalLegend) {
+        medicinalLegend.innerHTML = '৪. ঔষধি চারা স্টক বিবরণ (Medicinal Seedlings Stock)';
+      }
+    }
+    if (window.updateGovtFormPreview) {
+      window.updateGovtFormPreview();
+    }
+  } catch (err) {
+    console.error("Error changing form mode:", err);
+  }
+};
+

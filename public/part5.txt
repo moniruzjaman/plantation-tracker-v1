@@ -1,46 +1,316 @@
 
-// ── Seedling Builder ──
-function buildSeedlingHTML(prefix,type,idx,data){
-var cat=CATEGORIES.find(function(c){return c.key===type});
-var ageOpts=AGE_OPTS.map(function(a){return '<option value="'+a+'" '+(data&&data.age===a?"selected":"")+'>'+(a||"বয়স নির্বাচন করুন")+'</option>'}).join("");
-var nameVal=data&&data.name?data.name.replace(/"/g,"&quot;"):"";
-return '<div class="bg-white rounded-lg p-3.5" style="border:1px solid '+cat.border+'" data-type="'+type+'" data-idx="'+idx+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><span style="font-size:12px;font-weight:600;color:#4b5563">'+cat.label+" #"+(idx+1)+'</span>'+(idx>0?'<button type="button" onclick="this.closest(\'[data-type]\').remove()" style="color:#f87171;background:none;border:none;cursor:pointer;padding:4px;border-radius:50%" title="সরান">&#10005;</button>':"")+'</div><div class="grid grid-cols-2 lg:grid-cols-4 gap-2"><input type="text" name="'+prefix+'Name" placeholder="নাম" value="'+nameVal+'" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;outline:none;width:100%"><select name="'+prefix+'Age" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;background:#fff;outline:none;width:100%">'+ageOpts+'</select><input type="number" name="'+prefix+'Count" min="0" placeholder="চারা সংখ্যা" value="'+(data&&data.count?data.count:"")+'" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;outline:none;width:100%"><input type="number" name="'+prefix+'Graft" min="0" placeholder="কলম সংখ্যা" value="'+(data&&data.graftingCount?data.graftingCount:"")+'" style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:14px;outline:none;width:100%"></div></div>';
+// ── Seedling Builder & Helpers ──
+var PLANT_VARIETIES = {
+  "আম": ["আম্রপালি", "হাড়িভাঙ্গা", "কাটিমন", "ফজলি", "ল্যাংড়া", "আশ্বিনা", "গোপালভোগ", "ক্ষীরশাপাত", "বারি আম-৪", "অন্যান্য"],
+  "কাঁঠাল": ["খাজা", "গলা", "বারি কাঁঠাল-১", "বারি কাঁঠাল-২", "লাল কাঁঠাল", "অন্যান্য"],
+  "পেয়ারা": ["কাজী পেয়ারা", "থাই পেয়ারা", "বারি পেয়ারা-২", "বারি পেয়ারা-৩", "কাঞ্চননগর", "অন্যান্য"],
+  "লেবু": ["কাগজি লেবু", "এলাচি লেবু", "সিডলেস", "বারি লেবু-১", "অন্যান্য"],
+  "লিচু": ["চায়না-৩", "বোম্বাই", "বারি লিচু-৩", "বেদানা", "অন্যান্য"],
+  "পেঁপে": ["রেড লেডি", "শাহী পেঁপে", "বারি পেঁপে-১", "অন্যান্য"],
+  "জাম্বুরা": ["বারি বাতাবিলেবু-৪", "অন্যান্য"],
+  "মাল্টা": ["বারি মাল্টা-১", "অন্যান্য"],
+  "নিম": ["নিম চারা", "অন্যান্য"],
+  "তুলসী": ["কৃষ্ণ তুলসী", "রাম তুলসী", "অন্যান্য"],
+  "অর্জুন": ["অর্জুন চারা", "অন্যান্য"],
+  "আমলকী": ["আমলকী চারা", "অন্যান্য"],
+  "হরিতকী": ["হরিতকী চারা", "অন্যান্য"],
+  "বহেরা": ["বহেরা চারা", "অন্যান্য"],
+  "ঘৃতকুমারী": ["ঘৃতকুমারী চারা", "অন্যান্য"],
+  "মেহগনি": ["দেশী মেহগনি", "আফ্রিকান মেহগনি", "অন্যান্য"],
+  "সেগুন": ["উন্নত সেগুন", "অন্যান্য"],
+  "ইউক্যালিপটাস": ["ইউক্যালিপটাস চারা", "অন্যান্য"],
+  "আকাশমণি": ["আকাশমণি চারা", "অন্যান্য"],
+  "রেইনট্রি": ["রেইনট্রি চারা", "অন্যান্য"],
+  "গর্জন": ["গর্জন চারা", "অন্যান্য"]
+};
+
+var OFFICIAL_DIRECTORY = [
+  { id: "MO-101", name: "সাকিল আহমেদ", role: "মনিটরিং অফিসার", mobile: "01912345678" },
+  { id: "MO-102", name: "রহমত উল্লাহ", role: "মনিটরিং অফিসার", mobile: "01787654321" },
+  { id: "MO-103", name: "মাহমুদা বেগম", role: "মনিটরিং অফিসার", mobile: "01555443322" },
+  { id: "MO-104", name: "লুৎফর রহমান", role: "মনিটরিং অফিসার", mobile: "01822334455" },
+  { id: "SAAO-201", name: "কামরুল হাসান", role: "এসএএও", mobile: "01711223344" },
+  { id: "SAAO-202", name: "আনিসুর রহমান", role: "এসএএও", mobile: "01333445566" },
+  { id: "SAAO-203", name: "মোছাঃ ফাতেমা খাতুন", role: "এসএএও", mobile: "01666778899" }
+];
+
+function parsePlantName(fullName) {
+  if (!fullName) return { name: "", variety: "" };
+  var match = fullName.match(/(.*?)\s*\((.*?)\)/);
+  if (match) {
+    return { name: match[1].trim(), variety: match[2].trim() };
+  }
+  return { name: fullName.trim(), variety: "" };
 }
+
+window.onPlantNameChange = function(inputEl) {
+  var val = inputEl.value.trim();
+  var card = inputEl.closest("[data-type]");
+  if (!card) return;
+  
+  var varietySelect = card.querySelector("select[name$='Variety']");
+  var varietyCustom = card.querySelector("input[name$='VarietyCustom']");
+  if (!varietySelect || !varietyCustom) return;
+  
+  var varieties = PLANT_VARIETIES[val];
+  if (varieties) {
+    varietySelect.innerHTML = varieties.map(function(v){
+      return '<option value="'+v+'">'+v+'</option>';
+    }).join("");
+    varietySelect.classList.remove("hidden");
+    varietyCustom.classList.add("hidden");
+    varietyCustom.value = "";
+  } else {
+    varietySelect.innerHTML = '<option value="অন্যান্য">অন্যান্য</option>';
+    varietySelect.classList.add("hidden");
+    varietyCustom.classList.remove("hidden");
+  }
+  
+  if (window.updateGovtFormPreview) {
+    window.updateGovtFormPreview();
+  }
+};
+
+window.onPlantVarietyChange = function(selectEl) {
+  var val = selectEl.value;
+  var card = selectEl.closest("[data-type]");
+  if (!card) return;
+  
+  var varietyCustom = card.querySelector("input[name$='VarietyCustom']");
+  if (!varietyCustom) return;
+  
+  if (val === "অন্যান্য") {
+    varietyCustom.classList.remove("hidden");
+  } else {
+    varietyCustom.classList.add("hidden");
+    varietyCustom.value = "";
+  }
+  
+  if (window.updateGovtFormPreview) {
+    window.updateGovtFormPreview();
+  }
+};
+
+window.autoFetchOfficialMobile = function(nameId, mobileId) {
+  var nameEl = document.getElementById(nameId);
+  var mobEl = document.getElementById(mobileId);
+  if (!nameEl || !mobEl) return;
+  
+  var typed = nameEl.value.trim().toLowerCase();
+  if (!typed) return;
+  
+  var found = OFFICIAL_DIRECTORY.find(function(o) {
+    return o.id.toLowerCase() === typed || o.name.toLowerCase() === typed;
+  });
+  
+  if (found) {
+    mobEl.value = found.mobile;
+    var statusId = mobileId + "_fetchStatus";
+    var statusEl = document.getElementById(statusId);
+    if (!statusEl) {
+      statusEl = document.createElement("span");
+      statusEl.id = statusId;
+      statusEl.className = "text-[10px] text-emerald-600 font-bold ml-1 block mt-1";
+      mobEl.parentNode.appendChild(statusEl);
+    }
+    statusEl.textContent = "🏢 আইডি/নাম মিলেছে: " + found.name + " (" + found.role + ") - মোবাইল সংযুক্ত!";
+    
+    if (window.updateGovtFormPreview) {
+      window.updateGovtFormPreview();
+    }
+  }
+};
+
+function buildSeedlingHTML(prefix,type,idx,data){
+  var cat=CATEGORIES.find(function(c){return c.key===type});
+  var nameVal = data && data.name ? data.name : "";
+  var parsed = parsePlantName(nameVal);
+  var rawName = parsed.name || "";
+  var variety = parsed.variety || "";
+  
+  var isGraft = false;
+  if (data) {
+    if (data.graftingCount && parseInt(data.graftingCount) > 0) {
+      isGraft = true;
+    }
+  }
+  
+  var qtyVal = "";
+  if (data) {
+    qtyVal = isGraft ? (data.graftingCount || "") : (data.count || "");
+  }
+
+  var ageOpts=AGE_OPTS.map(function(a){
+    return '<option value="'+a+'" '+(data&&data.age===a?"selected":"")+'>'+(a||"বয়স নির্বাচন করুন")+'</option>';
+  }).join("");
+
+  var varietiesList = PLANT_VARIETIES[rawName] || [];
+  var hasVarieties = varietiesList.length > 0;
+  var varietyOptsHTML = "";
+  if (hasVarieties) {
+    varietyOptsHTML = varietiesList.map(function(v){
+      return '<option value="'+v+'" '+(variety===v?"selected":"")+'>'+v+'</option>';
+    }).join("");
+  } else {
+    varietyOptsHTML = '<option value="অন্যান্য">অন্যান্য</option>';
+  }
+
+  var radioSeedlingId = prefix + "_method_seedling_" + idx;
+  var radioGraftId = prefix + "_method_graft_" + idx;
+
+  var html = 
+    '<div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200" style="border-left: 5px solid '+cat.color+'" data-type="'+type+'" data-idx="'+idx+'">' +
+      '<div class="flex items-center justify-between mb-3">' +
+        '<span class="text-xs font-bold text-gray-700 flex items-center gap-1.5">' +
+          '<span class="w-2.5 h-2.5 rounded-full" style="background-color:'+cat.color+'"></span>' +
+          cat.label + " #" + (idx + 1) +
+        '</span>' +
+        (idx > 0 ? '<button type="button" onclick="this.closest(\'[data-type]\').remove(); if(window.updateGovtFormPreview){window.updateGovtFormPreview();}" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-full transition cursor-pointer" title="সরান">&#10005;</button>' : "") +
+      '</div>' +
+      '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">' +
+        '<div>' +
+          '<label class="block text-[11px] font-medium text-gray-500 mb-1">গাছের নাম *</label>' +
+          '<input type="text" name="'+prefix+'Name" list="plantNameSuggestions" onchange="window.onPlantNameChange(this)" placeholder="গাছের নাম খুঁজুন বা লিখুন" value="'+rawName+'" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">' +
+        '</div>' +
+        '<div>' +
+          '<label class="block text-[11px] font-medium text-gray-500 mb-1">গাছের জাত *</label>' +
+          '<div class="flex flex-col gap-1">' +
+            '<select name="'+prefix+'Variety" onchange="window.onPlantVarietyChange(this)" class="'+(hasVarieties ? "" : "hidden ")+'w-full border rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">' +
+              varietyOptsHTML +
+            '</select>' +
+            '<input type="text" name="'+prefix+'VarietyCustom" placeholder="জাতের নাম লিখুন" value="'+(variety && !PLANT_VARIETIES[rawName]?.includes(variety) ? variety : "")+'" class="'+(hasVarieties && PLANT_VARIETIES[rawName]?.includes(variety) ? "hidden " : "")+'w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<label class="block text-[11px] font-medium text-gray-500 mb-1">চারা উৎপাদন পদ্ধতি *</label>' +
+          '<div class="flex items-center gap-3 py-1.5">' +
+            '<label class="inline-flex items-center text-xs font-semibold text-gray-700 cursor-pointer">' +
+              '<input type="radio" name="'+prefix+'Method_'+idx+'" value="seedling" '+( !isGraft ? "checked" : "" )+' class="h-4 w-4 text-emerald-600 focus:ring-green-400 border-gray-300 mr-1.5" onchange="if(window.updateGovtFormPreview){window.updateGovtFormPreview()}">' +
+              '🌱 বীজ (Seedling)' +
+            '</label>' +
+            '<label class="inline-flex items-center text-xs font-semibold text-gray-700 cursor-pointer">' +
+              '<input type="radio" name="'+prefix+'Method_'+idx+'" value="grafting" '+( isGraft ? "checked" : "" )+' class="h-4 w-4 text-emerald-600 focus:ring-green-400 border-gray-300 mr-1.5" onchange="if(window.updateGovtFormPreview){window.updateGovtFormPreview()}">' +
+              '✂️ কলম (Grafting)' +
+            '</label>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<label class="block text-[11px] font-medium text-gray-500 mb-1">চারার বয়স *</label>' +
+          '<select name="'+prefix+'Age" class="w-full border rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db" onchange="if(window.updateGovtFormPreview){window.updateGovtFormPreview()}">' +
+            ageOpts +
+          '</select>' +
+        '</div>' +
+        '<div>' +
+          '<label class="block text-[11px] font-medium text-gray-500 mb-1">সংখ্যা (Qty) *</label>' +
+          '<input type="number" name="'+prefix+'Qty" min="1" placeholder="সংখ্যা লিখুন" value="'+qtyVal+'" oninput="if(window.updateGovtFormPreview){window.updateGovtFormPreview()}" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  return html;
+}
+
 function buildSeedlingSections(prefix,data){
-return CATEGORIES.map(function(cat,ci){var entries=data&&data[cat.key]?data[cat.key]:[{}];
-return '<fieldset style="border:2px solid '+cat.border+';background:'+cat.bg+'" class="rounded-xl p-4 sm:p-5"><legend style="background:'+cat.legend+'" class="px-3 py-1 rounded-lg text-white font-bold text-sm">'+(ci+2)+". "+cat.label+'</legend><div class="space-y-2 mt-2" id="'+prefix+"_"+cat.key+'">'+entries.map(function(e,i){return buildSeedlingHTML(prefix+"_"+ci,cat.key,i,e)}).join("")+'</div><button type="button" onclick="document.getElementById(\''+prefix+"_"+cat.key+'\').insertAdjacentHTML(\'beforeend\',buildSeedlingHTML(\''+prefix+"_"+ci+"','"+cat.key+"',document.querySelectorAll('#"+prefix+"_"+cat.key+'>div\').length))" style="width:100%;margin-top:12px;border:2px dashed '+cat.border+';background:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#6b7280">&#43; আরেকটি যোগ করুন</button></fieldset>';
-}).join("");
+  var datalistHTML = '<datalist id="plantNameSuggestions">';
+  Object.keys(PLANT_VARIETIES).forEach(function(p){
+    datalistHTML += '<option value="'+p+'">';
+  });
+  datalistHTML += '</datalist>';
+
+  var directoryDatalistHTML = '<datalist id="officialDirectoryList">';
+  OFFICIAL_DIRECTORY.forEach(function(o){
+    directoryDatalistHTML += '<option value="'+o.id+'">'+o.name+' ('+o.role+')</option>';
+    directoryDatalistHTML += '<option value="'+o.name+'">'+o.id+' ('+o.role+')</option>';
+  });
+  directoryDatalistHTML += '</datalist>';
+
+  var sections = CATEGORIES.map(function(cat,ci){
+    var entries=data&&data[cat.key]?data[cat.key]:[{}];
+    return '<fieldset style="border:2px solid '+cat.border+';background:'+cat.bg+'" class="rounded-xl p-4 sm:p-5">' +
+      '<legend style="background:'+cat.legend+'" class="px-3 py-1 rounded-lg text-white font-bold text-sm">'+(ci+2)+". "+cat.label+'</legend>' +
+      '<div class="space-y-3 mt-2" id="'+prefix+"_"+cat.key+'">' +
+        entries.map(function(e,i){return buildSeedlingHTML(prefix+"_"+ci,cat.key,i,e)}).join("") +
+      '</div>' +
+      '<button type="button" onclick="document.getElementById(\''+prefix+"_"+cat.key+'\').insertAdjacentHTML(\'beforeend\',buildSeedlingHTML(\''+prefix+"_"+ci+"','"+cat.key+"',document.querySelectorAll(\'#"+prefix+"_"+cat.key+">div\').length)); if(window.updateGovtFormPreview){window.updateGovtFormPreview();}" style="width:100%;margin-top:12px;border:2px dashed '+cat.border+';background:white;border-radius:8px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#6b7280" class="hover:bg-gray-50 transition">&#43; আরেকটি যোগ করুন</button>' +
+    '</fieldset>';
+  }).join("");
+
+  return datalistHTML + directoryDatalistHTML + sections;
 }
 window.buildSeedlingHTML=buildSeedlingHTML;
 
 function collectSeedlingsFromDOM(containerId){
-var result={};
-CATEGORIES.forEach(function(cat,ci){
-  var c=document.getElementById(containerId+"_"+cat.key);
-  if(!c)return;
-  var items=Array.from(c.querySelectorAll("[data-type='"+cat.key+"']")).map(function(card){
-    var inp=card.querySelectorAll("input,select");
-    return{
-      name:(inp[0]&&inp[0].value||"").trim(),
-      age:(inp[1]&&inp[1].value||"").trim(),
-      count:(inp[2]&&inp[2].value||"0").trim(),
-      graftingCount:(inp[3]&&inp[3].value||"0").trim()
-    };
+  var result={};
+  CATEGORIES.forEach(function(cat,ci){
+    var c=document.getElementById(containerId+"_"+cat.key);
+    if(!c)return;
+    var cards=Array.from(c.querySelectorAll("[data-type='"+cat.key+"']"));
+    var items=cards.map(function(card, idx){
+      var nameInp = card.querySelector("input[name$='Name']");
+      var varietySel = card.querySelector("select[name$='Variety']");
+      var varietyCust = card.querySelector("input[name$='VarietyCustom']");
+      var ageSel = card.querySelector("select[name$='Age']");
+      var qtyInp = card.querySelector("input[name$='Qty']");
+      
+      var rawName = nameInp ? nameInp.value.trim() : "";
+      var variety = "";
+      if (varietySel && !varietySel.classList.contains("hidden")) {
+        variety = varietySel.value.trim();
+      } else if (varietyCust) {
+        variety = varietyCust.value.trim();
+      }
+      if (!variety) variety = "অন্যান্য";
+
+      var finalName = rawName;
+      if (rawName && variety) {
+        finalName = rawName + " ("+variety+")";
+      }
+
+      var age = ageSel ? ageSel.value.trim() : "";
+      var qty = qtyInp ? parseInt(qtyInp.value) : 0;
+      if (isNaN(qty)) qty = 0;
+
+      var methodEl = card.querySelector("input[type='radio']:checked");
+      var method = methodEl ? methodEl.value : "seedling";
+
+      var countVal = 0;
+      var graftVal = 0;
+      if (method === "grafting") {
+        graftVal = qty;
+      } else {
+        countVal = qty;
+      }
+
+      return {
+        name: finalName,
+        age: age,
+        count: String(countVal),
+        graftingCount: String(graftVal),
+        rawName: rawName,
+        variety: variety,
+        qty: qty,
+        prodMethod: method
+      };
+    });
+
+    result[cat.key]=items.filter(function(item){
+      return item.rawName !== "" || item.age !== "" || item.qty > 0;
+    });
   });
-  result[cat.key]=items.filter(function(item){
-    var cnt=parseInt(item.count)||0;
-    var grf=parseInt(item.graftingCount)||0;
-    return item.name!==""||item.age!==""||cnt>0||grf>0;
-  });
-});
-return result;
+  return result;
 }
 
 // ── Validation ──
 function validateMobile(v){return /^0\d{10}$/.test(v)}
 function validateForm(prefix){
 var ok=true;
-[{id:prefix+"Region",msg:"অঞ্চল আবশ্যক"},{id:prefix+"District",msg:"জেলা আবশ্যক"},{id:prefix+"Nursery",msg:"রোপণকারীর নাম আবশ্যক"}].forEach(function(r){
+var rNurseryMsg = "পরিচর্যাকারী কৃষকের নাম আবশ্যক";
+var rAddressMsg = "সুনির্দিষ্ট এলাকা/স্পটের নাম আবশ্যক";
+if (prefix === "f" && document.getElementById("fFormType") && document.getElementById("fFormType").value === "nursery") {
+  rNurseryMsg = "নার্সারির নাম আবশ্যক";
+  rAddressMsg = "নার্সারির ঠিকানা ও জমির বিবরণ আবশ্যক";
+}
+[{id:prefix+"Region",msg:"অঞ্চল আবশ্যক"},{id:prefix+"District",msg:"জেলা আবশ্যক"},{id:prefix+"Nursery",msg:rNurseryMsg},{id:prefix+"Union",msg:"ইউনিয়ন আবশ্যক"},{id:prefix+"Village",msg:"গ্রাম আবশ্যক"},{id:prefix+"Address",msg:rAddressMsg},{id:prefix+"SaaoName",msg:"এসএএও-এর নাম আবশ্যক"}].forEach(function(r){
 var el=document.getElementById(r.id),err=el?el.nextElementSibling:null;
 if(!el||!el.value.trim()){if(el){el.classList.add("shake");el.style.borderColor="#ef4444"}if(err){err.textContent=r.msg;err.classList.remove("hidden")}ok=false;setTimeout(function(){if(el){el.classList.remove("shake");el.style.borderColor="#d1d5db"}},350)}
 else{if(el){el.classList.remove("shake");el.style.borderColor="#d1d5db"}if(err)err.classList.add("hidden")}
@@ -53,10 +323,15 @@ if(!mobEl||!mobEl.value.trim()){if(mobErr){mobErr.textContent="মোবাই�
 else if(!validateMobile(mobEl.value.trim())){if(mobErr){mobErr.textContent="মোবাইল নম্বর অবশ্যই ১১ ডিজিট (017XXXXXXXX)";mobErr.classList.remove("hidden")}if(mobEl){mobEl.classList.add("shake");mobEl.style.borderColor="#ef4444"}ok=false;setTimeout(function(){if(mobEl){mobEl.classList.remove("shake");mobEl.style.borderColor="#d1d5db"}},350)}
 else{if(mobErr)mobErr.classList.add("hidden");if(mobEl)mobEl.style.borderColor="#d1d5db"}
 
+var saaoMobEl=document.getElementById(prefix+"SaaoMobile"),saaoMobErr=saaoMobEl?saaoMobEl.nextElementSibling:null;
+if(!saaoMobEl||!saaoMobEl.value.trim()){if(saaoMobErr){saaoMobErr.textContent="এসএএও-এর মোবাইল আবশ্যক";saaoMobErr.classList.remove("hidden")}if(saaoMobEl){saaoMobEl.classList.add("shake");saaoMobEl.style.borderColor="#ef4444"}ok=false;setTimeout(function(){if(saaoMobEl){saaoMobEl.classList.remove("shake");saaoMobEl.style.borderColor="#d1d5db"}},350)}
+else if(!validateMobile(saaoMobEl.value.trim())){if(saaoMobErr){saaoMobErr.textContent="এসএএও-এর মোবাইল অবশ্যই ১১ ডিজিট (01XXXXXXXXX)";saaoMobErr.classList.remove("hidden")}if(saaoMobEl){saaoMobEl.classList.add("shake");saaoMobEl.style.borderColor="#ef4444"}ok=false;setTimeout(function(){if(saaoMobEl){saaoMobEl.classList.remove("shake");saaoMobEl.style.borderColor="#d1d5db"}},350)}
+else{if(saaoMobErr)saaoMobErr.classList.add("hidden");if(saaoMobEl)saaoMobEl.style.borderColor="#d1d5db"}
+
 var careMobEl=document.getElementById(prefix+"CaretakerMobile"),careMobErr=careMobEl?careMobEl.nextElementSibling:null;
 if(careMobEl && careMobEl.value.trim()){
   if(!validateMobile(careMobEl.value.trim())){
-    if(careMobErr){careMobErr.textContent="তদারককারীর মোবাইল অবশ্যই ১১ ডিজিট (01XXXXXXXXX)";careMobErr.classList.remove("hidden")}
+    if(careMobErr){careMobErr.textContent="তদারককারী মোবাইল অবশ্যই ১১ ডিজিট (01XXXXXXXXX)";careMobErr.classList.remove("hidden")}
     careMobEl.classList.add("shake");careMobEl.style.borderColor="#ef4444";
     ok=false;
     setTimeout(function(){careMobEl.classList.remove("shake");careMobEl.style.borderColor="#d1d5db"},350);
@@ -75,12 +350,21 @@ function buildPayload(prefix){
 var upEl=document.getElementById(prefix+"Upazila");
 var pDateEl=document.getElementById(prefix+"PlantingDate");
 var pDateVal=pDateEl?pDateEl.value.trim():new Date().toISOString().slice(0, 10);
+var ndviEl=document.getElementById(prefix+"BaseNdvi");
+var ndviVal=ndviEl?ndviEl.value.trim():"0.45";
+if (!ndviVal || ndviVal === "NDVI = 0.45") ndviVal = "0.45";
+var timestampVal = new Date().toLocaleString('bn-BD');
+
 return{
 region:document.getElementById(prefix+"Region").value.trim(),
 district:document.getElementById(prefix+"District").value.trim(),
 upazila:upEl&&upEl.value.trim(),
+union:(document.getElementById(prefix+"Union")&&document.getElementById(prefix+"Union").value.trim())||"",
+village:(document.getElementById(prefix+"Village")&&document.getElementById(prefix+"Village").value.trim())||"",
 nurseryName:document.getElementById(prefix+"Nursery").value.trim(),
 mobile:document.getElementById(prefix+"Mobile").value.trim(),
+saaoName:(document.getElementById(prefix+"SaaoName")&&document.getElementById(prefix+"SaaoName").value.trim())||"",
+saaoMobile:(document.getElementById(prefix+"SaaoMobile")&&document.getElementById(prefix+"SaaoMobile").value.trim())||"",
 caretakerName:(document.getElementById(prefix+"CaretakerName")&&document.getElementById(prefix+"CaretakerName").value.trim())||"",
 caretakerMobile:(document.getElementById(prefix+"CaretakerMobile")&&document.getElementById(prefix+"CaretakerMobile").value.trim())||"",
 address:(document.getElementById(prefix+"Address")&&document.getElementById(prefix+"Address").value.trim())||"",
@@ -88,7 +372,9 @@ geoLocation:(document.getElementById(prefix+"Geo")&&document.getElementById(pref
 officerName:(document.getElementById(prefix+"CaretakerName")&&document.getElementById(prefix+"CaretakerName").value.trim())||"",
 remarks:(document.getElementById(prefix+"Remarks")&&document.getElementById(prefix+"Remarks").value.trim())||"",
 plantingDate:pDateVal,
-submittedAt:new Date().toISOString()
+submittedAt:new Date().toISOString(),
+baseNdvi:ndviVal,
+timestamp:timestampVal
 };
 }
 function sendToWebhook(p){try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),redirect:"follow"}).catch(function(){})}catch(e){}}
@@ -115,7 +401,8 @@ if(editId){
   resetForm();
 }
 else{
-  payload.id=genId();
+  var isNursery = document.getElementById("fFormType") && document.getElementById("fFormType").value === "nursery";
+  payload.id = isNursery ? "seed_" + genId() : genId();
   subs.push(payload);
   saveSubmissions(subs);
   sendToWebhook(payload);
@@ -130,6 +417,7 @@ setTimeout(function(){hideBanner("successBanner")},4000);
 
 window.resetForm=function(){
 document.getElementById("nurseryForm").reset();document.getElementById("editId").value="";
+var curType = (document.getElementById("fFormType") && document.getElementById("fFormType").value) || "plantation";
 document.getElementById("formTitle").textContent="📄 নতুন তথ্য জমা দিন";
 document.getElementById("cancelBtn").classList.add("hidden");document.getElementById("submitBtn").textContent="তথ্য জমা দিন";
 populateRegionDD(document.getElementById("fRegion"));
@@ -138,6 +426,21 @@ document.getElementById("fUpazila").innerHTML='<option value="">উপজেল�
 document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",null);
 document.querySelectorAll("[data-error]").forEach(function(el){el.classList.add("hidden")});
 document.getElementById("fGeo").value="";
+
+var tsDisp = document.getElementById("fTimestampDisplay");
+if (tsDisp) { tsDisp.value = new Date().toLocaleString('bn-BD'); }
+var baseNdviEl = document.getElementById("fBaseNdvi");
+if (baseNdviEl) { baseNdviEl.value = "0.45"; }
+
+window.unlockField('fUnion');
+window.unlockField('fVillage');
+
 var pDateEl=document.getElementById("fPlantingDate"); if(pDateEl){pDateEl.value=new Date().toISOString().slice(0, 10);}
 fetchGeoLocation();
+if (typeof window.selectFormType === "function") {
+  window.selectFormType(curType);
+}
+if (typeof window.updateMiniFormMapPin === "function") {
+  setTimeout(function() { window.updateMiniFormMapPin(undefined, undefined, false); }, 200);
+}
 };
