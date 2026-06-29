@@ -1,4 +1,4 @@
-name: Plantation Tracker Android Build
+name: Plantation Tracker Android PWA & Native Build
 
 on:
   push:
@@ -8,28 +8,33 @@ on:
 
 jobs:
   build:
-    name: Build & Sign Android Release
+    name: Build PWA Web Assets & Android App Bundle
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository code
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 2. Setup Node.js runtime and cache dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
+      # 3. Install NPM dependencies & Build Web Assets
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build Web Assets
+      - name: Run Build Suite (Logo & Map Generation)
         run: npm run build
 
-      - name: Sync Capacitor
+      # 4. Integrate Capacitor native files
+      - name: Sync Capacitor Android Project
         run: npx cap sync android
 
+      # 5. Set up Java SE 17 environment for Gradle compilation
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -37,33 +42,89 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Restore Clean Gradle Wrapper
+      # # 5b. Force-restore clean Gradle Wrapper JAR
+      - name: Force Restore Clean gradle-wrapper.jar
         run: |
           mkdir -p android/gradle/wrapper
-          curl -L -o android/gradle/wrapper/gradle-wrapper.jar \
-            https://raw.githubusercontent.com/gradle/gradle/v8.14.3/gradle/wrapper/gradle-wrapper.jar
+          curl -L -o android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.14.3/gradle/wrapper/gradle-wrapper.jar
 
       - name: Set Gradlew Executable
         run: chmod +x android/gradlew
 
+      # 6b. Decode release keystore from secrets
+      - name: Decode Release Keystore
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.jks
+
       - name: Build Signed Release AAB
         env:
+          RELEASE_KEYSTORE_PATH: release.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           RELEASE_VERSION_CODE: ${{ github.run_number }}
         run: cd android && ./gradlew bundleRelease
 
       - name: Build Signed Release APK
         env:
+          RELEASE_KEYSTORE_PATH: release.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           RELEASE_VERSION_CODE: ${{ github.run_number }}
         run: cd android && ./gradlew assembleRelease
 
-      - name: Upload AAB
+      - name: Clean Up Keystore
+        if: always()
+        run: rm -f android/app/release.jks
+
+      - name: Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: plantation-tracker-release-aab
+          name: plantation-tracker-release-bundle (AAB)
           path: android/app/build/outputs/bundle/release/app-release.aab
 
-      - name: Upload APK
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: plantation-tracker-release-apk
+          name: plantation-tracker-signed-apk (APK)
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+        # 7. Decode release keystore from base64 secret
+      - name: Decode Release Keystore
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > android/app/release-key.jks
+
+      # 8. Build signed Release AAB
+      - name: Build Android App Bundle (Release AAB)
+        env:
+          RELEASE_KEYSTORE_PATH: release-key.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew bundleRelease
+
+      # 9. Build signed Release APK
+      - name: Build Release APK (Signed)
+        env:
+          RELEASE_KEYSTORE_PATH: release-key.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      # 10. Upload the signed artifacts
+      - name: Upload Release AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plantation-tracker-release-bundle (AAB)
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Signed APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plantation-tracker-signed-apk (APK)
           path: android/app/build/outputs/apk/release/app-release.apk
