@@ -221,8 +221,47 @@ export default function AIAssistant({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setDiagnoseImage(reader.result as string);
-        setDiagnoseResult(null);
+        const rawResult = reader.result as string;
+        
+        // If Rural Data Saver is active, compress the image locally using Canvas
+        const isDataSaver = localStorage.getItem('rural_data_saver_active') === 'true';
+        if (isDataSaver) {
+          const img = new Image();
+          img.src = rawResult;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxDim = 450; // High-fidelity but low bandwidth footprint for Rural Bangladesh
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              // Compress to JPEG with 0.65 quality to save up to 99% cellular data size
+              const compressedResult = canvas.toDataURL('image/jpeg', 0.65);
+              setDiagnoseImage(compressedResult);
+              setDiagnoseResult(null);
+            } else {
+              setDiagnoseImage(rawResult);
+              setDiagnoseResult(null);
+            }
+          };
+        } else {
+          setDiagnoseImage(rawResult);
+          setDiagnoseResult(null);
+        }
       };
       reader.readAsDataURL(file);
     }

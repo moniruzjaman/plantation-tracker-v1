@@ -23,13 +23,13 @@ export default function App() {
   const [aiInitialTab, setAiInitialTab] = useState<'chat' | 'diagnose' | undefined>(undefined);
   const [aiInitialPrompt, setAiInitialPrompt] = useState<string | undefined>(undefined);
 
-  // Listen to cross-window requests and AI triggers from legacy-nursery.html iframe
+  // Listen to cross-window requests, AI triggers, and rural data saver toggle events from legacy-nursery.html iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (!event.data) return;
 
       if (event.data.type === 'request-location') {
-        const iframe = document.querySelector('iframe');
+        const iframe = document.getElementById('app-iframe') as HTMLIFrameElement;
         if (iframe && iframe.contentWindow && geoState && geoState.coords) {
           iframe.contentWindow.postMessage({
             type: 'device-location',
@@ -47,11 +47,38 @@ export default function App() {
         setAiInitialPrompt(event.data.prompt || undefined);
         setIsAiOpen(true);
       }
+
+      if (event.data.type === 'rural-data-saver-change') {
+        const enabled = event.data.enabled;
+        localStorage.setItem('rural_data_saver_active', enabled ? 'true' : 'false');
+        // Dispatch storage event so other React hooks/components (like MobileControlCenter) update instantly
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'rural_data_saver_active',
+          newValue: enabled ? 'true' : 'false'
+        }));
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => {
       window.removeEventListener('message', handleMessage);
     };
+  }, [geoState]);
+
+  // Proactively auto-push coordinate updates to the Leaflet map and mini-maps inside the iframe
+  useEffect(() => {
+    if (geoState && geoState.coords) {
+      const iframe = document.getElementById('app-iframe') as HTMLIFrameElement;
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: 'device-location',
+          coords: {
+            latitude: geoState.coords.latitude,
+            longitude: geoState.coords.longitude,
+            accuracy: geoState.coords.accuracy
+          }
+        }, '*');
+      }
+    }
   }, [geoState]);
 
   return (
