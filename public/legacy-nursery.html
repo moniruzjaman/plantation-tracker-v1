@@ -43,7 +43,21 @@ document.head.appendChild(s);
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+if (window.self !== window.top) {
+  document.documentElement.classList.add('in-iframe');
+}
+</script>
 <style>
+/* Clean iframe mode overrides to let parent React app handle unified modern headers */
+html.in-iframe header,
+html.in-iframe nav,
+html.in-iframe .mobile-nav {
+  display: none !important;
+}
+html.in-iframe body {
+  padding-bottom: 0 !important;
+}
 *{box-sizing:border-box}
 body{font-family:'Noto Sans Bengali','Kalpurush','SolaimanLipi',Arial,sans-serif;padding-bottom:70px;margin:0}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
@@ -1677,6 +1691,14 @@ function setAdminPw(p){localStorage.setItem(PW_KEY,p)}
 // ── Tab switching ──
 window.switchTab=function(tab){
 try{
+  // Notify parent React app of internal tab changes so UI stays 100% in sync
+  try {
+    window.parent.postMessage({
+      type: 'tab-changed',
+      tab: tab
+    }, '*');
+  } catch (e) {}
+
 document.querySelectorAll(".tab-content").forEach(function(el){el.classList.add("hidden")});
 document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("active")});
 var sec=document.getElementById("tab-"+tab);
@@ -2826,6 +2848,13 @@ window.addEventListener("message", function(event) {
     }
   }
 
+  if (event && event.data && event.data.type === 'switch-tab') {
+    var tab = event.data.tab;
+    if (tab && typeof window.switchTab === 'function') {
+      window.switchTab(tab);
+    }
+  }
+
   if (event && event.data && event.data.type === 'device-location') {
     var coords = event.data.coords;
     if (coords && coords.latitude && coords.longitude) {
@@ -3842,7 +3871,7 @@ var mapMarkers = [];
 var ndviEnabled = true;
 var ndviYear = 2026;
 
-window.currentMapLayerMode = localStorage.getItem('rural_data_saver_active') === 'true' ? 'normal' : 'ndvi';
+window.currentMapLayerMode = 'ndvi';
 window.legendVisible = true;
 
 var activeTileLayers = [];
@@ -3857,6 +3886,9 @@ window.updateBaseLayers = function() {
   activeTileLayers = [];
   
   var layerMode = window.currentMapLayerMode;
+  if (localStorage.getItem('rural_data_saver_active') === 'true') {
+    layerMode = 'normal';
+  }
   
   if (layerMode === 'normal') {
     // Normal OpenStreetMap
@@ -3899,8 +3931,8 @@ window.updateBaseLayers = function() {
 
 window.setMapLayer = function(layerMode) {
   if (localStorage.getItem('rural_data_saver_active') === 'true' && layerMode !== 'normal') {
-    showBanner("errorBanner", "🌾 গ্রামীণ ডাটা সেভার মোড সক্রিয় থাকায় শুধুমাত্র স্ট্যান্ডার্ড ম্যাপ লোড করা যাবে। স্যাটেলাইট ও NDVI লেয়ারগুলো মেগাবাইট সাশ্রয়ের জন্য বন্ধ রয়েছে।");
     layerMode = 'normal';
+    showBanner("successBanner", "🌾 গ্রামীণ ডাটা সেভার সক্রিয় রয়েছে! ম্যাপ লেয়ার পরিবর্তন করতে প্রথমে ডাটা সেভার বন্ধ করুন।");
   }
   window.currentMapLayerMode = layerMode;
   

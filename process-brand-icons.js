@@ -2,7 +2,7 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-const sourceImgPath = '/src/assets/images/plantation_app_icon_1781539370524.jpg';
+const sourceImgPath = 'src/assets/images/plantation_app_icon_1781539370524.jpg';
 const publicDir = path.resolve('public');
 
 async function processIcons() {

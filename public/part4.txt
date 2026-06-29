@@ -111,6 +111,14 @@ function setAdminPw(p){localStorage.setItem(PW_KEY,p)}
 // ── Tab switching ──
 window.switchTab=function(tab){
 try{
+  // Notify parent React app of internal tab changes so UI stays 100% in sync
+  try {
+    window.parent.postMessage({
+      type: 'tab-changed',
+      tab: tab
+    }, '*');
+  } catch (e) {}
+
 document.querySelectorAll(".tab-content").forEach(function(el){el.classList.add("hidden")});
 document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("active")});
 var sec=document.getElementById("tab-"+tab);

@@ -526,6 +526,13 @@ window.addEventListener("message", function(event) {
     }
   }
 
+  if (event && event.data && event.data.type === 'switch-tab') {
+    var tab = event.data.tab;
+    if (tab && typeof window.switchTab === 'function') {
+      window.switchTab(tab);
+    }
+  }
+
   if (event && event.data && event.data.type === 'device-location') {
     var coords = event.data.coords;
     if (coords && coords.latitude && coords.longitude) {
