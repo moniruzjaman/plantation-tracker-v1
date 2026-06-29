@@ -43,6 +43,124 @@
 <!-- ========== TAB: FORM (DEFAULT) ========== -->
 <section id="tab-form" class="tab-content">
 <div class="max-w-4xl mx-auto">
+
+<!-- GOVERNMENT OFFICIAL SURVEY FORMAT PREVIEW BLOCK -->
+<div class="border-2 border-dashed border-emerald-400 rounded-2xl p-4 sm:p-6 mb-6 bg-emerald-50/20 shadow-inner relative overflow-hidden" id="govtPreviewWrapper">
+  <!-- Watermark / Decorative Official Background -->
+  <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-200/15 rounded-full blur-2xl pointer-events-none"></div>
+  <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-300/10 rounded-full blur-3xl pointer-events-none"></div>
+  
+  <div class="relative bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-lg flex flex-col gap-4 font-sans text-gray-800">
+    <!-- Memo Upper Stamp & Logo -->
+    <div class="flex flex-col items-center text-center pb-2 border-b border-gray-150">
+      <div class="flex items-center justify-center gap-2 mb-1.5">
+        <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
+          🇧🇩
+        </div>
+        <div class="text-left">
+          <h3 class="text-base font-black text-emerald-900 leading-tight">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</h3>
+          <p class="text-xs font-bold text-gray-700">কৃষি সম্প্রসারণ অধিদপ্তর</p>
+        </div>
+      </div>
+      <p class="text-[11px] sm:text-xs font-semibold text-emerald-800">অনাবাদী পতিত জমি ও বসতবাড়ীর আঙ্গিনায় পারিবারিক পুষ্টি বাগান স্থাপন প্রকল্প (২য় সংশোধিত)</p>
+      <p class="text-[10px] text-gray-500 font-medium">১ম বিল্ডিং (৭ম তলা), খামারবাড়ি, ফার্মগেট, ঢাকা-১২১৫।</p>
+    </div>
+
+    <!-- Official Letter Metadata: Memo Ref & Date -->
+    <div class="flex flex-row justify-between text-[11px] text-gray-600 font-medium border-b border-dashed border-gray-100 pb-2">
+      <div>
+        <span class="font-bold text-gray-705">স্মারক নং:</span> 
+        <span class="font-mono text-gray-900 bg-gray-50 px-1 py-0.5 rounded border border-gray-100">১২.০১.০০০০.৯৪২.২৫.০০৮.২১.৪৮৫৮</span>
+      </div>
+      <div>
+        <span class="font-bold text-gray-750">তারিখ:</span> 
+        <span class="font-mono text-gray-905 bg-gray-50 px-1 py-0.5 rounded border border-gray-100 font-bold" id="gfDate">১০/০৬/২০২৬</span>
+      </div>
+    </div>
+
+    <!-- Official Memo Subject & Source Block -->
+    <div class="bg-emerald-50/40 border border-emerald-100 rounded-lg p-3 text-xs flex flex-col gap-1.5 shadow-sm">
+      <div class="leading-relaxed">
+        <span class="font-extrabold text-emerald-950">বিষয়:</span> 
+        <span class="text-gray-950 font-semibold bg-white/60 px-1.5 py-0.5 rounded shadow-sm border border-emerald-50">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ” কর্মসূচির আওতায় ১৭ ফেব্রুয়ারি ২০২৬ হতে ২৪ মে ২০২৬ তারিখ পর্যন্ত বৃক্ষরোপণের কার্যক্রমের তথ্য প্রেরণ প্রসঙ্গে।</span>
+      </div>
+      <div class="leading-relaxed text-gray-600">
+        <span class="font-bold text-gray-700">সূত্র:</span> 
+        <span>কৃষি মন্ত্রণালয়ের প্রশাসন-৫ শাখার স্মারক নং ১২.০০.০০০০.০২৪.৩২.০০১.২৬.২৫৮, তারিখ ০১.০৬.২০২৬</span>
+      </div>
+    </div>
+
+    <!-- Preamble text as printed in official memo -->
+    <p class="text-[11px] text-gray-600 leading-relaxed font-medium">
+      উপযুক্ত বিষয় ও সূত্রের প্রেক্ষিতে মহোদয়ের সদয় অবগতি ও প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য জানানো যাচ্ছে যে, <b class="text-emerald-900">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ”</b> কর্মসূচির আওতায় রোপণকৃত গাছের তালিকা নিম্নোক্ত ছক মোতাবেক <b class="text-emerald-700">Excel Format</b> এ প্রেরণ করা হল:
+    </p>
+
+    <!-- OFFICIAL BULK TABLE (ছক পত্র) WITH THE EXACT ATTACHMENT COLUMNS -->
+    <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+      <table class="w-full text-left border-collapse min-w-[800px] text-xs">
+        <thead>
+          <tr class="bg-emerald-800 text-white font-extrabold text-[10.5px] text-center border-b border-emerald-900">
+            <th class="p-2 border-r border-emerald-900 w-[5%]">ক্র. নং</th>
+            <th class="p-2 border-r border-emerald-900 w-[20%]">বৃক্ষরোপণের জেলা, উপজেলা, ইউনিয়ন ও গ্রামের নাম</th>
+            <th class="p-2 border-r border-emerald-900 w-[18%]">রোপণকৃত বৃক্ষের প্রজাতির নাম</th>
+            <th class="p-2 border-r border-emerald-900 w-[10%]">রোপণকৃত বৃক্ষের সংখ্যা</th>
+            <th class="p-2 border-r border-emerald-900 w-[11%]">বৃক্ষরোপণের তারিখ</th>
+            <th class="p-2 border-r border-emerald-900 w-[15%]">বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওগ্রাফিক্যাল কোঅর্ডিনেটসহ)</th>
+            <th class="p-2 border-r border-emerald-900 w-[10%]">পরিচর্যাকারীর নাম ও ফোন নম্বর</th>
+            <th class="p-2 border-r border-emerald-900 w-[11%]">মনিটরিং অফিসারের নাম ও ফোন নম্বর</th>
+            <th class="p-2 w-[10%]">মন্তব্য</th>
+          </tr>
+          <tr class="bg-gray-100 text-gray-500 text-[9px] text-center border-b border-gray-200 font-bold">
+            <td class="p-1 border-r border-gray-200">১</td>
+            <td class="p-1 border-r border-gray-200">২</td>
+            <td class="p-1 border-r border-gray-200">৩</td>
+            <td class="p-1 border-r border-gray-200">৪</td>
+            <td class="p-1 border-r border-gray-200">৫</td>
+            <td class="p-1 border-r border-gray-200">৬</td>
+            <td class="p-1 border-r border-gray-200">৭</td>
+            <td class="p-1 border-r border-gray-200">৮</td>
+            <td class="p-2">৯</td>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 font-medium text-center" id="govtPreviewTableBody">
+          <!-- Live filled table rows generated dynamically -->
+          <tr>
+            <td colspan="9" class="p-4 text-center text-gray-400 font-semibold italic bg-gray-50/50">
+              ফর্মে ডাটা ইনপুট দিলে এখানে সরকারের জিমেইল/এক্সেল ফরম্যাট ছক অনুযায়ী লাইভ রো তৈরি হবে।
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Official Seal Signature Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-end border-t border-gray-150 pt-2 mt-2 gap-4">
+      <div class="text-[10.5px] text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-105/40 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+        <span>মোবাইল অথবা ল্যাপটপ থেকে সরাসরি জরীপ সাবমিট করলে অফলাইন ব্যাকআপ এক্সেল ফাইলে অটোমেটিক সেভ হয়ে যাবে।</span>
+      </div>
+      <div class="text-right text-xs pr-4">
+        <p class="italic text-gray-400 text-[10px] mb-1">(ডিজিটাল সিলমোহর ও স্বাক্ষর)</p>
+        <div class="font-extrabold text-gray-900">ড. মোঃ আকরাম হোসেন চৌধুরী</div>
+        <div class="text-gray-600 font-semibold text-[10px]">প্রকল্প পরিচালক</div>
+        <div class="text-gray-500 text-[9.5px]">ইফনাপ, ডিএই, খামারবাড়ি, ঢাকা</div>
+      </div>
+    </div>
+
+    <!-- Support Information & Action Buttons Inside Government Format Preview -->
+    <div class="flex flex-col sm:flex-row items-center justify-between border-t border-gray-150 pt-3 gap-2.5">
+      <span class="text-[10px] text-gray-400 font-mono" id="gfId_label font-bold">আইডি: নতুন জরিপ এন্ট্রি</span>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <!-- Direct Save as Excel Sheet -->
+        <button type="button" onclick="exportCurrentFormToExcel()" class="bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white font-bold text-xs py-2 px-3 rounded-lg transition duration-150 shadow flex items-center justify-center gap-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="font-bold">Excel Format ডাউনলোড (XLSX)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4">
 <h2 class="text-lg font-bold text-green-700 mb-4" id="formTitle">📄 নতুন তথ্য জমা দিন</h2>
 <form id="nurseryForm" novalidate>
@@ -235,13 +353,144 @@
 </button>
 </div>
 </div>
+
+<!-- Satellite NDVI Simulation Control Center Panel -->
+<div class="bg-white rounded-xl shadow p-4 mb-4 border-l-4 border-emerald-600">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+    <div>
+      <p class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+        <span>🛰️</span> উপগ্রহ এনডিভিআই সিমুলেটর ও বৃদ্ধি ট্র্যাকিং (Satellite NDVI & Canopy Growth Tracker)
+      </p>
+      <p class="text-[11px] text-gray-500 mt-0.5">সবুজ চাদরের ঘনত্ব ও গাছ বৃদ্ধির ভবিষ্যৎ প্রক্ষেপণ সিমুলেশন</p>
+    </div>
+    <!-- Mini Switch for NDVI Mode -->
+    <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+      <label class="relative inline-flex items-center cursor-pointer select-none">
+        <input type="checkbox" id="ndviToggle" onchange="toggleNdviMode()" class="sr-only peer">
+        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+        <span class="ml-2 text-xs font-bold text-gray-700">এনডিভিআই মোড সক্রিয় করুন</span>
+      </label>
+    </div>
+  </div>
+
+  <div id="ndviControls" class="opacity-50 pointer-events-none transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+      <!-- Year Slider for Projection -->
+      <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-xs font-semibold text-gray-600">বৃদ্ধির সময়কাল (Simulated Projection Year):</span>
+          <span id="ndviYearLabel" class="text-sm font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">২০২৬ (বর্তমান)</span>
+        </div>
+        <input type="range" id="ndviYearSlider" min="2026" max="2031" value="2026" oninput="updateNdviYear(this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+        <div class="flex justify-between text-[9px] text-gray-400 mt-1 font-mono">
+          <span>২০২৬ (চারা)</span>
+          <span>২০২৭</span>
+          <span>২০২৮</span>
+          <span>২০২৯</span>
+          <span>২০৩০</span>
+          <span>২০৩১ (পরিপক্ক)</span>
+        </div>
+      </div>
+
+      <!-- Quick Analysis Metrics -->
+      <div class="grid grid-cols-2 gap-2 text-center text-xs">
+        <div class="bg-emerald-50/65 rounded-lg p-2.5 border border-emerald-105 flex flex-col justify-center">
+          <span class="text-[10px] text-emerald-800 uppercase font-bold">গড় এনডিভিআই সূচক</span>
+          <span id="ndviScoreVal" class="text-lg font-extrabold text-emerald-700 mt-1 font-mono">0.24</span>
+          <span id="ndviHealthText" class="text-[9px] text-emerald-600 font-medium mt-0.5">নতুন রোপণকৃত কুঁড়ি</span>
+        </div>
+        <div class="bg-lime-50/65 rounded-lg p-2.5 border border-lime-105 flex flex-col justify-center">
+          <span class="text-[10px] text-lime-800 uppercase font-bold">প্রাক্কলিত কার্বন শোষণ</span>
+          <span id="ndviCo2Val" class="text-lg font-extrabold text-lime-700 mt-1 font-mono">১৮.৩ টন/বছর</span>
+          <span class="text-[9px] text-lime-600 font-medium mt-0.5">কার্বন অফসেট মাত্রা</span>
+        </div>
+      </div>
+      
+      <!-- Google Earth Engine Data Integration Engine Core Tabbed Interface -->
+      <div class="col-span-1 md:col-span-2 border-t border-gray-150 pt-3 mt-2">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Google Earth Engine (GEE) ক্লাউড ইন্টিগ্রেশন</span>
+          </div>
+          <span class="text-[10px] text-gray-400 font-mono">earthengine.googleapis.com v1alpha</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <!-- GEE Controls -->
+          <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200 text-xs flex flex-col gap-2">
+            <div>
+              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">সুপারকম্পিউটার ডেটাসেট (EE Dataset):</label>
+              <select id="geeDataset" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
+                <option value="sentinel2">COPERNICUS/S2_SR_HARMONIZED (Sentinel-2 10m MSI)</option>
+                <option value="landsat9">LANDSAT/LC09/C02/T1_L2 (Landsat 9 OLI-2 30m)</option>
+                <option value="modis">MODIS/061/MOD13Q1 (MODIS Vegetation Indices 250m)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">ব্যান্ড কম্বিনেশন (EO Band Rendering):</label>
+              <select id="geeBands" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
+                <option value="truecolor">False/True Color Composite (B4, B3, B2 / Red-Green-Blue)</option>
+                <option value="ndvi">NDVI Vegetation Index (B8 - B4) / (B8 + B4)</option>
+                <option value="nir">NIR InfraRed Composite (B8, B4, B3 / Canopy Density)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] bg-white border border-gray-200 rounded p-1.5 mt-1">
+              <span class="text-gray-500">ক্লাউড ফিল্টার (Cloud limit):</span>
+              <span class="font-bold text-emerald-700 font-mono">&lt;10%</span>
+            </div>
+
+            <button onclick="runGeeAnalysis()" class="w-full text-white bg-emerald-700 hover:bg-emerald-800 active:scale-98 font-bold py-1.5 px-3 rounded text-xs transition duration-150 shadow flex items-center justify-center gap-1.5 mt-auto">
+              <span>🚀</span> GEE লাইভ এনালিসিস রান করুন (Run Cloud Pipeline)
+            </button>
+          </div>
+
+          <!-- GEE LIVE SCRIPT CONSOLE -->
+          <div class="bg-gray-900 rounded-lg p-2.5 border border-gray-800 text-[10px] font-mono text-emerald-400 flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">GEE JavaScript (Code Editor)</span>
+              <button onclick="copyGeeScript()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 rounded px-1.5 py-0.5 text-[9px] transition-colors">Copy</button>
+            </div>
+            <pre id="geeScriptPre" class="overflow-auto max-h-[105px] whitespace-pre text-emerald-500 leading-tight flex-1 scrolling-thin select-all"></pre>
+          </div>
+
+          <!-- GEE REALTIME TERMINAL LOG -->
+          <div class="bg-black rounded-lg p-2.5 border border-gray-900 text-[9.5px] font-mono text-white flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">Platform Logs</span>
+              <span class="bg-emerald-950 text-emerald-400 text-[8px] font-bold px-1 rounded animate-pulse">Connected</span>
+            </div>
+            <div id="geeTerminalLog" class="overflow-y-auto max-h-[105px] h-[105px] flex flex-col gap-1 text-gray-300 leading-normal scrolling-thin">
+              <span class="text-blue-400">[info] GEE microserver initialized</span>
+              <span class="text-gray-505">[auth] Active Service Account Verified</span>
+              <span class="text-yellow-500">[wait] Click 'Run Cloud Pipeline' to fetch raster tiles...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="bg-white rounded-xl shadow p-3 mb-6 relative">
 <div id="leafletMap" class="w-full h-[450px] sm:h-[550px] rounded-lg border border-gray-200" style="z-index: 10;"></div>
 <div class="mt-3 flex flex-wrap justify-between items-center text-xs text-gray-500 gap-2 px-1">
-<div>
+<div id="mapLegendNormal" class="block">
 <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> ফলদ/বৃক্ষ সংখ্যা > ১০,০০০ (বৃহৎ)</span>
 <span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> ৫,০০০ - ১০,০০০ চারা</span>
 <span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> < ৫,০০০ চারা</span>
+</div>
+<div id="mapLegendNdvi" class="hidden flex flex-wrap gap-2 items-center">
+<span class="text-[10px] font-bold text-gray-500 uppercase mr-1">এনডিভিআই স্কেল:</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#14532d] inline-block rounded border border-white shadow-sm"></span> +0.65 থেকে +0.85 (নিবিড় বনাঞ্চল)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#16a34a] inline-block rounded border border-white shadow-sm"></span> +0.40 থেকে +0.65 (মাঝারি চারা)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#86efac] inline-block rounded border border-white shadow-sm"></span> +0.15 থেকে +0.40 (নবজাতক)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#fef08a] inline-block rounded border border-white shadow-sm"></span> -0.10 থেকে +0.15 (শুষ্ক/অনাবাদী)</span>
 </div>
 <div id="mapStatsText" class="font-semibold text-green-700"></div>
 </div>

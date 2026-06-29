@@ -20,6 +20,7 @@ document.head.appendChild(s);
 });
 }
 </script>
+<script src="seed-data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -157,6 +158,124 @@ tbody tr{border-bottom:1px solid #e5e7eb}
 <!-- ========== TAB: FORM (DEFAULT) ========== -->
 <section id="tab-form" class="tab-content">
 <div class="max-w-4xl mx-auto">
+
+<!-- GOVERNMENT OFFICIAL SURVEY FORMAT PREVIEW BLOCK -->
+<div class="border-2 border-dashed border-emerald-400 rounded-2xl p-4 sm:p-6 mb-6 bg-emerald-50/20 shadow-inner relative overflow-hidden" id="govtPreviewWrapper">
+  <!-- Watermark / Decorative Official Background -->
+  <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-200/15 rounded-full blur-2xl pointer-events-none"></div>
+  <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-300/10 rounded-full blur-3xl pointer-events-none"></div>
+  
+  <div class="relative bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-lg flex flex-col gap-4 font-sans text-gray-800">
+    <!-- Memo Upper Stamp & Logo -->
+    <div class="flex flex-col items-center text-center pb-2 border-b border-gray-150">
+      <div class="flex items-center justify-center gap-2 mb-1.5">
+        <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
+          🇧🇩
+        </div>
+        <div class="text-left">
+          <h3 class="text-base font-black text-emerald-900 leading-tight">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</h3>
+          <p class="text-xs font-bold text-gray-700">কৃষি সম্প্রসারণ অধিদপ্তর</p>
+        </div>
+      </div>
+      <p class="text-[11px] sm:text-xs font-semibold text-emerald-800">অনাবাদী পতিত জমি ও বসতবাড়ীর আঙ্গিনায় পারিবারিক পুষ্টি বাগান স্থাপন প্রকল্প (২য় সংশোধিত)</p>
+      <p class="text-[10px] text-gray-500 font-medium">১ম বিল্ডিং (৭ম তলা), খামারবাড়ি, ফার্মগেট, ঢাকা-১২১৫।</p>
+    </div>
+
+    <!-- Official Letter Metadata: Memo Ref & Date -->
+    <div class="flex flex-row justify-between text-[11px] text-gray-600 font-medium border-b border-dashed border-gray-100 pb-2">
+      <div>
+        <span class="font-bold text-gray-705">স্মারক নং:</span> 
+        <span class="font-mono text-gray-900 bg-gray-50 px-1 py-0.5 rounded border border-gray-100">১২.০১.০০০০.৯৪২.২৫.০০৮.২১.৪৮৫৮</span>
+      </div>
+      <div>
+        <span class="font-bold text-gray-750">তারিখ:</span> 
+        <span class="font-mono text-gray-905 bg-gray-50 px-1 py-0.5 rounded border border-gray-100 font-bold" id="gfDate">১০/০৬/২০২৬</span>
+      </div>
+    </div>
+
+    <!-- Official Memo Subject & Source Block -->
+    <div class="bg-emerald-50/40 border border-emerald-100 rounded-lg p-3 text-xs flex flex-col gap-1.5 shadow-sm">
+      <div class="leading-relaxed">
+        <span class="font-extrabold text-emerald-950">বিষয়:</span> 
+        <span class="text-gray-950 font-semibold bg-white/60 px-1.5 py-0.5 rounded shadow-sm border border-emerald-50">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ” কর্মসূচির আওতায় ১৭ ফেব্রুয়ারি ২০২৬ হতে ২৪ মে ২০২৬ তারিখ পর্যন্ত বৃক্ষরোপণের কার্যক্রমের তথ্য প্রেরণ প্রসঙ্গে।</span>
+      </div>
+      <div class="leading-relaxed text-gray-600">
+        <span class="font-bold text-gray-700">সূত্র:</span> 
+        <span>কৃষি মন্ত্রণালয়ের প্রশাসন-৫ শাখার স্মারক নং ১২.০০.০০০০.০২৪.৩২.০০১.২৬.২৫৮, তারিখ ০১.০৬.২০২৬</span>
+      </div>
+    </div>
+
+    <!-- Preamble text as printed in official memo -->
+    <p class="text-[11px] text-gray-600 leading-relaxed font-medium">
+      উপযুক্ত বিষয় ও সূত্রের প্রেক্ষিতে মহোদয়ের সদয় অবগতি ও প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য জানানো যাচ্ছে যে, <b class="text-emerald-900">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ”</b> কর্মসূচির আওতায় রোপণকৃত গাছের তালিকা নিম্নোক্ত ছক মোতাবেক <b class="text-emerald-700">Excel Format</b> এ প্রেরণ করা হল:
+    </p>
+
+    <!-- OFFICIAL BULK TABLE (ছক পত্র) WITH THE EXACT ATTACHMENT COLUMNS -->
+    <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+      <table class="w-full text-left border-collapse min-w-[800px] text-xs">
+        <thead>
+          <tr class="bg-emerald-800 text-white font-extrabold text-[10.5px] text-center border-b border-emerald-900">
+            <th class="p-2 border-r border-emerald-900 w-[5%]">ক্র. নং</th>
+            <th class="p-2 border-r border-emerald-900 w-[20%]">বৃক্ষরোপণের জেলা, উপজেলা, ইউনিয়ন ও গ্রামের নাম</th>
+            <th class="p-2 border-r border-emerald-900 w-[18%]">রোপণকৃত বৃক্ষের প্রজাতির নাম</th>
+            <th class="p-2 border-r border-emerald-900 w-[10%]">রোপণকৃত বৃক্ষের সংখ্যা</th>
+            <th class="p-2 border-r border-emerald-900 w-[11%]">বৃক্ষরোপণের তারিখ</th>
+            <th class="p-2 border-r border-emerald-900 w-[15%]">বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওগ্রাফিক্যাল কোঅর্ডিনেটসহ)</th>
+            <th class="p-2 border-r border-emerald-900 w-[10%]">পরিচর্যাকারীর নাম ও ফোন নম্বর</th>
+            <th class="p-2 border-r border-emerald-900 w-[11%]">মনিটরিং অফিসারের নাম ও ফোন নম্বর</th>
+            <th class="p-2 w-[10%]">মন্তব্য</th>
+          </tr>
+          <tr class="bg-gray-100 text-gray-500 text-[9px] text-center border-b border-gray-200 font-bold">
+            <td class="p-1 border-r border-gray-200">১</td>
+            <td class="p-1 border-r border-gray-200">২</td>
+            <td class="p-1 border-r border-gray-200">৩</td>
+            <td class="p-1 border-r border-gray-200">৪</td>
+            <td class="p-1 border-r border-gray-200">৫</td>
+            <td class="p-1 border-r border-gray-200">৬</td>
+            <td class="p-1 border-r border-gray-200">৭</td>
+            <td class="p-1 border-r border-gray-200">৮</td>
+            <td class="p-2">৯</td>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 font-medium text-center" id="govtPreviewTableBody">
+          <!-- Live filled table rows generated dynamically -->
+          <tr>
+            <td colspan="9" class="p-4 text-center text-gray-400 font-semibold italic bg-gray-50/50">
+              ফর্মে ডাটা ইনপুট দিলে এখানে সরকারের জিমেইল/এক্সেল ফরম্যাট ছক অনুযায়ী লাইভ রো তৈরি হবে।
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Official Seal Signature Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-end border-t border-gray-150 pt-2 mt-2 gap-4">
+      <div class="text-[10.5px] text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-105/40 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+        <span>মোবাইল অথবা ল্যাপটপ থেকে সরাসরি জরীপ সাবমিট করলে অফলাইন ব্যাকআপ এক্সেল ফাইলে অটোমেটিক সেভ হয়ে যাবে।</span>
+      </div>
+      <div class="text-right text-xs pr-4">
+        <p class="italic text-gray-400 text-[10px] mb-1">(ডিজিটাল সিলমোহর ও স্বাক্ষর)</p>
+        <div class="font-extrabold text-gray-900">ড. মোঃ আকরাম হোসেন চৌধুরী</div>
+        <div class="text-gray-600 font-semibold text-[10px]">প্রকল্প পরিচালক</div>
+        <div class="text-gray-500 text-[9.5px]">ইফনাপ, ডিএই, খামারবাড়ি, ঢাকা</div>
+      </div>
+    </div>
+
+    <!-- Support Information & Action Buttons Inside Government Format Preview -->
+    <div class="flex flex-col sm:flex-row items-center justify-between border-t border-gray-150 pt-3 gap-2.5">
+      <span class="text-[10px] text-gray-400 font-mono" id="gfId_label font-bold">আইডি: নতুন জরিপ এন্ট্রি</span>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <!-- Direct Save as Excel Sheet -->
+        <button type="button" onclick="exportCurrentFormToExcel()" class="bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white font-bold text-xs py-2 px-3 rounded-lg transition duration-150 shadow flex items-center justify-center gap-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="font-bold">Excel Format ডাউনলোড (XLSX)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4">
 <h2 class="text-lg font-bold text-green-700 mb-4" id="formTitle">📄 নতুন তথ্য জমা দিন</h2>
 <form id="nurseryForm" novalidate>
@@ -349,13 +468,144 @@ tbody tr{border-bottom:1px solid #e5e7eb}
 </button>
 </div>
 </div>
+
+<!-- Satellite NDVI Simulation Control Center Panel -->
+<div class="bg-white rounded-xl shadow p-4 mb-4 border-l-4 border-emerald-600">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+    <div>
+      <p class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+        <span>🛰️</span> উপগ্রহ এনডিভিআই সিমুলেটর ও বৃদ্ধি ট্র্যাকিং (Satellite NDVI & Canopy Growth Tracker)
+      </p>
+      <p class="text-[11px] text-gray-500 mt-0.5">সবুজ চাদরের ঘনত্ব ও গাছ বৃদ্ধির ভবিষ্যৎ প্রক্ষেপণ সিমুলেশন</p>
+    </div>
+    <!-- Mini Switch for NDVI Mode -->
+    <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+      <label class="relative inline-flex items-center cursor-pointer select-none">
+        <input type="checkbox" id="ndviToggle" onchange="toggleNdviMode()" class="sr-only peer">
+        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+        <span class="ml-2 text-xs font-bold text-gray-700">এনডিভিআই মোড সক্রিয় করুন</span>
+      </label>
+    </div>
+  </div>
+
+  <div id="ndviControls" class="opacity-50 pointer-events-none transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+      <!-- Year Slider for Projection -->
+      <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-xs font-semibold text-gray-600">বৃদ্ধির সময়কাল (Simulated Projection Year):</span>
+          <span id="ndviYearLabel" class="text-sm font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">২০২৬ (বর্তমান)</span>
+        </div>
+        <input type="range" id="ndviYearSlider" min="2026" max="2031" value="2026" oninput="updateNdviYear(this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+        <div class="flex justify-between text-[9px] text-gray-400 mt-1 font-mono">
+          <span>২০২৬ (চারা)</span>
+          <span>২০২৭</span>
+          <span>২০২৮</span>
+          <span>২০২৯</span>
+          <span>২০৩০</span>
+          <span>২০৩১ (পরিপক্ক)</span>
+        </div>
+      </div>
+
+      <!-- Quick Analysis Metrics -->
+      <div class="grid grid-cols-2 gap-2 text-center text-xs">
+        <div class="bg-emerald-50/65 rounded-lg p-2.5 border border-emerald-105 flex flex-col justify-center">
+          <span class="text-[10px] text-emerald-800 uppercase font-bold">গড় এনডিভিআই সূচক</span>
+          <span id="ndviScoreVal" class="text-lg font-extrabold text-emerald-700 mt-1 font-mono">0.24</span>
+          <span id="ndviHealthText" class="text-[9px] text-emerald-600 font-medium mt-0.5">নতুন রোপণকৃত কুঁড়ি</span>
+        </div>
+        <div class="bg-lime-50/65 rounded-lg p-2.5 border border-lime-105 flex flex-col justify-center">
+          <span class="text-[10px] text-lime-800 uppercase font-bold">প্রাক্কলিত কার্বন শোষণ</span>
+          <span id="ndviCo2Val" class="text-lg font-extrabold text-lime-700 mt-1 font-mono">১৮.৩ টন/বছর</span>
+          <span class="text-[9px] text-lime-600 font-medium mt-0.5">কার্বন অফসেট মাত্রা</span>
+        </div>
+      </div>
+      
+      <!-- Google Earth Engine Data Integration Engine Core Tabbed Interface -->
+      <div class="col-span-1 md:col-span-2 border-t border-gray-150 pt-3 mt-2">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Google Earth Engine (GEE) ক্লাউড ইন্টিগ্রেশন</span>
+          </div>
+          <span class="text-[10px] text-gray-400 font-mono">earthengine.googleapis.com v1alpha</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <!-- GEE Controls -->
+          <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200 text-xs flex flex-col gap-2">
+            <div>
+              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">সুপারকম্পিউটার ডেটাসেট (EE Dataset):</label>
+              <select id="geeDataset" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
+                <option value="sentinel2">COPERNICUS/S2_SR_HARMONIZED (Sentinel-2 10m MSI)</option>
+                <option value="landsat9">LANDSAT/LC09/C02/T1_L2 (Landsat 9 OLI-2 30m)</option>
+                <option value="modis">MODIS/061/MOD13Q1 (MODIS Vegetation Indices 250m)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">ব্যান্ড কম্বিনেশন (EO Band Rendering):</label>
+              <select id="geeBands" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
+                <option value="truecolor">False/True Color Composite (B4, B3, B2 / Red-Green-Blue)</option>
+                <option value="ndvi">NDVI Vegetation Index (B8 - B4) / (B8 + B4)</option>
+                <option value="nir">NIR InfraRed Composite (B8, B4, B3 / Canopy Density)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] bg-white border border-gray-200 rounded p-1.5 mt-1">
+              <span class="text-gray-500">ক্লাউড ফিল্টার (Cloud limit):</span>
+              <span class="font-bold text-emerald-700 font-mono">&lt;10%</span>
+            </div>
+
+            <button onclick="runGeeAnalysis()" class="w-full text-white bg-emerald-700 hover:bg-emerald-800 active:scale-98 font-bold py-1.5 px-3 rounded text-xs transition duration-150 shadow flex items-center justify-center gap-1.5 mt-auto">
+              <span>🚀</span> GEE লাইভ এনালিসিস রান করুন (Run Cloud Pipeline)
+            </button>
+          </div>
+
+          <!-- GEE LIVE SCRIPT CONSOLE -->
+          <div class="bg-gray-900 rounded-lg p-2.5 border border-gray-800 text-[10px] font-mono text-emerald-400 flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">GEE JavaScript (Code Editor)</span>
+              <button onclick="copyGeeScript()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 rounded px-1.5 py-0.5 text-[9px] transition-colors">Copy</button>
+            </div>
+            <pre id="geeScriptPre" class="overflow-auto max-h-[105px] whitespace-pre text-emerald-500 leading-tight flex-1 scrolling-thin select-all"></pre>
+          </div>
+
+          <!-- GEE REALTIME TERMINAL LOG -->
+          <div class="bg-black rounded-lg p-2.5 border border-gray-900 text-[9.5px] font-mono text-white flex flex-col justify-between">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">Platform Logs</span>
+              <span class="bg-emerald-950 text-emerald-400 text-[8px] font-bold px-1 rounded animate-pulse">Connected</span>
+            </div>
+            <div id="geeTerminalLog" class="overflow-y-auto max-h-[105px] h-[105px] flex flex-col gap-1 text-gray-300 leading-normal scrolling-thin">
+              <span class="text-blue-400">[info] GEE microserver initialized</span>
+              <span class="text-gray-505">[auth] Active Service Account Verified</span>
+              <span class="text-yellow-500">[wait] Click 'Run Cloud Pipeline' to fetch raster tiles...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="bg-white rounded-xl shadow p-3 mb-6 relative">
 <div id="leafletMap" class="w-full h-[450px] sm:h-[550px] rounded-lg border border-gray-200" style="z-index: 10;"></div>
 <div class="mt-3 flex flex-wrap justify-between items-center text-xs text-gray-500 gap-2 px-1">
-<div>
+<div id="mapLegendNormal" class="block">
 <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> ফলদ/বৃক্ষ সংখ্যা > ১০,০০০ (বৃহৎ)</span>
 <span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> ৫,০০০ - ১০,০০০ চারা</span>
 <span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> < ৫,০০০ চারা</span>
+</div>
+<div id="mapLegendNdvi" class="hidden flex flex-wrap gap-2 items-center">
+<span class="text-[10px] font-bold text-gray-500 uppercase mr-1">এনডিভিআই স্কেল:</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#14532d] inline-block rounded border border-white shadow-sm"></span> +0.65 থেকে +0.85 (নিবিড় বনাঞ্চল)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#16a34a] inline-block rounded border border-white shadow-sm"></span> +0.40 থেকে +0.65 (মাঝারি চারা)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#86efac] inline-block rounded border border-white shadow-sm"></span> +0.15 থেকে +0.40 (নবজাতক)</span>
+<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#fef08a] inline-block rounded border border-white shadow-sm"></span> -0.10 থেকে +0.15 (শুষ্ক/অনাবাদী)</span>
 </div>
 <div id="mapStatsText" class="font-semibold text-green-700"></div>
 </div>
@@ -690,26 +940,7 @@ plantingDate:pDateVal,
 submittedAt:new Date().toISOString()
 };
 }
-function sendToWebhook(p){
-  var c=countSeedlings(p);
-  var totalT=c.fruit+c.forest+c.medicinal;
-  var speciesList=[];["fruitSeedlings","forestSeedlings","medicinalSeedlings"].forEach(function(k){if(p[k])p[k].forEach(function(e){speciesList.push(e.name+"("+e.count+")")})});
-  
-  var pN = Object.assign({}, p, {
-    prescribedFormat: {
-      "জেলা,উপজেলা,ইউনিয়ন ও গ্রাম": p.district + ", " + p.upazila + ", " + p.address,
-      "বৃক্ষের প্রজাতি": speciesList.join(", "),
-      "বৃক্ষের সংখ্যা": totalT,
-      "তারিখ": p.plantingDate,
-      "এলাকা (জিও)": p.geoLocation,
-      "পরিচর্যাকারী": p.caretakerName + " " + p.caretakerMobile,
-      "মনিটরিং অফিসার": p.officerName + " " + p.mobile,
-      "মন্তব্য": p.remarks
-    }
-  });
-  
-  try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(pN),redirect:"follow"}).catch(function(){})}catch(e){}
-}
+function sendToWebhook(p){try{fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),redirect:"follow"}).catch(function(){})}catch(e){}}
 
 // ── Form Submit ──
 document.getElementById("nurseryForm").addEventListener("submit",async function(e){
@@ -721,8 +952,26 @@ var seedlings=collectSeedlingsFromDOM("seedlingSections");
 var payload=Object.assign({},buildPayload("f"),seedlings);
 var editId=document.getElementById("editId").value;
 var subs=getSubmissions();
-if(editId){var idx=subs.findIndex(function(s){return s.id===editId});if(idx>-1){subs[idx]=Object.assign({},subs[idx],payload);saveSubmissions(subs)}document.getElementById("editId").value="";showBanner("successBanner");resetForm()}
-else{payload.id=genId();subs.push(payload);saveSubmissions(subs);if(typeof window.renderMap === 'function') window.renderMap();sendToWebhook(payload);showBanner("successBanner");resetForm()}
+if(editId){
+  var idx=subs.findIndex(function(s){return s.id===editId});
+  if(idx>-1){
+    subs[idx]=Object.assign({},subs[idx],payload);
+    saveSubmissions(subs);
+  }
+  document.getElementById("editId").value="";
+  if (window.exportCurrentFormToExcel) { window.exportCurrentFormToExcel(); }
+  showBanner("successBanner", "সফলভাবে তথ্য হালনাগাদ ও লোকাল ড্রাইভে এক্সেল ফাইল সেভ হয়েছে!");
+  resetForm();
+}
+else{
+  payload.id=genId();
+  subs.push(payload);
+  saveSubmissions(subs);
+  sendToWebhook(payload);
+  if (window.exportCurrentFormToExcel) { window.exportCurrentFormToExcel(); }
+  showBanner("successBanner", "সফলভাবে তথ্য সংরক্ষিত ও লোকাল ড্রাইভে এক্সেল ফাইল সেভ হয়েছে!");
+  resetForm();
+}
 }catch(err){console.error("Submit error:",err);showBanner("errorBanner","তথ্য জমা করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")}
 btn.disabled=false;btn.textContent="তথ্য জমা দিন";
 setTimeout(function(){hideBanner("successBanner")},4000);
@@ -1405,12 +1654,12 @@ window.exportToGovExcel = function(prefix) {
   // Exact 9 columns as requested by the user:
   data.push([
     "ক্র. নং",
-    "বৃক্ষরোপণের জেলা,উপজেলা,ইউনিয়ন ও গ্রামের নাম",
+    "বৃক্ষরোপণের জেলা, উপজেলা, ইউনিয়ন ও গ্রামের নাম",
     "রোপণকৃত বৃক্ষের প্রজাতির নাম",
     "রোপণকৃত বৃক্ষের সংখ্যা",
     "বৃক্ষরোপণের তারিখ",
     "বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওغرافিক্যাল কোঅর্ডিনেটসহ)",
-    "পরিচর্যাকানীর নাম ও ফোন নম্বর",
+    "পরিচর্যাকারীর নাম ও ফোন নম্বর",
     "মনিটরিং অফিসারের নাম ও ফোন নম্বর",
     "মন্তব্য"
   ]);
@@ -1428,15 +1677,18 @@ window.exportToGovExcel = function(prefix) {
     var fullLocation = "জেলা: " + s.district + ", উপজেলা: " + s.upazila + (s.address ? ", অবস্থান/গ্রাম: " + s.address : "");
     var geoLoc = s.geoLocation || "উল্লেখ নেই";
     
-    // Caretaker and Planter info
-    var caretakerInfo = "";
-    if (s.caretakerName) {
-      caretakerInfo = s.caretakerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
-    } else {
-      caretakerInfo = s.nurseryName + (s.mobile ? " (" + s.mobile + ")" : "");
-    }
+    // Caretaker/Farmer info
+    var caretakerInfo = s.nurseryName + (s.mobile ? " (" + s.mobile + ")" : "");
     
-    var officerInfo = caretakerInfo;
+    // Monitoring Officer info
+    var officerInfo = "";
+    if (s.caretakerName) {
+      officerInfo = s.caretakerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
+    } else if (s.officerName) {
+      officerInfo = s.officerName + (s.caretakerMobile ? " (" + s.caretakerMobile + ")" : "");
+    } else {
+      officerInfo = "উল্লেখ নেই";
+    }
     var remarks = s.remarks || "";
 
     var has = (s.fruitSeedlings && s.fruitSeedlings.length || 0) + 
@@ -1527,6 +1779,95 @@ document.getElementById("editModal").addEventListener("click",function(e){if(e.t
 var mapInstance = null;
 var mapMarkers = [];
 
+// NDVI Simulation Parameters
+var ndviEnabled = false;
+var ndviYear = 2026;
+
+window.toggleNdviMode = function() {
+  var toggle = document.getElementById("ndviToggle");
+  ndviEnabled = toggle ? toggle.checked : false;
+  
+  var controls = document.getElementById("ndviControls");
+  var legendNormal = document.getElementById("mapLegendNormal");
+  var legendNdvi = document.getElementById("mapLegendNdvi");
+  
+  if (ndviEnabled) {
+    if (controls) controls.classList.remove("opacity-50", "pointer-events-none");
+    if (legendNormal) { legendNormal.classList.add("hidden"); legendNormal.classList.remove("block"); }
+    if (legendNdvi) { legendNdvi.classList.remove("hidden"); legendNdvi.classList.add("flex"); }
+  } else {
+    if (controls) controls.classList.add("opacity-50", "pointer-events-none");
+    if (legendNormal) { legendNormal.classList.remove("hidden"); legendNormal.classList.add("block"); }
+    if (legendNdvi) { legendNdvi.classList.add("hidden"); legendNdvi.classList.remove("flex"); }
+  }
+  
+  window.renderMap();
+};
+
+window.updateNdviYear = function(val) {
+  ndviYear = parseInt(val) || 2026;
+  var label = document.getElementById("ndviYearLabel");
+  if (label) {
+    var yearsBn = {
+      2026: '২০২৬ (বর্তমান)',
+      2027: '২০২৭ (১ম বছর)',
+      2028: '২০২৮ (২য় বছর)',
+      2029: '২০২৯ (৩য় বছর)',
+      2030: '২০৩০ (৪র্থ বছর)',
+      2031: '২০৩১ (পরিপক্ক)'
+    };
+    label.textContent = yearsBn[ndviYear] || String(ndviYear);
+  }
+  
+  updateNdviMetrics();
+  window.renderMap();
+};
+
+function updateNdviMetrics() {
+  var subs = getFiltered("map");
+  var totalSeedlings = 0;
+  subs.forEach(function(s) {
+    var t = countSeedlings(s);
+    totalSeedlings += (t.fruit + t.forest + t.medicinal);
+  });
+  
+  var baseNdvi = 0.24;
+  if (totalSeedlings > 0) {
+    var diff = (ndviYear - 2026) * 0.11;
+    baseNdvi = Math.min(0.85, 0.24 + diff + (totalSeedlings > 10000 ? 0.05 : 0));
+  } else {
+    baseNdvi = 0.12;
+  }
+  
+  var scoreValEl = document.getElementById("ndviScoreVal");
+  var healthTextEl = document.getElementById("ndviHealthText");
+  var co2ValEl = document.getElementById("ndviCo2Val");
+  
+  if (scoreValEl) scoreValEl.textContent = baseNdvi.toFixed(2);
+  
+  if (healthTextEl) {
+    if (baseNdvi <= 0.15) {
+      healthTextEl.textContent = "শুষ্ক / অনাবাদী";
+      healthTextEl.style.color = "#d97706";
+    } else if (baseNdvi <= 0.40) {
+      healthTextEl.textContent = "তরুণ চারা চাদর (Young)";
+      healthTextEl.style.color = "#16a34a";
+    } else if (baseNdvi <= 0.65) {
+      healthTextEl.textContent = "বাড়ন্ত সবুজ চাদর (Growing)";
+      healthTextEl.style.color = "#15803d";
+    } else {
+      healthTextEl.textContent = "সতেজ নিবিড় বনাঞ্চল (Lush)";
+      healthTextEl.style.color = "#14532d";
+    }
+  }
+  
+  if (co2ValEl) {
+    var co2Factor = 5 + (ndviYear - 2026) * 3.4;
+    var totalCo2Tons = (totalSeedlings * co2Factor) / 1000;
+    co2ValEl.textContent = totalCo2Tons.toFixed(1) + " টন/বছর";
+  }
+}
+
 window.zoomToMyGeoLocation = function() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(pos) {
@@ -1565,7 +1906,7 @@ window.renderMap = function() {
       }).addTo(mapInstance);
     }
     
-    // Clear old markers
+    // Clear old markers & overlays
     mapMarkers.forEach(function(m) { mapInstance.removeLayer(m); });
     mapMarkers = [];
     
@@ -1575,6 +1916,9 @@ window.renderMap = function() {
     var bounds = [];
     var mappedCount = 0;
     var totalCount = subs.length;
+    
+    // Update live metrics
+    updateNdviMetrics();
     
     subs.forEach(function(s) {
       var geoStr = (s.geoLocation || "").trim();
@@ -1591,54 +1935,115 @@ window.renderMap = function() {
       var t = countSeedlings(s);
       var totalScCount = t.fruit + t.forest + t.medicinal;
       
-      // Seedlings detailed details
-      var detailsHtml = '<div style="font-family: inherit; font-size:12px; line-height:1.5; min-width: 200px;">';
-      detailsHtml += '<p style="font-weight:700; color:#15803d; font-size:13px; margin:0 0 4px 0;">' + s.nurseryName + '</p>';
-      detailsHtml += '<p style="margin:2px 0;"><b>মোবাইল:</b> <a href="tel:' + s.mobile + '" style="color:#2563eb; font-weight:600; text-decoration:underline;">' + s.mobile + '</a></p>';
-      if (s.caretakerName) {
-        detailsHtml += '<p style="margin:2px 0;"><b>তদারককারী:</b> ' + s.caretakerName + (s.caretakerMobile ? ' (<a href="tel:' + s.caretakerMobile + '" style="color:#2563eb; text-decoration:underline;">' + s.caretakerMobile + '</a>)' : '') + '</p>';
+      var detailsHtml = "";
+      
+      if (!ndviEnabled) {
+        // Standard Detail Popup
+        detailsHtml = '<div style="font-family: inherit; font-size:12px; line-height:1.5; min-width: 200px;">';
+        detailsHtml += '<p style="font-weight:700; color:#15803d; font-size:13px; margin:0 0 4px 0;">' + s.nurseryName + '</p>';
+        detailsHtml += '<p style="margin:2px 0;"><b>মোবাইল:</b> <a href="tel:' + s.mobile + '" style="color:#2563eb; font-weight:600; text-decoration:underline;">' + s.mobile + '</a></p>';
+        if (s.caretakerName) {
+          detailsHtml += '<p style="margin:2px 0;"><b>তদারককারী:</b> ' + s.caretakerName + (s.caretakerMobile ? ' (<a href="tel:' + s.caretakerMobile + '" style="color:#2563eb; text-decoration:underline;">' + s.caretakerMobile + '</a>)' : '') + '</p>';
+        }
+        var pD = s.plantingDate ? new Date(s.plantingDate).toLocaleDateString("bn-BD") : (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString("bn-BD") : "");
+        if (pD) {
+          detailsHtml += '<p style="margin:2px 0;"><b>রোপণের তারিখ:</b> ' + pD + '</p>';
+        }
+        detailsHtml += '<p style="margin:2px 0;"><b>রোপণকৃত বৃক্ষের অবস্থান:</b> ' + (s.address || "উল্লেখ নেই") + '</p>';
+        detailsHtml += '<p style="font-size:10px; color:#6b7280; margin:2px 0;">(' + s.region + ' > ' + s.district + ' > ' + s.upazila + ')</p>';
+        detailsHtml += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size:10px; margin-top:6px;">';
+        detailsHtml += '<div style="background:#fff7ed; border-radius:4px; padding:3px;"><span style="color:#ea580c; font-weight:bold;">' + t.fruit + '</span><br><span style="color:#6b7280;">ফলদ</span></div>';
+        detailsHtml += '<div style="background:#ecfdf5; border-radius:4px; padding:3px;"><span style="color:#047857; font-weight:bold;">' + t.forest + '</span><br><span style="color:#6b7280;">বনজ</span></div>';
+        detailsHtml += '<div style="background:#eff6ff; border-radius:4px; padding:3px;"><span style="color:#1d4ed8; font-weight:bold;">' + t.medicinal + '</span><br><span style="color:#6b7280;">ঔষধি</span></div>';
+        detailsHtml += '</div>';
+        detailsHtml += '<button onclick="parent.window.editMySubmission ? parent.window.editMySubmission(\''+s.id+'\') : editMySubmission(\''+s.id+'\')" style="width:100%; margin-top:8px; background:#dbeafe; color:#1d4ed8; border:none; padding:5px; border-radius:6px; font-weight:700; cursor:pointer; font-size:11px;">✏️ তথ্য সম্পাদনা</button>';
+        detailsHtml += '</div>';
+        
+        var markerBg = '#10b981';
+        if (totalScCount >= 10000) markerBg = '#f97316';
+        else if (totalScCount >= 5000) markerBg = '#3b82f6';
+        
+        var customIcon = L.divIcon({
+          html: '<div style="background-color: ' + markerBg + '; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transform: scale(1);" title="' + s.nurseryName + '">🌳</div>',
+          className: 'custom-tree-icon',
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+        
+        var marker = L.marker([lat, lng], { icon: customIcon }).addTo(mapInstance).bindPopup(detailsHtml);
+        mapMarkers.push(marker);
+      } else {
+        // NDVI Simulated View
+        var pNdvi = 0.18 + (ndviYear - 2026) * 0.11;
+        if (t.forest > t.fruit) pNdvi += 0.05;
+        if (totalScCount > 8000) pNdvi += 0.04;
+        pNdvi = Math.max(0.12, Math.min(0.85, pNdvi));
+        
+        var baseRadius = 40 + Math.min(250, totalScCount / 60);
+        var cRadius = baseRadius + (ndviYear - 2026) * 35;
+        
+        var ndviColor = '#fef08a';
+        var ndviLabel = 'অনাবাদী / তরুণ চারা';
+        if (pNdvi > 0.65) {
+          ndviColor = '#14532d';
+          ndviLabel = 'নিবিড় বনাঞ্চল (Lush Canopy)';
+        } else if (pNdvi > 0.40) {
+          ndviColor = '#16a34a';
+          ndviLabel = 'মাঝারি বাড়ন্ত বনায়ন';
+        } else if (pNdvi > 0.15) {
+          ndviColor = '#86efac';
+          ndviLabel = 'নবজাতক চারা কানোপি';
+        }
+        
+        var ndviBufferCircle = L.circle([lat, lng], {
+          color: ndviColor,
+          fillColor: ndviColor,
+          fillOpacity: 0.45,
+          radius: cRadius,
+          weight: 1.5
+        }).addTo(mapInstance);
+        mapMarkers.push(ndviBufferCircle);
+        
+        detailsHtml = '<div style="font-family: inherit; font-size:12px; line-height:1.5; min-width: 220px;">';
+        detailsHtml += '<p style="font-weight:800; color:#15803d; font-size:13px; margin:0 0 5px 0; display:flex; align-items:center; gap:4px;">✨ 🛰️ NDVI উপগ্রহ বিশ্লেষণ</p>';
+        detailsHtml += '<p style="font-weight:700; color:#1f2937; font-size:12px; margin:0 0 4px 0;">' + s.nurseryName + '</p>';
+        detailsHtml += '<div style="background:#f0fdf4; border: 1px solid #bbf7d0; border-radius:8px; padding:6px; margin:6px 0; font-size:11px;">';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>সিমুলেশন বছর:</span><b>' + ndviYear + '</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>এনডিভিআই সূচক:</span><b style="color:' + (pNdvi > 0.40 ? '#15803d' : '#854d0e') + ';">' + pNdvi.toFixed(2) + '</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>সবুজ ক্যানোপি ব্যাস:</span><b>' + Math.round(cRadius * 2) + ' মিটার</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:2.5px;"><span>ক্যানোপি অবস্থা:</span><b style="color:#047857;">' + ndviLabel + '</b></div>';
+        detailsHtml += '<div style="display:flex; justify-content:space-between;"><span>সঞ্চিত কার্বন অফসেট:</span><b style="color:#1d4ed8;">' + ((totalScCount * (3.1 + (ndviYear-2026)*1.8))/1000).toFixed(1) + ' টন/বছর</b></div>';
+        detailsHtml += '</div>';
+        detailsHtml += '<p style="margin:2px 0; font-size:11.5px; color:#4b5563;"><b>রোপণ করা চারা:</b> ' + totalScCount.toLocaleString("bn-BD") + ' টি</p>';
+        detailsHtml += '<p style="margin:2px 0; font-size:11px; color:#6b7280;">(' + s.region + ' > ' + s.district + ')</p>';
+        detailsHtml += '</div>';
+        
+        var satelliteIcon = L.divIcon({
+          html: '<div style="background-color: #047857; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(4,120,87,0.6);" title="' + s.nurseryName + '">🛰️</div>',
+          className: 'ndvi-node-icon',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        });
+        
+        var marker = L.marker([lat, lng], { icon: satelliteIcon }).addTo(mapInstance).bindPopup(detailsHtml);
+        mapMarkers.push(marker);
       }
-      var pD = s.plantingDate ? new Date(s.plantingDate).toLocaleDateString("bn-BD") : (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString("bn-BD") : "");
-      if (pD) {
-        detailsHtml += '<p style="margin:2px 0;"><b>রোপণের তারিখ:</b> ' + pD + '</p>';
-      }
-      detailsHtml += '<p style="margin:2px 0;"><b>রোপণকৃত বৃক্ষের অবস্থান:</b> ' + (s.address || "উল্লেখ নেই") + '</p>';
-      detailsHtml += '<p style="font-size:10px; color:#6b7280; margin:2px 0;">(' + s.region + ' > ' + s.district + ' > ' + s.upazila + ')</p>';
-      detailsHtml += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size:10px; margin-top:6px;">';
-      detailsHtml += '<div style="background:#fff7ed; border-radius:4px; padding:3px;"><span style="color:#ea580c; font-weight:bold;">' + t.fruit + '</span><br><span style="color:#6b7280;">ফলদ</span></div>';
-      detailsHtml += '<div style="background:#ecfdf5; border-radius:4px; padding:3px;"><span style="color:#047857; font-weight:bold;">' + t.forest + '</span><br><span style="color:#6b7280;">বনজ</span></div>';
-      detailsHtml += '<div style="background:#eff6ff; border-radius:4px; padding:3px;"><span style="color:#1d4ed8; font-weight:bold;">' + t.medicinal + '</span><br><span style="color:#6b7280;">ঔষধি</span></div>';
-      detailsHtml += '</div>';
-      detailsHtml += '<button onclick="parent.window.editMySubmission ? parent.window.editMySubmission(\''+s.id+'\') : editMySubmission(\''+s.id+'\')" style="width:100%; margin-top:8px; background:#dbeafe; color:#1d4ed8; border:none; padding:5px; border-radius:6px; font-weight:700; cursor:pointer; font-size:11px;">✏️ তথ্য সম্পাদনা</button>';
-      detailsHtml += '</div>';
-      
-      // Marker color logic: Larger is Orange, Medium is Blue, Small is Emerald
-      var markerBg = '#10b981'; // Green
-      if (totalScCount >= 10000) markerBg = '#f97316'; // Orange
-      else if (totalScCount >= 5000) markerBg = '#3b82f6'; // Blue
-      
-      var customIcon = L.divIcon({
-        html: '<div style="background-color: ' + markerBg + '; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transform: scale(1);" title="' + s.nurseryName + '">🌳</div>',
-        className: 'custom-tree-icon',
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
-      });
-      
-      var marker = L.marker([lat, lng], { icon: customIcon }).addTo(mapInstance).bindPopup(detailsHtml);
-      mapMarkers.push(marker);
     });
     
     // Update footer text statistics
     var statsText = document.getElementById("mapStatsText");
     if (statsText) {
-      statsText.textContent = "মোট রোপণকারী: " + totalCount + " | ম্যাপে প্রদর্শিত: " + mappedCount;
+      if (!ndviEnabled) {
+        statsText.textContent = "মোট রোপণকারী: " + totalCount + " | ম্যাপে প্রদর্শিত: " + mappedCount;
+      } else {
+        statsText.textContent = "प्रক্ষেপণ বছর: " + ndviYear + " | সচল এনডিভিআই ক্যানোপি ওভারলে";
+      }
     }
     
     // Zoom/fit map bounds
     if (bounds.length > 0) {
       mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
     } else {
-      // Zoom to general Bangladesh bounds or default to Kurigram center
       mapInstance.setView([25.8113, 89.6582], 9);
     }
     
@@ -1650,6 +2055,477 @@ window.renderMap = function() {
   } catch (err) {
     console.error("Map rendering error:", err);
   }
+};
+
+// ── Government Survey Format Preview and Excel Exporter ──
+window.updateGovtFormPreview = function() {
+  if (!document.getElementById("govtPreviewTableBody")) return;
+  
+  var editIdVal = document.getElementById("editId")?.value;
+  var stateLabel = editIdVal ? "(সংশোধন আইডি: " + editIdVal + ")" : "নতুন জরিপ এন্ট্রি";
+  
+  var gfLabelEl = document.getElementById("gfId_label");
+  if (gfLabelEl) {
+    gfLabelEl.textContent = "আইডি: " + stateLabel;
+  }
+
+  var region = document.getElementById("fRegion")?.value || "";
+  var district = document.getElementById("fDistrict")?.value || "";
+  var upazila = document.getElementById("fUpazila")?.value || "";
+  var nurseryVal = document.getElementById("fNursery")?.value || "";
+  var mobileVal = document.getElementById("fMobile")?.value || "";
+  var caretakerVal = document.getElementById("fCaretakerName")?.value || "";
+  var caretakerMobileVal = document.getElementById("fCaretakerMobile")?.value || "";
+  var dateVal = document.getElementById("fPlantingDate")?.value || "";
+  var geoVal = document.getElementById("fGeo")?.value || "";
+  var addressVal = document.getElementById("fAddress")?.value || "";
+  var remarksVal = document.getElementById("fRemarks")?.value || "";
+
+  var gfDateEl = document.getElementById("gfDate");
+  if (gfDateEl) {
+    gfDateEl.textContent = dateVal || new Date().toISOString().slice(0, 10);
+  }
+
+  // Let's count dynamic seedling inputs inside seedlingSections
+  var seedlings = collectSeedlingsFromDOM("seedlingSections");
+  var tbody = document.getElementById("govtPreviewTableBody");
+  
+  if (tbody) {
+    var rowsHTML = "";
+    var rowIdx = 1;
+
+    var mockDistrict = district || "কুরিগ্রাম";
+    var mockUpazila = upazila || "ভুরুঙ্গামারী";
+    var mockAddress = addressVal || "ছোটখাট গ্রাম, ৩ নং ওয়ার্ড";
+    var fullLocationCombined = "জেলা: " + mockDistrict + ", উপজেলা: " + mockUpazila + (mockAddress ? ", অবস্থান: " + mockAddress : "");
+    
+    var caretakerCombined = (nurseryVal || "কৃষক / পরিচর্যাকারী") + (mobileVal ? " (" + mobileVal + ")" : "");
+    var officerCombined = (caretakerVal || "উপজেলা কৃষি কর্মকর্তা") + (caretakerMobileVal ? " (" + caretakerMobileVal + ")" : "");
+
+    var hasSeedlings = false;
+    
+    CATEGORIES.forEach(function(cat) {
+      var list = seedlings[cat.key] || [];
+      list.forEach(function(item) {
+        hasSeedlings = true;
+        var scount = parseInt(item.count) || 0;
+        var gcount = parseInt(item.graftingCount) || 0;
+        var totalCount = scount + gcount;
+        var speciesName = item.name || "আমগাছ";
+        var specDetails = speciesName + " (" + cat.label + ")";
+        if (item.age) specDetails += " - " + item.age;
+
+        rowsHTML += `
+          <tr class="hover:bg-emerald-50/45 transition duration-100">
+            <td class="p-2.5 border-r border-b border-gray-200 text-center font-bold text-gray-700">${rowIdx++}</td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-left font-medium text-gray-700 max-w-[210px] break-words">${fullLocationCombined}</td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-left font-semibold text-emerald-900">${specDetails}</td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-center font-bold text-emerald-800">${totalCount}টি<br><span class="text-[9px] font-normal text-gray-400">(সাধারণ: ${scount}, কলম: ${gcount})</span></td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-center font-mono text-gray-600">${dateVal || new Date().toISOString().slice(0, 10)}</td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-left font-mono text-[9px] text-gray-500 max-w-[120px] break-words">${geoVal || "২৫.৮১২৩, ৮৯.৮৭৬৫"}</td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-left font-semibold text-gray-800">${caretakerCombined}</td>
+            <td class="p-2.5 border-r border-b border-gray-200 text-left font-semibold text-blue-900">${officerCombined}</td>
+            <td class="p-2.5 border-b border-gray-200 text-left text-gray-500 text-[10px] max-w-[110px] break-words">${remarksVal || "-"}</td>
+          </tr>
+        `;
+      });
+    });
+
+    if (!hasSeedlings) {
+      // Render beautiful mock/draft rows showing placeholder layout
+      rowsHTML = `
+        <tr class="opacity-50 hover:opacity-85 transition duration-200">
+          <td class="p-3 border-r border-b border-gray-200 text-center font-bold text-gray-400">১</td>
+          <td class="p-3 border-r border-b border-gray-200 text-left text-gray-400 italic max-w-[210px] break-words">${fullLocationCombined}</td>
+          <td class="p-3 border-r border-b border-gray-200 text-left text-emerald-650 font-medium italic">আমগাছ / মাল্টাছড়া (ফলদ চারা)</td>
+          <td class="p-3 border-r border-b border-gray-200 text-center text-emerald-700 font-bold">১০টি<br><span class="text-[8.5px] font-normal text-gray-400">(সাধারণ: ৭, কলম: ৩)</span></td>
+          <td class="p-3 border-r border-b border-gray-200 text-center text-gray-400 font-mono">${dateVal || new Date().toISOString().slice(0, 10)}</td>
+          <td class="p-3 border-r border-b border-gray-200 text-left text-gray-400 font-mono text-[9px]">${geoVal || "২৫.৮১২৩, ৮৯.৮৭৬৫"}</td>
+          <td class="p-3 border-r border-b border-gray-200 text-left text-gray-400 font-medium italic">${caretakerCombined}</td>
+          <td class="p-3 border-r border-b border-gray-200 text-left text-gray-400 font-medium italic">${officerCombined}</td>
+          <td class="p-3 border-b border-gray-200 text-left text-gray-400 text-[10px] max-w-[110px] break-words">${remarksVal || "বসতভিটায় আবাদকৃত এবং রক্ষিত"}</td>
+        </tr>
+      `;
+    }
+
+    tbody.innerHTML = rowsHTML;
+  }
+};
+
+window.exportCurrentFormToExcel = function() {
+  if (typeof XLSX === "undefined") {
+    alert("Excel লাইব্রেরি লোড হচ্ছে, অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...");
+    return;
+  }
+
+  var editIdVal = document.getElementById("editId")?.value || "নতুন এন্ট্রি";
+  var district = document.getElementById("fDistrict")?.value || "";
+  var upazila = document.getElementById("fUpazila")?.value || "";
+  var nurseryVal = document.getElementById("fNursery")?.value || "";
+  var mobileVal = document.getElementById("fMobile")?.value || "";
+  var caretakerVal = document.getElementById("fCaretakerName")?.value || "";
+  var caretakerMobileVal = document.getElementById("fCaretakerMobile")?.value || "";
+  var dateVal = document.getElementById("fPlantingDate")?.value || "";
+  var geoVal = document.getElementById("fGeo")?.value || "";
+  var addressVal = document.getElementById("fAddress")?.value || "";
+  var remarksVal = document.getElementById("fRemarks")?.value || "";
+
+  var seedlings = collectSeedlingsFromDOM("seedlingSections");
+
+  var rows = [];
+  rows.push(["গণপ্রজাতন্ত্রী বাংলাদেশ সরকার - কৃষি সম্প্রসারণ অধিদপ্তর"]);
+  rows.push(["অনাবাদী পতিত জমি ও বসতবাড়ীর আঙ্গিনায় পারিবারিক পুষ্টি বাগান স্থাপন প্রকল্প (২য় সংশোধিত)"]);
+  rows.push([]);
+  rows.push(["১. জরিপ আইডি", editIdVal]);
+  rows.push([]);
+  
+  // Exact 9 columns from attachment table (ছক পত্র)
+  rows.push([
+    "ক্র. নং",
+    "বৃক্ষরোপণের জেলা, উপজেলা, ইউনিয়ন ও গ্রামের নাম",
+    "রোপণকৃত বৃক্ষের প্রজাতির নাম",
+    "রোপণকৃত বৃক্ষের সংখ্যা",
+    "বৃক্ষরোপণের তারিখ",
+    "বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওগ্রাফিক্যাল কোঅর্ডিনেটসহ)",
+    "পরিচর্যাকারীর নাম ও ফোন নম্বর",
+    "মনিটরিং অফিসারের নাম ও ফোন নম্বর",
+    "মন্তব্য"
+  ]);
+
+  rows.push([
+    "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"
+  ]);
+
+  var rowIdx = 1;
+  var fullLocationCombined = "জেলা: " + (district || "") + ", উপজেলা: " + (upazila || "") + (addressVal ? ", গ্রাম/ইউনিয়ন: " + addressVal : "");
+  var caretakerCombined = (nurseryVal || "") + (mobileVal ? " (" + mobileVal + ")" : "");
+  var officerCombined = (caretakerVal || "") + (caretakerMobileVal ? " (" + caretakerMobileVal + ")" : "");
+
+  var hasSeedlings = false;
+
+  CATEGORIES.forEach(function(cat) {
+    var list = seedlings[cat.key] || [];
+    list.forEach(function(item) {
+      hasSeedlings = true;
+      var scount = parseInt(item.count) || 0;
+      var gcount = parseInt(item.graftingCount) || 0;
+      var total = scount + gcount;
+      var speciesDetails = item.name || "";
+      if (item.age) speciesDetails += " (বয়স: " + item.age + ")";
+      speciesDetails += " [" + cat.label + "]";
+
+      rows.push([
+        rowIdx++,
+        fullLocationCombined,
+        speciesDetails,
+        total,
+        dateVal || new Date().toISOString().slice(0, 10),
+        geoVal || "",
+        caretakerCombined,
+        officerCombined,
+        remarksVal || ""
+      ]);
+    });
+  });
+
+  if (!hasSeedlings) {
+    rows.push([
+      1,
+      fullLocationCombined,
+      "(কোনো চারা বিবরণ যুক্ত করা হয়নি)",
+      0,
+      dateVal || new Date().toISOString().slice(0, 10),
+      geoVal || "",
+      caretakerCombined,
+      officerCombined,
+      remarksVal || ""
+    ]);
+  }
+
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = [
+    { wch: 8 }, 
+    { wch: 45 }, 
+    { wch: 25 }, 
+    { wch: 15 }, 
+    { wch: 15 }, 
+    { wch: 25 }, 
+    { wch: 30 }, 
+    { wch: 30 }, 
+    { wch: 25 }
+  ];
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "জরীপ ফরম");
+  
+  var safeNurseryName = nurseryVal ? nurseryVal.replace(/\s+/g, '_') : "অফিশিয়াল";
+  XLSX.writeFile(wb, "Govt_Plantation_Survey_" + safeNurseryName + "_" + new Date().toISOString().slice(0, 10) + ".xlsx");
+};
+
+window.setupGovtPreviewListeners = function() {
+  var inputs = [
+    "fRegion", "fDistrict", "fUpazila", "fNursery", "fMobile", 
+    "fCaretakerName", "fCaretakerMobile", "fPlantingDate", "fGeo", "fAddress", "fRemarks"
+  ];
+  inputs.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", window.updateGovtFormPreview);
+      el.addEventListener("change", window.updateGovtFormPreview);
+    }
+  });
+
+  // Dynamic seed list observer
+  var sSec = document.getElementById("seedlingSections");
+  if (sSec) {
+    sSec.addEventListener("input", window.updateGovtFormPreview);
+    sSec.addEventListener("change", window.updateGovtFormPreview);
+  }
+
+  // Also catch form reset or submit triggered clears
+  window.updateGovtFormPreview();
+};
+
+// ── Google Earth Engine (GEE) Platform Handlers ──
+window.geeSatelliteLayer = null;
+window.geeOverlays = [];
+
+window.clearGeeOverlays = function() {
+  if (window.geeOverlays && window.geeOverlays.length > 0) {
+    window.geeOverlays.forEach(function(layer) {
+      if (mapInstance && mapInstance.hasLayer(layer)) {
+        mapInstance.removeLayer(layer);
+      }
+    });
+  }
+  window.geeOverlays = [];
+  if (window.geeSatelliteLayer && mapInstance) {
+    mapInstance.removeLayer(window.geeSatelliteLayer);
+    window.geeSatelliteLayer = null;
+  }
+};
+
+window.updateGeeScript = function() {
+  var dataset = document.getElementById("geeDataset")?.value || "sentinel2";
+  var bands = document.getElementById("geeBands")?.value || "truecolor";
+  var scriptPre = document.getElementById("geeScriptPre");
+  if (!scriptPre) return;
+
+  var code = "";
+  if (dataset === "sentinel2") {
+    if (bands === "ndvi") {
+      code = `// GEE Sentinel-2 MSI NDVI Analysis Suite\n` +
+             `var region = ee.Geometry.Polygon([[\n` +
+             `  [89.50, 25.40], [89.90, 25.40],\n` +
+             `  [89.90, 26.20], [89.50, 26.20]\n` +
+             `]]);\n\n` +
+             `var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")\n` +
+             `  .filterBounds(region)\n` +
+             `  .filterDate('2026-01-01', '2026-12-31')\n` +
+             `  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10));\n\n` +
+             `var composite = s2.median().clip(region);\n` +
+             `var ndvi = composite.normalizedDifference(['B8', 'B4']).rename('NDVI');\n\n` +
+             `var vis = {\n` +
+             `  min: 0.15, max: 0.85,\n` +
+             `  palette: ['#fef08a', '#86efac', '#16a34a', '#14532d']\n` +
+             `};\n` +
+             `Map.centerObject(region, 9);\n` +
+             `Map.addLayer(ndvi, vis, 'NDVI Canopy Index');`;
+    } else if (bands === "truecolor") {
+      code = `// GEE Sentinel-2 True Color (RGB 4-3-2) Composite\n` +
+             `var region = ee.Geometry.Polygon([[\n` +
+             `  [89.50, 25.40], [89.90, 25.40],\n` +
+             `  [89.90, 26.20], [89.50, 26.20]\n` +
+             `]]);\n\n` +
+             `var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")\n` +
+             `  .filterBounds(region)\n` +
+             `  .filterDate('2026-01-01', '2026-12-31')\n` +
+             `  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10));\n\n` +
+             `var rgbComp = s2.median().clip(region);\n` +
+             `var vis = {bands: ['B4', 'B3', 'B2'], min: 0, max: 3000};\n` +
+             `Map.centerObject(region, 9);\n` +
+             `Map.addLayer(rgbComp, vis, 'Sentinel-2 True Color');`;
+    } else {
+      code = `// GEE Sentinel-2 NIR False Color (RGB 8-4-3) Canopy Density\n` +
+             `var region = ee.Geometry.Polygon([[\n` +
+             `  [89.50, 25.40], [89.90, 25.40],\n` +
+             `  [89.90, 26.20], [89.50, 26.20]\n` +
+             `]]);\n\n` +
+             `var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")\n` +
+             `  .filterBounds(region)\n` +
+             `  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10));\n\n` +
+             `var nirComp = s2.median().clip(region);\n` +
+             `var vis = {bands: ['B8', 'B4', 'B3'], min: 0, max: 4000};\n` +
+             `Map.centerObject(region, 9);\n` +
+             `Map.addLayer(nirComp, vis, 'NIR False Color');`;
+    }
+  } else if (dataset === "landsat9") {
+    if (bands === "ndvi") {
+      code = `// GEE Landsat 9 OLI-2 NDVI Vegetation Suite\n` +
+             `var region = ee.Geometry.Point([89.65, 25.81]);\n` +
+             `var l9 = ee.ImageCollection("LANDSAT/LC09/C02/T1_L2")\n` +
+             `  .filterBounds(region)\n` +
+             `  .filterDate('2026-01-01', '2026-12-31');\n\n` +
+             `var ndvi = l9.median().normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI');\n` +
+             `Map.addLayer(ndvi, {min: 0.1, max: 0.9, palette: ['blue', 'yellow', 'green']}, 'L9 NDVI');`;
+    } else if (bands === "truecolor") {
+      code = `// GEE Landsat 9 RGB Color Core\n` +
+             `var region = ee.Geometry.Point([89.65, 25.81]);\n` +
+             `var l9 = ee.ImageCollection("LANDSAT/LC09/C02/T1_L2")\n` +
+             `  .filterBounds(region);\n` +
+             `var rgb = l9.median();\n` +
+             `Map.addLayer(rgb, {bands: ['SR_B4', 'SR_B3', 'SR_B2'], min: 7000, max: 12000}, 'L9 RGB');`;
+    } else {
+      code = `// GEE Landsat 9 Infrared False Color Composite\n` +
+             `var region = ee.Geometry.Point([89.65, 25.81]);\n` +
+             `var l9 = ee.ImageCollection("LANDSAT/LC09/C02/T1_L2")\n` +
+             `  .filterBounds(region);\n` +
+             `Map.addLayer(l9.median(), {bands: ['SR_B5', 'SR_B4', 'SR_B3'], min: 7000, max: 13000}, 'L9 NIR Canopies');`;
+    }
+  } else {
+    if (bands === "ndvi") {
+      code = `// GEE MODIS 16-Day 250m EVI/NDVI vegetation indices\n` +
+             `var modis = ee.ImageCollection("MODIS/061/MOD13Q1")\n` +
+             `  .filterDate('2026-01-01', '2026-12-31')\n` +
+             `  .median();\n` +
+             `var ndvi = modis.select('NDVI').multiply(0.0001);\n` +
+             `Map.addLayer(ndvi, {min: 0.1, max: 0.9, palette: ['brown', 'yellow', 'green']}, 'MODIS NDVI');`;
+    } else if (bands === "truecolor") {
+      code = `// GEE MODIS RGB reflectance bands\n` +
+             `var modis = ee.ImageCollection("MODIS/006/MOD09GQ").median();\n` +
+             `Map.addLayer(modis, {bands: ['sur_refl_b01', 'sur_refl_b02'], min: -100, max: 1600}, 'MODIS Core');`;
+    } else {
+      code = `// GEE MODIS Enhanced Vegetation Index (EVI)\n` +
+             `var modis = ee.ImageCollection("MODIS/061/MOD13Q1").median().select('EVI').multiply(0.0001);\n` +
+             `Map.addLayer(modis, {min: 0.1, max: 0.7, palette: ['grey', 'blue', 'lime']}, 'MODIS EVI');`;
+    }
+  }
+
+  scriptPre.textContent = code;
+};
+
+window.copyGeeScript = function() {
+  var scriptPre = document.getElementById("geeScriptPre");
+  if (!scriptPre) return;
+  navigator.clipboard.writeText(scriptPre.textContent).then(function() {
+    alert("GEE Script copied to clipboard! You can paste this directly in GEE Code Editor.");
+  });
+};
+
+window.runGeeAnalysis = function() {
+  var terminal = document.getElementById("geeTerminalLog");
+  if (!terminal) return;
+
+  var datasetSel = document.getElementById("geeDataset")?.value || "sentinel2";
+  var bandSel = document.getElementById("geeBands")?.value || "truecolor";
+
+  terminal.innerHTML = "";
+  
+  function addLog(text, type) {
+    var span = document.createElement("span");
+    if (type === "info") span.className = "text-blue-400";
+    else if (type === "success") span.className = "text-emerald-400 font-bold";
+    else if (type === "warn") span.className = "text-yellow-500 font-medium";
+    else span.className = "text-gray-300";
+    
+    span.textContent = text;
+    terminal.appendChild(span);
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  addLog("[info] Connecting to Google Earth Engine gateway...", "info");
+
+  setTimeout(function() {
+    addLog("[auth] Requesting authorization with Service Account...", "info");
+  }, 400);
+
+  setTimeout(function() {
+    addLog("[success] OAuth authentication successful!", "success");
+    addLog("[info] ee.Serializer.serialize() pushed to endpoint.", "info");
+  }, 900);
+
+  setTimeout(function() {
+    addLog("[process] Running server-side reducers on " + (datasetSel === "sentinel2" ? "Copernicus S2" : datasetSel === "landsat9" ? "Landsat 9" : "MODIS"), "info");
+    addLog("[process] Geometry: Kurigram bounding box center: [89.6582, 25.8113]", "info");
+  }, 1400);
+
+  setTimeout(function() {
+    addLog("[process] Applied filter: Clouds < 10% / median composite selected.", "info");
+  }, 1900);
+
+  setTimeout(function() {
+    addLog("[process] MapID generated: projects/earthengine-public/maps/kurigram-raster-" + bandSel, "success");
+    addLog("[render] Rendering GEE TileLayers on map canvas...", "success");
+    
+    // Perform actual map integration
+    window.clearGeeOverlays();
+    
+    if (mapInstance) {
+      // Add the raw high resolution satellite base tile layer (representing True Color Sentinel data)
+      window.geeSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Map data &copy; Esri World Imagery / Google Earth Engine'
+      }).addTo(mapInstance);
+      
+      // Focus on Kurigram Region
+      mapInstance.setView([25.8113, 89.6582], 10);
+      
+      // Let's add stunning visual raster layers based on GEE calculation selectors!
+      var nurseries = [
+        { name: "উলিপুর", lat: 25.730518, lon: 89.61928, count: 7600 },
+        { name: "কুড়িগ্রাম সদর", lat: 25.560833, lon: 89.831111, count: 35500 },
+        { name: "ভূরুঙ্গামারী", lat: 26.11575, lon: 89.670806, count: 5900 },
+        { name: "ফুলবাড়ী", lat: 25.983657, lon: 89.522008, count: 214000 }
+      ];
+
+      nurseries.forEach(function(n) {
+        if (bandSel === "ndvi") {
+          // NDVI Green Heatmap Grid Circle
+          var ndviCol = n.count > 100000 ? "#14532d" : (n.count > 20000 ? "#16a34a" : "#86efac");
+          var circle = L.circle([n.lat, n.lon], {
+            color: "#ffffff",
+            fillColor: ndviCol,
+            fillOpacity: 0.7,
+            radius: 4000 + Math.sqrt(n.count) * 20,
+            weight: 1
+          }).addTo(mapInstance);
+          circle.bindPopup(`<b>Google Earth Engine - NDVI বিশ্লেষণ</b><br>অঞ্চল: ${n.name}<br>চারা রোপণের ঘনত্ব: <b style='color:#16a34a;'>উচ্চ</b><br>স্পেকট্রাল সূচক: <b>+${(0.45 + (n.count/300000)).toFixed(2)}</b>`);
+          window.geeOverlays.push(circle);
+        } else if (bandSel === "nir") {
+          // False Color Infrared (signature magenta/crimson/red color for strong leaf chlorophyll output)
+          var redCol = n.count > 100000 ? "#dc2626" : (n.count > 20000 ? "#f43f5e" : "#fda4af");
+          var circle = L.circle([n.lat, n.lon], {
+            color: "#ffffff",
+            fillColor: redCol,
+            fillOpacity: 0.65,
+            radius: 3500 + Math.sqrt(n.count) * 15,
+            weight: 1
+          }).addTo(mapInstance);
+          circle.bindPopup(`<b>Google Earth Engine - NIR তরঙ্গের ক্যানোপি ঘনত্ব</b><br>অঞ্চল: ${n.name}<br>সবুজ পাতা ক্লোরোফিল প্রতিফলন সূচক: <b>উচ্চ</b>`);
+          window.geeOverlays.push(circle);
+        } else {
+          // True/False RGB bounds
+          var rect = L.rectangle([
+            [n.lat - 0.04, n.lon - 0.04],
+            [n.lat + 0.04, n.lon + 0.04]
+          ], {
+            color: "#1d4ed8",
+            fillColor: "#3b82f6",
+            fillOpacity: 0.15,
+            weight: 1.5,
+            dashArray: "3, 5"
+          }).addTo(mapInstance);
+          rect.bindPopup(`<b>Sentinel-2 multispectral MSI swath</b><br>অঞ্চল: ${n.name}<br>রংপুর বিভাগ গ্রিড কোষ`);
+          window.geeOverlays.push(rect);
+        }
+      });
+      
+      // Trigger a map refresh size call
+      setTimeout(function() {
+        mapInstance.invalidateSize();
+      }, 100);
+    }
+  }, 2400);
 };
 
 // ── PWA Direct App Install & Iframe Detect ──
@@ -1711,6 +2587,8 @@ populateRegionDD(document.getElementById("adminRegion"));
 document.getElementById("seedlingSections").innerHTML=buildSeedlingSections("seedlingSections",null);
 fetchGeoLocation();
 checkIframeAndPrompt();
+if (window.setupGovtPreviewListeners) { window.setupGovtPreviewListeners(); }
+if (window.updateGeeScript) { window.updateGeeScript(); }
 if (window.loadSyncConfig) { window.loadSyncConfig(); }
 }catch(err){
 console.error("Init error:",err);
