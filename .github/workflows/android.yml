@@ -2,9 +2,9 @@ name: Plantation Tracker Android PWA & Native Build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, better-gilmoreosaurus ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, better-gilmoreosaurus ]
 
 jobs:
   build:
