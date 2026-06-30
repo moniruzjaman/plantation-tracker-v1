@@ -34,12 +34,12 @@ jobs:
       - name: Sync Capacitor Android Project
         run: npx cap sync android
 
-      # 5. Set up Java SE 17 environment for Gradle compilation
-      - name: Set up JDK 17
+      # 5. Set up Java SE 21 environment for Gradle compilation
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
 
       # # 5b. Force-restore clean Gradle Wrapper JAR
