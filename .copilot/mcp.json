@@ -13,8 +13,22 @@
             const sqlite3 = require('sqlite3').verbose();
 
             try {
-              // 1. Install deps (open-source only)
-              console.log('📦 Installing open-source dependencies...');
+              // 🔎 Active config logging
+              const dbMode = process.env.NODE_ENV === 'production'
+                ? `Postgres (${process.env.POSTGRES_URL})`
+                : `SQLite (${process.env.SQLITE_DB || 'app.db'})`;
+              const oauthProvider = process.env.OAUTH_PROVIDER || 'authjs';
+              const oauthProviders = process.env.OAUTH_PROVIDERS || 'google,github,email';
+              const deployTarget = process.env.DEPLOY_TARGET || 'vercel';
+
+              console.log('⚙️ Active Configuration:');
+              console.log(`- NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+              console.log(`- Database: ${dbMode}`);
+              console.log(`- OAuth Provider: ${oauthProvider}`);
+              console.log(`- OAuth Providers Enabled: ${oauthProviders}`);
+              console.log(`- Deployment Target: ${deployTarget}`);
+
+              // 1. Install deps
               execSync('npm install && npm audit fix',{stdio:'inherit'});
 
               // 2. Ensure dirs
@@ -22,19 +36,21 @@
                 if(!fs.existsSync(d)) fs.mkdirSync(d,{recursive:true});
               });
 
-              // 3. Init DB (SQLite zero-cost)
-              console.log('🗄️ Initializing SQLite...');
-              const db = new sqlite3.Database('app.db');
-              db.serialize(()=>{ db.run('CREATE TABLE IF NOT EXISTS plantations(id INTEGER PRIMARY KEY, name TEXT, date TEXT)'); });
-              db.close();
+              // 3. Init DB
+              if(process.env.NODE_ENV === 'production'){
+                execSync('psql -c \"CREATE TABLE IF NOT EXISTS plantations(id SERIAL PRIMARY KEY, name TEXT, date TEXT);\"',{stdio:'inherit'});
+              } else {
+                const db = new sqlite3.Database(process.env.SQLITE_DB || 'app.db');
+                db.serialize(()=>{ db.run('CREATE TABLE IF NOT EXISTS plantations(id INTEGER PRIMARY KEY, name TEXT, date TEXT)'); });
+                db.close();
+              }
 
-              // 4. OAuth config (Auth.js / Keycloak)
+              // 4. OAuth config
               fs.writeFileSync('auth.config.json', JSON.stringify({
-                provider: 'authjs',
+                provider: oauthProvider,
                 free: true,
-                oauth: ['google','github','email']
+                oauth: oauthProviders.split(',')
               },null,2));
-              console.log('🔑 OAuth config generated.');
 
               // 5. Auto-fix
               try { execSync('npm run lint --fix',{stdio:'inherit'}); } catch(e){ console.log('⚠️ Lint skipped.'); }
@@ -63,7 +79,7 @@
                 </head><body><a href='${link}'>Download ${buildType}</a></body></html>`;
               fs.writeFileSync('meta.html',meta);
 
-              // 8. Deploy (Vercel free tier)
+              // 8. Deploy
               const deployOutput = execSync('npx vercel --prod --yes').toString();
               const match = deployOutput.match(/https?:\\/\\/[^\\s]+/);
               const finalLink = match ? match[0] : link;
@@ -74,13 +90,21 @@
 # Plantation Tracker (Open-Source)
 
 ## Build Outputs
-- ${buildType}: ${finalLink}
+- Build Type: ${buildType}
+- Deployment Link: ${finalLink}
+
+## Active Configuration
+- NODE_ENV: ${process.env.NODE_ENV || 'development'}
+- Database: ${dbMode}
+- OAuth Provider: ${oauthProvider}
+- OAuth Providers Enabled: ${oauthProviders}
+- Deployment Target: ${deployTarget}
 
 ## Pipeline
-- Dependencies auto-installed (open-source only)
+- Dependencies auto-installed
 - Assets auto-generated
-- SQLite DB initialized
-- OAuth config (Auth.js/Keycloak)
+- DB initialized (SQLite dev / Postgres prod)
+- OAuth config generated
 - Auto-fix applied
 - Build complete
 - Deployment live
@@ -89,21 +113,73 @@
 _Last updated: ${new Date().toISOString()}_
 `;
               fs.writeFileSync('README.md', docs);
-              console.log('📖 Documentation updated.');
-
-              // 10. Auto-commit docs to GitHub
               execSync('git add README.md meta.html auth.config.json && git commit -m \"docs: auto-update\" && git push',{stdio:'inherit'});
-              console.log('✅ Docs pushed to GitHub.');
 
-              // 11. Self-improve
-              console.log('🔍 Self-improvement: Using SQLite/Postgres, Auth.js, ESLint, Vercel free tier.');
-            } catch(err){
-              console.error('❌ Pipeline failed:',err);
-            }
-          ",
-          "description": "Run full open-source pipeline and auto-update docs"
-        }
-      }
-    }
-  }
-}
+              // 10. Auto-update changelog with semantic version
+              let version = 'v1.0.0';
+              if(fs.existsSync('CHANGELOG.md')){
+                const changelog = fs.readFileSync('CHANGELOG.md','utf8');
+                const match = changelog.match(/v(\\d+)\\.(\\d+)\\.(\\d+)/);
+                if(match){
+                  let major = parseInt(match[1]);
+                  let minor = parseInt(match[2]);
+                  let patch = parseInt(match[3]);
+                  patch += 1;
+                  version = `v${major}.${minor}.${patch}`;
+                }
+              }
+              const changelogEntry = `
+## ${version} - ${new Date().toISOString()}
+- Build Type: ${buildType}
+- Deployment Link: ${finalLink}
+- Database: ${dbMode}
+- OAuth Provider: ${oauthProvider}
+- Deployment Target: ${deployTarget}
+`;
+              fs.appendFileSync('CHANGELOG.md', changelogEntry);
+              execSync('git add CHANGELOG.md && git commit -m \"chore: update changelog ${version}\" && git push',{stdio:'inherit'});
+
+              // 11. Create GitHub release tag
+              execSync(`git tag ${version}`,{stdio:'inherit'});
+              execSync(`git push origin ${version}`,{stdio:'inherit'});
+
+              // 12. Sign APK with free keystore
+              if(buildType === 'APK'){
+                if(!fs.existsSync('release-key.jks')){
+                  execSync('keytool -genkeypair -v -keystore release-key.jks -storepass password -keypass password -alias plantation -keyalg RSA -keysize 2048 -validity 10000 -dname \"CN=Plantation,O=OpenSource,C=BD\"',{stdio:'inherit'});
+                }
+                execSync('jarsigner -verbose -keystore release-key.jks -storepass password -keypass password android/app/build/outputs/apk/release/app-release.apk plantation',{stdio:'inherit'});
+                execSync('zipalign -v 4 android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/app-release-signed.apk',{stdio:'inherit'});
+              }
+
+              // 13. Attach artifact to GitHub release
+              let artifactPath = '';
+              if(buildType === 'APK'){
+                artifactPath = 'android/app/build/outputs/apk/release/app-release-signed.apk';
+              } else if(buildType === 'PWA'){
+                artifactPath = 'pwa/out';
+              }
+              if(fs.existsSync(artifactPath)){
+                execSync(`gh release create ${version} ${artifactPath} --notes \"Automated release ${version}\"`,{stdio:'inherit'});
+              }
+
+              // 14. Self-improve with permission gating + memory
+              const approvalsFile = '.mcp-improvements.json';
+              let approvals = {};
+              if(fs.existsSync(approvalsFile)){
+                approvals = JSON.parse(fs.readFileSync(approvalsFile,'utf8'));
+              }
+              const readline = require('readline');
+              const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+              const improvements = [
+                { key: 'rotate-keystore', name: 'Rotate keystore passwords', command: 'echo \"Rotating keystore...\"' },
+                { key: 'ci-cd', name: 'Add CI/CD GitHub Actions', command: 'echo \"Adding CI/CD...\"' },
+                { key: 'gradle-cache', name: 'Enable Gradle caching', command: 'echo \"Gradle caching enabled\"' }
+              ];
+              function askImprovement(i){
+                if(i >= improvements.length){
+                  fs.writeFileSync(approvalsFile, JSON.stringify(approvals,null,2));
+                  rl.close();
+                  return;
+                }
+                const imp =
