@@ -12,6 +12,9 @@ import SyncToast from './components/SyncToast';
 import OfflinePlantationDashboard, { Submission } from './components/OfflinePlantationDashboard';
 import MobileControlCenter from './components/MobileControlCenter';
 import AIAssistant from './components/AIAssistant';
+import PlantationForm from './components/plantation/PlantationForm';
+import { saveSubmission } from './utils/submissionStore';
+import type { PlantationSubmission } from './types/plantation';
 import { 
   Sparkles, 
   MessageSquareCode, 
@@ -136,6 +139,12 @@ export default function App() {
     }
   }, [geoState]);
 
+  const handlePlantationSubmit = (submission: PlantationSubmission) => {
+    saveSubmission(submission);
+    // TODO: wire into the real sync queue once the Dexie/backend rework
+    // lands — see src/utils/submissionStore.ts for the current bridge.
+  };
+
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden bg-slate-50 font-sans" style={{ height: '100vh' }}>
       <NetworkStatus onStateChange={setNetworkState} />
@@ -195,13 +204,25 @@ export default function App() {
         </div>
       </header>
 
-      {/* Unified Iframe Stage (Main Container) */}
+      {/* Main Content Stage */}
       <main className="flex-1 w-full relative overflow-hidden bg-white">
+        {/* Native form replaces the legacy iframe form for the 'form' tab.
+            Nursery fields dropped, reporting fields match the official
+            17-column monthly proforma — see src/types/plantation.ts. */}
+        <div
+          className="absolute inset-0 overflow-y-auto"
+          style={{ display: currentTab === 'form' ? 'block' : 'none' }}
+        >
+          <PlantationForm geoState={geoState} onSubmit={handlePlantationSubmit} />
+        </div>
+
+        {/* Legacy iframe still serves dashboard / map / storedData / admin
+            until those are ported natively too. */}
         <iframe 
           id="app-iframe"
           src="legacy-nursery.html" 
-          style={{ display: 'block', width: '100%', height: '100%', border: 'none' }}
-          title="Plantation Form" 
+          style={{ display: currentTab === 'form' ? 'none' : 'block', width: '100%', height: '100%', border: 'none' }}
+          title="Plantation Dashboard" 
           allow="geolocation"
           onLoad={(e) => {
             try {
