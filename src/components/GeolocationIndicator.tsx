@@ -106,22 +106,9 @@ export default function GeolocationIndicator({ onStateChange }: GeolocationIndic
                   }
                 }));
 
-                // Push position to web legacy iframe environment if it exists
-                try {
-                  const iframe = document.querySelector('iframe');
-                  if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({
-                      type: 'device-location',
-                      coords: {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        accuracy: enhancedAccuracy
-                      }
-                    }, '*');
-                  }
-                } catch (e) {
-                  // Fallback safely
-                }
+                // Note: GPS forwarding to iframe is now handled centrally in App.tsx
+                // (gated on IFRAME_OWNED_TABS). Removed duplicate postMessage here
+                // to avoid 3x redundant pushes. See fix #6.
               }
             }
           );
@@ -191,22 +178,9 @@ export default function GeolocationIndicator({ onStateChange }: GeolocationIndic
             }
           }));
 
-          // Send coordinates to our nested iframe so legacy app form leverages accurate coordinates!
-          try {
-            const iframe = document.querySelector('iframe');
-            if (iframe && iframe.contentWindow) {
-              iframe.contentWindow.postMessage({
-                type: 'device-location',
-                coords: {
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                  accuracy: enhancedAccuracy
-                }
-              }, '*');
-            }
-          } catch (e) {
-            // Ignore
-          }
+          // Note: GPS forwarding to iframe is now handled centrally in App.tsx
+          // (gated on IFRAME_OWNED_TABS). Removed duplicate postMessage here.
+          // See fix #6.
         };
 
         const handleError = (error: GeolocationPositionError) => {

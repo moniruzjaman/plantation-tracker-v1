@@ -19,6 +19,14 @@ export interface TokenTransaction {
   timestamp: string;
 }
 
+/**
+ * @deprecated Use SeedlingEntry from './plantation' for new code.
+ * Kept only for backward compatibility with OfflinePlantationDashboard
+ * and carbonMath.ts which still read the legacy submission shape
+ * (fruitSeedlings/forestSeedlings/medicinal arrays with graftingCount).
+ * Once those modules are migrated to the new flat PlantationSubmission,
+ * this type can be removed.
+ */
 export interface SeedlingItem {
   speciesName: string;
   count: number;

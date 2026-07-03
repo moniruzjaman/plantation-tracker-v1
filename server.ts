@@ -164,7 +164,6 @@ async function startServer() {
         date_from: date_from || new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
         date_to: date_to || new Date().toISOString().split('T')[0],
         ai_analysis,
-        tile_url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" // Google Hybrid Satellite base map
       });
     } catch (err: any) {
       console.error("GEE NDVI Error:", err);

@@ -35,8 +35,38 @@ export default defineConfig(({mode}) => {
               options: {
                 cacheName: 'openstreetmap-tiles',
                 expiration: {
-                  maxEntries: 500, // cache up to 500 tiles
+                  maxEntries: 500,
                   maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            // Cache NASA GIBS NDVI/EVI tiles (public, updated every 8 days)
+            {
+              urlPattern: /^https:\/\/gibs\.earthdata\.nasa\.gov\/wmts\/.+/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'gibs-tiles',
+                expiration: {
+                  maxEntries: 1000,
+                  maxAgeSeconds: 60 * 60 * 24 * 10, // 10 days (matches 8-day composite)
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            // Cache Esri World Imagery satellite tiles
+            {
+              urlPattern: /^https:\/\/server\.arcgisonline\.com\/ArcGIS\/.+/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'esri-satellite-tiles',
+                expiration: {
+                  maxEntries: 500,
+                  maxAgeSeconds: 60 * 60 * 24 * 90, // 90 days (satellite imagery changes slowly)
                 },
                 cacheableResponse: {
                   statuses: [0, 200]

@@ -19,25 +19,28 @@ import { saveSubmission } from './utils/submissionStore';
 import type { PlantationSubmission } from './types/plantation';
 import { 
   Sparkles, 
-  MessageSquareCode, 
   ClipboardList, 
   LayoutDashboard, 
   Map as MapIcon, 
   Database, 
-  Lock, 
   Sprout,
   UserCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Tabs the iframe still owns (not yet ported natively).
+const IFRAME_OWNED_TABS = ['dashboard', 'storedData', 'admin'] as const;
+
 // Navigation tabs definition
+// Fix #14: Admin removed from mobile bottom bar (too crowded with 6 items).
+// Desktop nav still shows all tabs for discoverability.
 const tabs = [
-  { id: 'form', label: 'ফর্ম', icon: ClipboardList },
-  { id: 'dashboard', label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
-  { id: 'map', label: 'ম্যাপ', icon: MapIcon },
-  { id: 'storedData', label: 'আমার তথ্য', icon: Database },
-  { id: 'profile', label: 'প্রোফাইল', icon: UserCircle },
-  { id: 'admin', label: 'এডমিন', icon: Lock }
+  { id: 'form', label: 'ফর্ম', icon: ClipboardList, mobile: true },
+  { id: 'dashboard', label: 'ড্যাশবোর্ড', icon: LayoutDashboard, mobile: true },
+  { id: 'map', label: 'ম্যাপ', icon: MapIcon, mobile: true },
+  { id: 'storedData', label: 'আমার তথ্য', icon: Database, mobile: true },
+  { id: 'profile', label: 'প্রোফাইল', icon: UserCircle, mobile: true },
+  { id: 'admin', label: 'এডমিন', icon: Database, mobile: false }, // reuses Database icon; admin accessed from ProfilePage
 ] as const;
 
 export default function App() {
@@ -49,28 +52,21 @@ export default function App() {
   const [aiInitialPrompt, setAiInitialPrompt] = useState<string | undefined>(undefined);
   const [currentTab, setCurrentTab] = useState<'form' | 'dashboard' | 'map' | 'storedData' | 'admin' | 'profile'>('form');
 
-  // Unified tab switching and syncing function
+  // Unified tab switching — Fix #7: only forward to iframe for tabs it owns.
   const handleTabChange = (tabId: 'form' | 'dashboard' | 'map' | 'storedData' | 'admin' | 'profile') => {
     setCurrentTab(tabId);
+    if (!IFRAME_OWNED_TABS.includes(tabId as any)) return;
     const iframe = document.getElementById('app-iframe') as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {
       try {
-        // Direct property call (same-origin secure execution)
         if (typeof (iframe.contentWindow as any).switchTab === 'function') {
           (iframe.contentWindow as any).switchTab(tabId);
         }
-        // postMessage fallback
-        iframe.contentWindow.postMessage({
-          type: 'switch-tab',
-          tab: tabId
-        }, '*');
+        iframe.contentWindow.postMessage({ type: 'switch-tab', tab: tabId }, '*');
       } catch (err) {
         console.warn("Direct tab switch call failed, sending postMessage:", err);
         try {
-          iframe.contentWindow.postMessage({
-            type: 'switch-tab',
-            tab: tabId
-          }, '*');
+          iframe.contentWindow.postMessage({ type: 'switch-tab', tab: tabId }, '*');
         } catch (postErr) {
           console.error("Tab switch message dispatch failed:", postErr);
         }
@@ -84,6 +80,8 @@ export default function App() {
       if (!event.data) return;
 
       if (event.data.type === 'request-location') {
+        // Only respond when iframe is visible
+        if (!IFRAME_OWNED_TABS.includes(currentTab as any)) return;
         const iframe = document.getElementById('app-iframe') as HTMLIFrameElement;
         if (iframe && iframe.contentWindow && geoState && geoState.coords) {
           iframe.contentWindow.postMessage({
@@ -126,11 +124,24 @@ export default function App() {
     };
   }, [geoState]);
 
-  // Proactively auto-push coordinate updates to the Leaflet map and mini-maps inside the iframe
+  // Fix #14: Listen for app-navigate custom events (e.g. admin link from ProfilePage)
   useEffect(() => {
-    if (geoState && geoState.coords) {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail;
+      if (['form', 'dashboard', 'map', 'storedData', 'admin', 'profile'].includes(tab)) {
+        handleTabChange(tab);
+      }
+    };
+    window.addEventListener('app-navigate', handler);
+    return () => window.removeEventListener('app-navigate', handler);
+  }, []);
+
+  // Fix #6: Only push GPS to iframe when the iframe is visible (owns the active tab).
+  // Sending to a hidden iframe wastes bandwidth on rural connections.
+  useEffect(() => {
+    if (geoState?.coords && IFRAME_OWNED_TABS.includes(currentTab as any)) {
       const iframe = document.getElementById('app-iframe') as HTMLIFrameElement;
-      if (iframe && iframe.contentWindow) {
+      if (iframe?.contentWindow) {
         iframe.contentWindow.postMessage({
           type: 'device-location',
           coords: {
@@ -141,7 +152,7 @@ export default function App() {
         }, '*');
       }
     }
-  }, [geoState]);
+  }, [geoState, currentTab]);
 
   const handlePlantationSubmit = (submission: PlantationSubmission) => {
     saveSubmission(submission);
@@ -209,7 +220,8 @@ export default function App() {
       </header>
 
       {/* Main Content Stage */}
-      <main className="flex-1 w-full relative overflow-hidden bg-white">
+      {/* Fix #1: min-h-0 is required so flex-1 children with absolute positioning (Leaflet) compute height correctly */}
+      <main className="flex-1 w-full relative overflow-hidden bg-white min-h-0">
         {/* Native form replaces the legacy iframe form for the 'form' tab.
             Nursery fields dropped, reporting fields match the official
             17-column monthly proforma — see src/types/plantation.ts. */}
@@ -257,8 +269,8 @@ export default function App() {
                 // initMiniFormMap()/renderMap() — a second, invisible
                 // Leaflet instance doing its own GPS/tile requests for
                 // no visible purpose, now that those tabs are native.
-                const IFRAME_OWNED_TABS = ['dashboard', 'storedData', 'admin'];
-                if (typeof (win as any).switchTab === 'function' && IFRAME_OWNED_TABS.includes(currentTab)) {
+                // Only forward tab-sync for tabs the iframe owns
+                if (typeof (win as any).switchTab === 'function' && IFRAME_OWNED_TABS.includes(currentTab as any)) {
                   (win as any).switchTab(currentTab);
                 }
               }
@@ -269,9 +281,9 @@ export default function App() {
         />
       </main>
 
-      {/* Unified Responsive Mobile Bottom Tab Bar */}
+      {/* Fix #14: Mobile bottom bar shows only mobile:true tabs (5 items, not 6) */}
       <nav className="md:hidden flex-shrink-0 bg-white border-t border-slate-100/80 shadow-2xl flex items-center justify-around h-16 px-1 z-30 relative no-print pb-safe">
-        {tabs.map((tab) => {
+        {tabs.filter((t) => t.mobile).map((tab) => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.id;
           return (
