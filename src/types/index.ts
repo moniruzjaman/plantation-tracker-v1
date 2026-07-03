@@ -11,6 +11,14 @@ export interface UserSession {
   streakCount: number;
 }
 
+export interface TokenTransaction {
+  id: string;
+  type: 'xp' | 'token';
+  amount: number;
+  reason: string;
+  timestamp: string;
+}
+
 export interface SeedlingItem {
   speciesName: string;
   count: number;

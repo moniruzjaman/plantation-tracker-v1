@@ -13,6 +13,8 @@ import OfflinePlantationDashboard, { Submission } from './components/OfflinePlan
 import MobileControlCenter from './components/MobileControlCenter';
 import AIAssistant from './components/AIAssistant';
 import PlantationForm from './components/plantation/PlantationForm';
+import MapTab from './components/plantation/MapTab';
+import ProfilePage from './components/plantation/ProfilePage';
 import { saveSubmission } from './utils/submissionStore';
 import type { PlantationSubmission } from './types/plantation';
 import { 
@@ -23,7 +25,8 @@ import {
   Map as MapIcon, 
   Database, 
   Lock, 
-  Sprout 
+  Sprout,
+  UserCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -33,6 +36,7 @@ const tabs = [
   { id: 'dashboard', label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
   { id: 'map', label: 'ম্যাপ', icon: MapIcon },
   { id: 'storedData', label: 'আমার তথ্য', icon: Database },
+  { id: 'profile', label: 'প্রোফাইল', icon: UserCircle },
   { id: 'admin', label: 'এডমিন', icon: Lock }
 ] as const;
 
@@ -43,10 +47,10 @@ export default function App() {
   const [isAiOpen, setIsAiOpen] = useState(false);
   const [aiInitialTab, setAiInitialTab] = useState<'chat' | 'diagnose' | undefined>(undefined);
   const [aiInitialPrompt, setAiInitialPrompt] = useState<string | undefined>(undefined);
-  const [currentTab, setCurrentTab] = useState<'form' | 'dashboard' | 'map' | 'storedData' | 'admin'>('form');
+  const [currentTab, setCurrentTab] = useState<'form' | 'dashboard' | 'map' | 'storedData' | 'admin' | 'profile'>('form');
 
   // Unified tab switching and syncing function
-  const handleTabChange = (tabId: 'form' | 'dashboard' | 'map' | 'storedData' | 'admin') => {
+  const handleTabChange = (tabId: 'form' | 'dashboard' | 'map' | 'storedData' | 'admin' | 'profile') => {
     setCurrentTab(tabId);
     const iframe = document.getElementById('app-iframe') as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {
@@ -95,7 +99,7 @@ export default function App() {
 
       if (event.data.type === 'tab-changed') {
         const tab = event.data.tab;
-        if (['form', 'dashboard', 'map', 'storedData', 'admin'].includes(tab)) {
+        if (['form', 'dashboard', 'map', 'storedData', 'admin', 'profile'].includes(tab)) {
           setCurrentTab(tab as any);
         }
       }
@@ -216,12 +220,30 @@ export default function App() {
           <PlantationForm geoState={geoState} onSubmit={handlePlantationSubmit} />
         </div>
 
-        {/* Legacy iframe still serves dashboard / map / storedData / admin
+        {/* Native map tab — NDVI/EVI/Satellite/OSM layers, cloud pipeline
+            trigger, result overlay. See MapTab.tsx for the honest
+            demo-data labeling on the pipeline result (server.ts's
+            /api/gee-ndvi is still a procedural mock, not real GEE). */}
+        <div
+          className="absolute inset-0"
+          style={{ display: currentTab === 'map' ? 'block' : 'none' }}
+        >
+          <MapTab geoState={geoState} />
+        </div>
+
+        <div
+          className="absolute inset-0 overflow-y-auto"
+          style={{ display: currentTab === 'profile' ? 'block' : 'none' }}
+        >
+          <ProfilePage />
+        </div>
+
+        {/* Legacy iframe still serves dashboard / storedData / admin
             until those are ported natively too. */}
         <iframe 
           id="app-iframe"
           src="legacy-nursery.html" 
-          style={{ display: currentTab === 'form' ? 'none' : 'block', width: '100%', height: '100%', border: 'none' }}
+          style={{ display: ['form', 'map', 'profile'].includes(currentTab) ? 'none' : 'block', width: '100%', height: '100%', border: 'none' }}
           title="Plantation Dashboard" 
           allow="geolocation"
           onLoad={(e) => {

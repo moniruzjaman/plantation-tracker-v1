@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserSession, UserRole } from '../types';
+import { logTransaction } from '../utils/tokenHistory';
 
 export function useAuth() {
   const [session, setSession] = useState<UserSession | null>(null);
@@ -59,20 +60,22 @@ export function useAuth() {
   };
 
   // Synchronize XP score changes
-  const addXp = (amount: number) => {
+  const addXp = (amount: number, reason: string = 'কার্যক্রম সম্পন্ন') => {
     if (!session) return;
     const updated = { ...session, xp: session.xp + amount };
     setSession(updated);
     localStorage.setItem('forestry_user_session', JSON.stringify(updated));
     localStorage.setItem('ai_consultation_score', updated.xp.toString());
+    logTransaction('xp', amount, reason);
   };
 
   // Synchronize Green Tokens
-  const addTokens = (amount: number) => {
+  const addTokens = (amount: number, reason: string = 'পুরস্কার') => {
     if (!session) return;
     const updated = { ...session, greenTokens: session.greenTokens + amount };
     setSession(updated);
     localStorage.setItem('forestry_user_session', JSON.stringify(updated));
+    logTransaction('token', amount, reason);
   };
 
   return {
