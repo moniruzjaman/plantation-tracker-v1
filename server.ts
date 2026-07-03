@@ -149,6 +149,13 @@ async function startServer() {
 
       res.json({
         status: "success",
+        // Honest provenance flag: these figures are currently procedurally
+        // generated (see calculations above), not derived from a real
+        // Earth Engine / Sentinel-2 analysis. Every consumer of this
+        // endpoint must surface this to the user rather than presenting
+        // the numbers as certified satellite data. Flip to "gee_analysis"
+        // only once this handler actually calls Earth Engine.
+        source: "demo_estimate",
         ndvi_mean,
         healthy_pct,
         stress_pct,
