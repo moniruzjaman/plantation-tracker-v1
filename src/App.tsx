@@ -251,8 +251,14 @@ export default function App() {
               const win = e.currentTarget.contentWindow;
               if (win) {
                 (win as any).VITE_GEE_PIPELINE_URL = import.meta.env.VITE_GEE_PIPELINE_URL;
-                // Force sync initial view tab on load
-                if (typeof (win as any).switchTab === 'function') {
+                // Only forward tab-sync to the iframe for tabs it still
+                // owns. Calling switchTab('form') or switchTab('map')
+                // here would make the (hidden) iframe run its own
+                // initMiniFormMap()/renderMap() — a second, invisible
+                // Leaflet instance doing its own GPS/tile requests for
+                // no visible purpose, now that those tabs are native.
+                const IFRAME_OWNED_TABS = ['dashboard', 'storedData', 'admin'];
+                if (typeof (win as any).switchTab === 'function' && IFRAME_OWNED_TABS.includes(currentTab)) {
                   (win as any).switchTab(currentTab);
                 }
               }
