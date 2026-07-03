@@ -1,6 +1,7 @@
 import { useAuth } from '../../hooks/useAuth';
 import { getTokenHistory } from '../../utils/tokenHistory';
-import { Sprout, Flame, Coins, Award, MapPin, IdCard } from 'lucide-react';
+import { toBnNum } from '../../utils/mapHelper';
+import { Sprout, Flame, Coins, Award, MapPin, IdCard, ShieldCheck } from 'lucide-react';
 import type { UserRole } from '../../types';
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -10,9 +11,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   national_director: 'জাতীয় বনায়ন পরিচালক',
 };
 
-// Simple level curve: every 100 XP is one level. Illustrative, easy to
-// re-tune once there's a real reason to (e.g. matching a DAE-defined
-// recognition scheme) — not tied to anything external right now.
+// Simple level curve: every 100 XP is one level.
 const XP_PER_LEVEL = 100;
 
 function levelFromXp(xp: number) {
@@ -30,6 +29,15 @@ export default function ProfilePage() {
   }
 
   const { level, intoLevel, progressPct } = levelFromXp(session.xp);
+  const isAdmin = role === 'district_admin' || role === 'national_director';
+
+  // Fix #14: Allow navigating to admin tab from ProfilePage (since it's
+  // hidden from the mobile bottom bar).
+  const openAdminTab = () => {
+    // Dispatch a custom event that App.tsx listens for, or directly
+    // manipulate the tab. Simplest: postMessage to self.
+    window.dispatchEvent(new CustomEvent('app-navigate', { detail: 'admin' }));
+  };
 
   return (
     <div className="w-full max-w-lg mx-auto p-4 space-y-5 pb-24">
@@ -61,8 +69,8 @@ export default function ProfilePage() {
 
         <div>
           <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <span>লেভেল {level}</span>
-            <span>{intoLevel} / {XP_PER_LEVEL} XP</span>
+            <span>লেভেল {toBnNum(level)}</span>
+            <span>{toBnNum(intoLevel)} / {toBnNum(XP_PER_LEVEL)} XP</span>
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
@@ -73,19 +81,30 @@ export default function ProfilePage() {
           <div className="bg-emerald-50 rounded-lg p-3 flex items-center gap-2.5">
             <Coins size={20} className="text-emerald-600" />
             <div>
-              <p className="text-lg font-bold text-emerald-700 leading-none">{session.greenTokens}</p>
+              <p className="text-lg font-bold text-emerald-700 leading-none">{toBnNum(session.greenTokens)}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">গ্রিন টোকেন</p>
             </div>
           </div>
           <div className="bg-amber-50 rounded-lg p-3 flex items-center gap-2.5">
             <Flame size={20} className="text-amber-600" />
             <div>
-              <p className="text-lg font-bold text-amber-700 leading-none">{session.streakCount}</p>
+              <p className="text-lg font-bold text-amber-700 leading-none">{toBnNum(session.streakCount)}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">দিনের ধারাবাহিকতা</p>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Fix #14: Admin link — only visible to admin/director roles */}
+      {isAdmin && (
+        <button
+          onClick={openAdminTab}
+          className="w-full flex items-center gap-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl p-3 shadow-sm transition active:scale-[0.98]"
+        >
+          <ShieldCheck size={18} className="text-slate-300" />
+          <span className="text-sm font-semibold">এডমিন প্যানেল</span>
+        </button>
+      )}
 
       {/* Recent activity */}
       <section className="bg-white rounded-xl p-4 shadow-sm">
@@ -98,10 +117,11 @@ export default function ProfilePage() {
               <div key={tx.id} className="flex items-center justify-between text-xs border-b border-gray-50 pb-2 last:border-0">
                 <div>
                   <p className="text-gray-700">{tx.reason}</p>
-                  <p className="text-gray-400 text-[10px]">{new Date(tx.timestamp).toLocaleString('bn-BD')}</p>
+                  {/* Fix #17: Use toBnNum instead of toLocaleString('bn-BD') for reliable Bengali numerals */}
+                  <p className="text-gray-400 text-[10px]">{new Date(tx.timestamp).toLocaleString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 <span className={`font-semibold ${tx.type === 'xp' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  +{tx.amount} {tx.type === 'xp' ? 'XP' : 'টোকেন'}
+                  +{toBnNum(tx.amount)} {tx.type === 'xp' ? 'XP' : 'টোকেন'}
                 </span>
               </div>
             ))}

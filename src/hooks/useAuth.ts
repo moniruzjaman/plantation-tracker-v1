@@ -19,7 +19,9 @@ export function useAuth() {
           role: 'officer',
           division: 'Rangpur',
           district: 'Dinajpur',
-          xp: parseInt(localStorage.getItem('ai_consultation_score') || '120', 10),
+          // Fix #15: Removed legacy ai_consultation_score read.
+          // XP now has a single source of truth: forestry_user_session.xp
+          xp: 120,
           greenTokens: 15,
           streakCount: 3
         };
@@ -59,13 +61,12 @@ export function useAuth() {
     localStorage.setItem('forestry_user_session', JSON.stringify(updatedSession));
   };
 
-  // Synchronize XP score changes
+  // Fix #15: Single source of truth for XP (forestry_user_session only).
   const addXp = (amount: number, reason: string = 'কার্যক্রম সম্পন্ন') => {
     if (!session) return;
     const updated = { ...session, xp: session.xp + amount };
     setSession(updated);
     localStorage.setItem('forestry_user_session', JSON.stringify(updated));
-    localStorage.setItem('ai_consultation_score', updated.xp.toString());
     logTransaction('xp', amount, reason);
   };
 
