@@ -1,92 +1,82 @@
-{
-  "tools": {
-    "graphify": {
-      "package": "graphify",
-      "path": "./node_modules/graphify",
-      "expose": true,
-      "description": "Graphify MCP integration for autonomous Android/PWA pipeline (open-source only)",
-      "tasks": {
-        "auto-pipeline": {
-          "inlineScript": "
-            const { execSync } = require('child_process');
-            const fs = require('fs');
-            const sqlite3 = require('sqlite3').verbose();
+const { execSync } = require('child_process');
+const fs = require('fs');
+const sqlite3 = require('sqlite3').verbose();
 
-            try {
-              // 🔎 Active config logging
-              const dbMode = process.env.NODE_ENV === 'production'
-                ? `Postgres (${process.env.POSTGRES_URL})`
-                : `SQLite (${process.env.SQLITE_DB || 'app.db'})`;
-              const oauthProvider = process.env.OAUTH_PROVIDER || 'authjs';
-              const oauthProviders = process.env.OAUTH_PROVIDERS || 'google,github,email';
-              const deployTarget = process.env.DEPLOY_TARGET || 'vercel';
+try {
+  // 🔎 Active config logging
+  const dbMode = process.env.NODE_ENV === 'production'
+    ? `Postgres (${process.env.POSTGRES_URL})`
+    : `SQLite (${process.env.SQLITE_DB || 'app.db'})`;
+  const oauthProvider = process.env.OAUTH_PROVIDER || 'authjs';
+  const oauthProviders = process.env.OAUTH_PROVIDERS || 'google,github,email';
+  const deployTarget = process.env.DEPLOY_TARGET || 'vercel';
 
-              console.log('⚙️ Active Configuration:');
-              console.log(`- NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
-              console.log(`- Database: ${dbMode}`);
-              console.log(`- OAuth Provider: ${oauthProvider}`);
-              console.log(`- OAuth Providers Enabled: ${oauthProviders}`);
-              console.log(`- Deployment Target: ${deployTarget}`);
+  console.log('⚙️ Active Configuration:');
+  console.log(`- NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`- Database: ${dbMode}`);
+  console.log(`- OAuth Provider: ${oauthProvider}`);
+  console.log(`- OAuth Providers Enabled: ${oauthProviders}`);
+  console.log(`- Deployment Target: ${deployTarget}`);
 
-              // 1. Install deps
-              execSync('npm install && npm audit fix',{stdio:'inherit'});
+  // 1. Install deps
+  execSync('npm install && npm audit fix', { stdio: 'inherit' });
 
-              // 2. Ensure dirs
-              ['assets','android/app/src/main/res','pwa/public'].forEach(d=>{
-                if(!fs.existsSync(d)) fs.mkdirSync(d,{recursive:true});
-              });
+  // 2. Ensure dirs
+  ['assets','android/app/src/main/res','pwa/public'].forEach(d=>{
+    if(!fs.existsSync(d)) fs.mkdirSync(d,{recursive:true});
+  });
 
-              // 3. Init DB
-              if(process.env.NODE_ENV === 'production'){
-                execSync('psql -c \"CREATE TABLE IF NOT EXISTS plantations(id SERIAL PRIMARY KEY, name TEXT, date TEXT);\"',{stdio:'inherit'});
-              } else {
-                const db = new sqlite3.Database(process.env.SQLITE_DB || 'app.db');
-                db.serialize(()=>{ db.run('CREATE TABLE IF NOT EXISTS plantations(id INTEGER PRIMARY KEY, name TEXT, date TEXT)'); });
-                db.close();
-              }
+  // 3. Init DB
+  if(process.env.NODE_ENV === 'production'){
+    execSync(`psql "${process.env.POSTGRES_URL}" -c "CREATE TABLE IF NOT EXISTS plantations(id SERIAL PRIMARY KEY, name TEXT, date TEXT);"`,{stdio:'inherit'});
+  } else {
+    const db = new sqlite3.Database(process.env.SQLITE_DB || 'app.db');
+    db.serialize(()=>{ db.run('CREATE TABLE IF NOT EXISTS plantations(id INTEGER PRIMARY KEY, name TEXT, date TEXT)'); });
+    db.close();
+  }
 
-              // 4. OAuth config
-              fs.writeFileSync('auth.config.json', JSON.stringify({
-                provider: oauthProvider,
-                free: true,
-                oauth: oauthProviders.split(',')
-              },null,2));
+  // 4. OAuth config
+  fs.writeFileSync('auth.config.json', JSON.stringify({
+    provider: oauthProvider,
+    free: true,
+    oauth: oauthProviders.split(',')
+  },null,2));
 
-              // 5. Auto-fix
-              try { execSync('npm run lint --fix',{stdio:'inherit'}); } catch(e){ console.log('⚠️ Lint skipped.'); }
+  // 5. Auto-fix
+  try { execSync('npm run lint --fix',{stdio:'inherit'}); } catch(e){ console.log('⚠️ Lint skipped.'); }
 
-              // 6. Build auto-select
-              let buildType = '';
-              if(fs.existsSync('android/gradlew')){
-                console.log('📱 Android project detected. Building APK...');
-                execSync('./gradlew assembleRelease',{stdio:'inherit'});
-                buildType = 'APK';
-              } else if(fs.existsSync('pwa/package.json')){
-                console.log('🌐 PWA project detected. Building web app...');
-                execSync('npm run build && npm run export',{stdio:'inherit'});
-                buildType = 'PWA';
-              }
+  // 6. Build auto-select
+  let buildType = '';
+  if(fs.existsSync('android/gradlew')){
+    console.log('📱 Android project detected. Building APK...');
+    execSync('./gradlew assembleRelease',{stdio:'inherit'});
+    buildType = 'APK';
+  } else if(fs.existsSync('pwa/package.json')){
+    console.log('🌐 PWA project detected. Building web app...');
+    execSync('npm run build && npm run export',{stdio:'inherit'});
+    buildType = 'PWA';
+  }
 
-              // 7. Meta-share
-              const link = 'https://your-vercel-deployment-link.com/app-release.apk';
-              const meta = `
-                <html><head>
-                <meta property='og:title' content='Plantation Tracker'>
-                <meta property='og:description' content='Open-source, zero-cost plantation tracking app.'>
-                <meta property='og:image' content='https://your-vercel-deployment-link.com/icon.png'>
-                <meta property='og:url' content='${link}'>
-                <meta name='twitter:card' content='summary_large_image'>
-                </head><body><a href='${link}'>Download ${buildType}</a></body></html>`;
-              fs.writeFileSync('meta.html',meta);
+  // 7. Meta-share
+  const link = 'https://your-vercel-deployment-link.com/app-release.apk';
+  const meta = `
+    <html><head>
+    <meta property='og:title' content='Plantation Tracker'>
+    <meta property='og:description' content='Open-source, zero-cost plantation tracking app.'>
+    <meta property='og:image' content='https://your-vercel-deployment-link.com/icon.png'>
+    <meta property='og:url' content='${link}'>
+    <meta name='twitter:card' content='summary_large_image'>
+    </head><body><a href='${link}'>Download ${buildType}</a></body></html>`;
+  fs.writeFileSync('meta.html',meta);
 
-              // 8. Deploy
-              const deployOutput = execSync('npx vercel --prod --yes').toString();
-              const match = deployOutput.match(/https?:\\/\\/[^\\s]+/);
-              const finalLink = match ? match[0] : link;
-              console.log(`✅ Deployment complete. Final ${buildType} link: ${finalLink}`);
+  // 8. Deploy
+  const deployOutput = execSync('npx vercel --prod --yes').toString();
+  const match = deployOutput.match(/https?:\/\/[^\s]+/);
+  const finalLink = match ? match[0] : link;
+  console.log(`✅ Deployment complete. Final ${buildType} link: ${finalLink}`);
 
-              // 9. Update docs
-              const docs = `
+  // 9. Update docs
+  const docs = `
 # Plantation Tracker (Open-Source)
 
 ## Build Outputs
@@ -100,35 +90,25 @@
 - OAuth Providers Enabled: ${oauthProviders}
 - Deployment Target: ${deployTarget}
 
-## Pipeline
-- Dependencies auto-installed
-- Assets auto-generated
-- DB initialized (SQLite dev / Postgres prod)
-- OAuth config generated
-- Auto-fix applied
-- Build complete
-- Deployment live
-- Meta tags generated
-
 _Last updated: ${new Date().toISOString()}_
 `;
-              fs.writeFileSync('README.md', docs);
-              execSync('git add README.md meta.html auth.config.json && git commit -m \"docs: auto-update\" && git push',{stdio:'inherit'});
+  fs.writeFileSync('README.md', docs);
+  execSync('git add README.md meta.html auth.config.json && git commit -m "docs: auto-update" && git push',{stdio:'inherit'});
 
-              // 10. Auto-update changelog with semantic version
-              let version = 'v1.0.0';
-              if(fs.existsSync('CHANGELOG.md')){
-                const changelog = fs.readFileSync('CHANGELOG.md','utf8');
-                const match = changelog.match(/v(\\d+)\\.(\\d+)\\.(\\d+)/);
-                if(match){
-                  let major = parseInt(match[1]);
-                  let minor = parseInt(match[2]);
-                  let patch = parseInt(match[3]);
-                  patch += 1;
-                  version = `v${major}.${minor}.${patch}`;
-                }
-              }
-              const changelogEntry = `
+  // 10. Auto-update changelog with semantic version
+  let version = 'v1.0.0';
+  if(fs.existsSync('CHANGELOG.md')){
+    const changelog = fs.readFileSync('CHANGELOG.md','utf8');
+    const match = changelog.match(/v(\d+)\.(\d+)\.(\d+)/);
+    if(match){
+      let major = parseInt(match[1]);
+      let minor = parseInt(match[2]);
+      let patch = parseInt(match[3]);
+      patch += 1;
+      version = `v${major}.${minor}.${patch}`;
+    }
+  }
+  const changelogEntry = `
 ## ${version} - ${new Date().toISOString()}
 - Build Type: ${buildType}
 - Deployment Link: ${finalLink}
@@ -136,50 +116,66 @@ _Last updated: ${new Date().toISOString()}_
 - OAuth Provider: ${oauthProvider}
 - Deployment Target: ${deployTarget}
 `;
-              fs.appendFileSync('CHANGELOG.md', changelogEntry);
-              execSync('git add CHANGELOG.md && git commit -m \"chore: update changelog ${version}\" && git push',{stdio:'inherit'});
+  fs.appendFileSync('CHANGELOG.md', changelogEntry);
+  execSync(`git add CHANGELOG.md && git commit -m "chore: update changelog ${version}" && git push`,{stdio:'inherit'});
 
-              // 11. Create GitHub release tag
-              execSync(`git tag ${version}`,{stdio:'inherit'});
-              execSync(`git push origin ${version}`,{stdio:'inherit'});
+  // 11. Create GitHub release tag
+  execSync(`git tag ${version}`,{stdio:'inherit'});
+  execSync(`git push origin ${version}`,{stdio:'inherit'});
 
-              // 12. Sign APK with free keystore
-              if(buildType === 'APK'){
-                if(!fs.existsSync('release-key.jks')){
-                  execSync('keytool -genkeypair -v -keystore release-key.jks -storepass password -keypass password -alias plantation -keyalg RSA -keysize 2048 -validity 10000 -dname \"CN=Plantation,O=OpenSource,C=BD\"',{stdio:'inherit'});
-                }
-                execSync('jarsigner -verbose -keystore release-key.jks -storepass password -keypass password android/app/build/outputs/apk/release/app-release.apk plantation',{stdio:'inherit'});
-                execSync('zipalign -v 4 android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/app-release-signed.apk',{stdio:'inherit'});
-              }
+  // 12. Sign APK with env-based keystore
+  if(buildType === 'APK'){
+    if(!fs.existsSync('release-key.jks')){
+      execSync(`keytool -genkeypair -v -keystore release-key.jks -storepass ${process.env.KEYSTORE_PASS} -keypass ${process.env.KEY_PASS} -alias plantation -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Plantation,O=OpenSource,C=BD"`,{stdio:'inherit'});
+    }
+    execSync(`jarsigner -verbose -keystore release-key.jks -storepass ${process.env.KEYSTORE_PASS} -keypass ${process.env.KEY_PASS} android/app/build/outputs/apk/release/app-release.apk plantation`,{stdio:'inherit'});
+    execSync('zipalign -v 4 android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/app-release-signed.apk',{stdio:'inherit'});
+  }
 
-              // 13. Attach artifact to GitHub release
-              let artifactPath = '';
-              if(buildType === 'APK'){
-                artifactPath = 'android/app/build/outputs/apk/release/app-release-signed.apk';
-              } else if(buildType === 'PWA'){
-                artifactPath = 'pwa/out';
-              }
-              if(fs.existsSync(artifactPath)){
-                execSync(`gh release create ${version} ${artifactPath} --notes \"Automated release ${version}\"`,{stdio:'inherit'});
-              }
+  // 13. Attach artifact to GitHub release
+  let artifactPath = '';
+  if(buildType === 'APK'){
+    artifactPath = 'android/app/build/outputs/apk/release/app-release-signed.apk';
+  } else if(buildType === 'PWA'){
+    execSync('zip -r pwa-release.zip pwa/out',{stdio:'inherit'});
+    artifactPath = 'pwa-release.zip';
+  }
+  if(fs.existsSync(artifactPath)){
+    execSync(`gh release create ${version} ${artifactPath} --notes "Automated release ${version}"`,{stdio:'inherit'});
+  }
 
-              // 14. Self-improve with permission gating + memory
-              const approvalsFile = '.mcp-improvements.json';
-              let approvals = {};
-              if(fs.existsSync(approvalsFile)){
-                approvals = JSON.parse(fs.readFileSync(approvalsFile,'utf8'));
-              }
-              const readline = require('readline');
-              const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-              const improvements = [
-                { key: 'rotate-keystore', name: 'Rotate keystore passwords', command: 'echo \"Rotating keystore...\"' },
-                { key: 'ci-cd', name: 'Add CI/CD GitHub Actions', command: 'echo \"Adding CI/CD...\"' },
-                { key: 'gradle-cache', name: 'Enable Gradle caching', command: 'echo \"Gradle caching enabled\"' }
-              ];
-              function askImprovement(i){
-                if(i >= improvements.length){
-                  fs.writeFileSync(approvalsFile, JSON.stringify(approvals,null,2));
-                  rl.close();
-                  return;
-                }
-                const imp =
+  // 14. Self-improve gating (skip in CI)
+  if(!process.env.CI){
+    const approvalsFile = '.mcp-improvements.json';
+    let approvals = {};
+    if(fs.existsSync(approvalsFile)){
+      approvals = JSON.parse(fs.readFileSync(approvalsFile,'utf8'));
+    }
+    const readline = require('readline');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const improvements = [
+      { key: 'rotate-keystore', name: 'Rotate keystore passwords', command: 'echo "Rotating keystore..."' },
+      { key: 'ci-cd', name: 'Add CI/CD GitHub Actions', command: 'echo "Adding CI/CD..."' },
+      { key: 'gradle-cache', name: 'Enable Gradle caching', command: 'echo "Gradle caching enabled"' }
+    ];
+    function askImprovement(i){
+      if(i >= improvements.length){
+        fs.writeFileSync(approvalsFile, JSON.stringify(approvals,null,2));
+        rl.close();
+        return;
+      }
+      const imp = improvements[i];
+      rl.question(`Approve improvement: ${imp.name}? (y/n) `, ans=>{
+        if(ans.toLowerCase()==='y'){
+          execSync(imp.command,{stdio:'inherit'});
+          approvals[imp.key] = true;
+        }
+        askImprovement(i+1);
+      });
+    }
+    askImprovement(0);
+  }
+
+} catch(e){
+  console.error('❌ Pipeline failed:', e);
+}
