@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { calculateCarbonSequestration } from '../utils/carbonMath';
 import { calculateGrowthPrognosis, SPECIES_GROWTH_PARAMS } from '../utils/growthModel';
+import { getDashboardSubmissions, PLANTATION_V2_STORAGE_KEY } from '../utils/submissionStore';
 
 export interface Seedling {
   name: string;
@@ -122,6 +123,7 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
       
       let localSubmissions: Submission[] = [];
       let sheetSubmissions: Submission[] = [];
+      const nativeSubmissions = getDashboardSubmissions() as Submission[];
       
       if (dataStr) {
         const parsed = JSON.parse(dataStr) as Submission[];
@@ -137,7 +139,7 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
         }
       }
       
-      setSubmissions([...localSubmissions, ...sheetSubmissions]);
+      setSubmissions([...nativeSubmissions, ...localSubmissions, ...sheetSubmissions]);
       setLastUpdated(new Date().toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US'));
     } catch (e) {
       console.error('Error reading submissions from localStorage:', e);
@@ -153,7 +155,7 @@ export default function OfflinePlantationDashboard({ onStateChange }: OfflinePla
 
     // Listen to storage events from other tabs/frames
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'nursery_submissions') {
+      if (e.key === 'nursery_submissions' || e.key === PLANTATION_V2_STORAGE_KEY) {
         fetchSubmissions();
       }
     };
