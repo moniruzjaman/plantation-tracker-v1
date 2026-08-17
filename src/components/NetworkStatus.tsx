@@ -52,65 +52,86 @@ export default function NetworkStatus({ onStateChange }: NetworkStatusProps = {}
     setIsOnline(navigator.onLine);
 
     // 2. Service Worker state detection
-    if (!('serviceWorker' in navigator)) {
+    let swInterval: NodeJS.Timeout;
+    const controllerChangeHandler = () => {
+      setSwState('active');
+    };
+
+    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
       setSwState('unsupported');
     } else {
       const updateSWStatus = () => {
-        if (navigator.serviceWorker.controller) {
-          setSwState('active');
-        } else {
-          // Look dynamically at active registrations
-          navigator.serviceWorker.getRegistrations().then((registrations) => {
-            if (registrations.length > 0) {
-              const reg = registrations[0];
-              if (reg.installing) setSwState('installing');
-              else if (reg.waiting) setSwState('waiting');
-              else if (reg.active) setSwState('active');
-              else setSwState('uninstalled');
-            } else {
+        try {
+          if (!navigator.serviceWorker) {
+            setSwState('unsupported');
+            return;
+          }
+          if (navigator.serviceWorker.controller) {
+            setSwState('active');
+          } else {
+            // Look dynamically at active registrations
+            navigator.serviceWorker.getRegistrations().then((registrations) => {
+              if (registrations && registrations.length > 0) {
+                const reg = registrations[0];
+                if (reg.installing) setSwState('installing');
+                else if (reg.waiting) setSwState('waiting');
+                else if (reg.active) setSwState('active');
+                else setSwState('uninstalled');
+              } else {
+                setSwState('uninstalled');
+              }
+            }).catch(() => {
               setSwState('uninstalled');
-            }
-          }).catch(() => {
-            setSwState('uninstalled');
-          });
+            });
+          }
+        } catch (e) {
+          console.warn('Service worker status check failed:', e);
+          setSwState('unsupported');
         }
       };
 
-      updateSWStatus();
-
-      // Listen for when new SW starts controlling the client
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        setSwState('active');
-      });
-
-      // Poll periodically for state transitions (e.g. from installing to active)
-      const swInterval = setInterval(updateSWStatus, 4000);
-      return () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
-        clearInterval(swInterval);
-      };
+      try {
+        updateSWStatus();
+        navigator.serviceWorker.addEventListener('controllerchange', controllerChangeHandler);
+        // Poll periodically for state transitions (e.g. from installing to active)
+        swInterval = setInterval(updateSWStatus, 4000);
+      } catch (e) {
+        console.warn('Service worker setup failed:', e);
+        setSwState('unsupported');
+      }
     }
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (swInterval) clearInterval(swInterval);
+      try {
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.removeEventListener('controllerchange', controllerChangeHandler);
+        }
+      } catch (e) {
+        // Ignore
+      }
     };
   }, []);
 
   // 3. Storage availability calculation
   useEffect(() => {
-    if (navigator.storage && navigator.storage.estimate) {
-      navigator.storage.estimate().then((estimate) => {
-        const usedMB = ((estimate.usage || 0) / (1024 * 1024)).toFixed(1);
-        const totalGB = ((estimate.quota || 0) / (1024 * 1024 * 1024)).toFixed(1);
-        const percent = Math.round(((estimate.usage || 0) / (estimate.quota || 1)) * 100);
-        setStorageEstimate({
-          used: usedMB,
-          total: totalGB,
-          percent: Math.max(percent, 1)
-        });
-      });
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then((estimate) => {
+          const usedMB = ((estimate.usage || 0) / (1024 * 1024)).toFixed(1);
+          const totalGB = ((estimate.quota || 0) / (1024 * 1024 * 1024)).toFixed(1);
+          const percent = Math.round(((estimate.usage || 0) / (estimate.quota || 1)) * 100);
+          setStorageEstimate({
+            used: usedMB,
+            total: totalGB,
+            percent: Math.max(percent, 1)
+          });
+        }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Storage estimate failed:', e);
     }
   }, [isExpanded]);
 

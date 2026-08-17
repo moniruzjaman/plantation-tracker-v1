@@ -8,6 +8,22 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <meta name="description" content="মোবাইলে অফলাইনে সংগৃহীত বৃক্ষরোপণের তথ্য এবং সিঙ্ক সেন্টার। कृषि সম্প্রসারণ অধিদপ্তর।">
+<script>
+// Silence and prevent CORS / nested iframe unhandled cross-origin error noise
+window.onerror = function(message, source, lineno, colno, error) {
+  if (message && (message.indexOf('Script error') !== -1 || message.indexOf('Script Error') !== -1)) {
+    console.warn('Iframe CORS Script Error suppressed:', {message, source, lineno});
+    return true; // prevent bubbling up
+  }
+  return false;
+};
+window.addEventListener('unhandledrejection', function(event) {
+  if (event.reason && event.reason.message && event.reason.message.indexOf('Script error') !== -1) {
+    console.warn('Iframe unhandled CORS rejection suppressed:', event.reason.message);
+    event.preventDefault();
+  }
+});
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 if(typeof tailwind!=='undefined'){
@@ -20,6 +36,7 @@ document.head.appendChild(s);
 });
 }
 </script>
+<script src="seed-data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,19 +64,71 @@ table{border-collapse:collapse;width:100%}
 th,td{padding:0.5rem;text-align:left}
 th{font-size:0.75rem}
 tbody tr{border-bottom:1px solid #e5e7eb}
+/* Tour and User Guide Styles */
+.tour-highlight {
+  position: relative !important;
+  z-index: 100001 !important;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75) !important;
+  pointer-events: auto !important;
+  transition: all 0.3s ease;
+}
+.tour-blocked {
+  pointer-events: none !important;
+}
+.tour-tooltip {
+  position: fixed;
+  z-index: 100002;
+  background: white;
+  color: #1f2937;
+  padding: 18px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  max-width: 340px;
+  width: calc(100vw - 32px);
+  border: 1px solid #cbd5e1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+.tour-pointer {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background: rgba(34, 197, 94, 0.4);
+  border: 2px solid #22c55e;
+  border-radius: 50%;
+  z-index: 100003;
+  pointer-events: none;
+  animation: tourPulse 1.6s infinite;
+}
+@keyframes tourPulse {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+/* Help Tab and Accordion Custom */
+.help-accordion-btn[aria-expanded="true"] .help-accordion-icon {
+  transform: rotate(180deg);
+}
+.help-accordion-icon {
+  transition: transform 0.2s ease;
+}
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
 <!-- ==================== HEADER ==================== -->
 <header class="bg-gradient-to-r from-green-700 via-green-800 to-green-900 text-white py-5 px-4 shadow-lg no-print" style="background:linear-gradient(to right,#15803d,#166534,#14532d)">
-<div class="max-w-6xl mx-auto flex items-center gap-4">
+<div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4 min-w-0">
 <img src="/logo.svg" alt="বাংলাদেশ সরকার" class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full p-1 shadow flex-shrink-0">
 <div class="text-center sm:text-left min-w-0">
 <p class="text-green-200 text-xs sm:text-sm" style="color:#bbf7d0">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</p>
 <h1 class="text-xs sm:text-sm md:text-base lg:text-lg font-bold leading-snug">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ” কর্মসূচির আওতাভুক্ত হওয়ার লক্ষ্যে বৃক্ষরোপণের তথ্য</h1>
 <p class="text-green-100 text-xs sm:text-sm mt-0.5 font-medium" style="color:#dcfce7">কৃষি সম্প্রসারণ অধিদপ্তর</p>
 </div>
+</div>
+<button onclick="window.openHelpGuide && window.openHelpGuide()" class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-bold py-2 px-4 rounded-xl border border-white/25 text-xs sm:text-sm transition active:scale-95 cursor-pointer no-print shadow-sm flex-shrink-0 whitespace-nowrap">
+  📖 সহায়িকা ও ইউজার গাইড
+</button>
 </div>
 </header>
 

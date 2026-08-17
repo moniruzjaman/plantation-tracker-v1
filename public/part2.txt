@@ -44,6 +44,24 @@
 <section id="tab-form" class="tab-content">
 <div class="max-w-4xl mx-auto">
 
+<!-- TWO SECTIONS SELECTION BUTTONS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 no-print" id="formModeSelector">
+  <button type="button" onclick="window.selectFormType('plantation')" id="btnFormPlantation" class="py-4 px-5 rounded-2xl font-extrabold text-sm transition-all duration-200 border-2 text-center flex items-center justify-center gap-3 cursor-pointer shadow-md bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700">
+    <span class="text-2xl">🌳</span>
+    <div class="text-left">
+      <span class="block text-[10px] uppercase opacity-75 tracking-wider font-mono">Form Mode 1</span>
+      <span class="block text-sm sm:text-base font-bold">বৃক্ষরোপণ ট্র্যাকার (Plantation Tracker)</span>
+    </div>
+  </button>
+  <button type="button" onclick="window.selectFormType('nursery')" id="btnFormNursery" class="py-4 px-5 rounded-2xl font-extrabold text-sm transition-all duration-200 border-2 text-center flex items-center justify-center gap-3 cursor-pointer shadow bg-white text-gray-500 border-gray-200 hover:bg-slate-50 hover:text-gray-700">
+    <span class="text-2xl">🏡</span>
+    <div class="text-left">
+      <span class="block text-[10px] uppercase opacity-75 tracking-wider font-mono">Form Mode 2</span>
+      <span class="block text-sm sm:text-base font-bold">নার্সারি নিবন্ধন (Nursery Registration)</span>
+    </div>
+  </button>
+</div>
+
 <!-- GOVERNMENT OFFICIAL SURVEY FORMAT PREVIEW BLOCK -->
 <div class="border-2 border-dashed border-emerald-400 rounded-2xl p-4 sm:p-6 mb-6 bg-emerald-50/20 shadow-inner relative overflow-hidden" id="govtPreviewWrapper">
   <!-- Watermark / Decorative Official Background -->
@@ -51,49 +69,69 @@
   <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-300/10 rounded-full blur-3xl pointer-events-none"></div>
   
   <div class="relative bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-lg flex flex-col gap-4 font-sans text-gray-800">
-    <!-- Memo Upper Stamp & Logo -->
-    <div class="flex flex-col items-center text-center pb-2 border-b border-gray-150">
-      <div class="flex items-center justify-center gap-2 mb-1.5">
-        <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
-          🇧🇩
-        </div>
-        <div class="text-left">
-          <h3 class="text-base font-black text-emerald-900 leading-tight">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</h3>
-          <p class="text-xs font-bold text-gray-700">কৃষি সম্প্রসারণ অধিদপ্তর</p>
+    <!-- Collapsible Toggle Bar for Official Header of the Weekly Report -->
+    <div class="border border-emerald-100/70 rounded-xl bg-emerald-50/40 p-2.5 sm:p-3 mb-1 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2.5 flex-1 min-w-0">
+        <img src="/dae-logo.png" alt="DAE" class="w-8 h-8 rounded-full bg-white object-contain p-0.5 border border-emerald-200 shadow-sm shrink-0">
+        <div class="text-left overflow-hidden">
+          <span class="block font-bold text-emerald-800 text-[10px] sm:text-[11px] uppercase tracking-wider">সাপ্তাহিক সরকারি প্রতিবেদন (Weekly Head Quarter Report)</span>
+          <span id="rtGovtProjectBadge" class="block font-extrabold text-emerald-950 text-xs sm:text-[13px] leading-snug truncate">কৃষি সম্প্রসারণ অধিদপ্তর (সদরদপ্তর)</span>
         </div>
       </div>
-      <p class="text-[11px] sm:text-xs font-semibold text-emerald-800">অনাবাদী পতিত জমি ও বসতবাড়ীর আঙ্গিনায় পারিবারিক পুষ্টি বাগান স্থাপন প্রকল্প (২য় সংশোধিত)</p>
-      <p class="text-[10px] text-gray-500 font-medium">১ম বিল্ডিং (৭ম তলা), খামারবাড়ি, ফার্মগেট, ঢাকা-১২১৫।</p>
+      <button type="button" onclick="window.toggleGovtHeader()" class="text-white text-xs px-3 py-1.5 rounded-lg font-bold transition hover:opacity-90 cursor-pointer shadow-sm flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 self-stretch sm:self-auto justify-center select-none shrink-0" style="background:#047857">
+        <span id="govtHeaderBadge">অনুমোদনকারী ও সাপ্তাহিক প্রেরণ তথ্য</span>
+        <span id="govtHeaderChevron" class="text-[10px] transition-transform duration-200">▼</span>
+      </button>
     </div>
 
-    <!-- Official Letter Metadata: Memo Ref & Date -->
-    <div class="flex flex-row justify-between text-[11px] text-gray-600 font-medium border-b border-dashed border-gray-100 pb-2">
-      <div>
-        <span class="font-bold text-gray-705">স্মারক নং:</span> 
-        <span class="font-mono text-gray-900 bg-gray-50 px-1 py-0.5 rounded border border-gray-100">১২.০১.০০০০.৯৪২.২৫.০০৮.২১.৪৮৫৮</span>
+    <!-- Collapsible Content (Stamps, Memo Ref, Dates, Directives - Collapsed by default) -->
+    <div id="govtHeaderContent" class="hidden flex flex-col gap-4 border-b border-gray-150 pb-4 mb-1">
+      <!-- Memo Upper Stamp & Logo (Fully Editable Placeholders) -->
+      <div class="flex flex-col items-center text-center pb-2 border-b border-gray-150">
+        <div class="flex items-center justify-center gap-3 mb-1.5 w-full max-w-md">
+          <img src="/dae-logo.png" alt="কৃষি সম্প্রসারণ অধিদপ্তর" class="w-11 h-11 object-contain shrink-0">
+          <div class="text-left flex-1">
+            <input id="rtGovtLevel" type="text" value="গণপ্রজাতন্ত্রী বাংলাদেশ সরকার" placeholder="সরকার স্তর" class="text-base font-black text-emerald-900 leading-tight w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white px-1.5 py-0.5 rounded outline-none focus:ring-1 focus:ring-emerald-400 transition">
+            <input id="rtGovtDept" type="text" value="কৃষি সম্প্রসারণ অধিদপ্তর" placeholder="অধিদপ্তর" class="text-xs font-bold text-gray-700 w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white px-1.5 py-0.5 rounded outline-none focus:ring-1 focus:ring-emerald-400 transition">
+          </div>
+        </div>
+        <input id="rtGovtAddress" type="text" value="১ম বিল্ডিং (৭ম তলা), খামারবাড়ি, ফার্মগেট, ঢাকা-১২১৫।" placeholder="অফিসের ঠিকানা" class="text-[10px] text-gray-500 font-medium text-center w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-emerald-500 focus:bg-white px-1.5 py-0.5 rounded outline-none focus:ring-1 focus:ring-emerald-400 transition">
       </div>
-      <div>
-        <span class="font-bold text-gray-750">তারিখ:</span> 
-        <span class="font-mono text-gray-905 bg-gray-50 px-1 py-0.5 rounded border border-gray-100 font-bold" id="gfDate">১০/০৬/২০২৬</span>
+
+      <!-- Official Letter Metadata: Memo Ref & Date (Editable) -->
+      <div class="flex flex-row justify-between items-center text-[11px] text-gray-600 font-medium border-b border-dashed border-gray-100 pb-2 gap-4">
+        <div class="flex items-center gap-1 flex-1">
+          <span class="font-bold text-gray-700 shrink-0">স্মারক নং:</span> 
+          <input id="rtMemoNo" type="text" value="১২.০১.০০০০.৯৪২.২৫.০০৮.২১.৪৮৫৮" placeholder="স্মারক নং লিখুন" class="font-mono text-gray-900 bg-gray-50/60 hover:bg-white focus:bg-white border hover:border-gray-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 px-1.5 py-0.5 rounded text-xs outline-none transition w-full" style="border-color:#e5e7eb">
+        </div>
+        <div class="flex items-center gap-1 w-36">
+          <span class="font-bold text-gray-700 shrink-0">তারিখ:</span> 
+          <input id="rtGovtDate" type="text" value="১০/০৬/২০২৬" placeholder="তারিখ" class="font-mono text-gray-900 font-bold bg-gray-50/60 hover:bg-white focus:bg-white border hover:border-gray-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 px-1.5 py-0.5 rounded text-xs outline-none transition w-full text-center" style="border-color:#e5e7eb; font-bold: bold;">
+        </div>
+      </div>
+
+      <!-- Official Memo Subject, Source & Directive Block (Editable) -->
+      <div class="bg-amber-50/50 border border-amber-200 rounded-xl p-3 text-xs flex flex-col gap-2.5 shadow-sm">
+        <div class="leading-relaxed flex flex-col gap-1.5">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-red-700 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded text-[10px]">নির্দেশনা সূত্র</span>
+            <input id="rtDirectiveTitle" type="text" value="সরকারী নির্দেশনা - ১৭" placeholder="নির্দেশনা শিরোনাম" class="font-bold text-red-800 bg-transparent border-b border-transparent hover:border-amber-300 focus:border-amber-500 focus:bg-white px-1.5 py-0.5 rounded text-[11px] outline-none transition">
+          </div>
+          <textarea id="rtGovtDirective" rows="3" placeholder="বৃক্ষরোপণ সরকারি নির্দেশনা ও ইমেইল সংক্রান্ত সারসংক্ষেপ..." class="text-gray-900 font-extrabold text-[12px] sm:text-[12.5px] leading-relaxed w-full bg-transparent border border-transparent hover:border-amber-300 focus:border-amber-500 focus:bg-white px-2 py-1.5 rounded outline-none focus:ring-1 focus:ring-amber-400 transition" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'">১৭. ০৫ বছরে ২৫ কোটি বৃক্ষরোপণ কর্মসূচির আওতাভুক্ত হওয়ার লক্ষ্যে সাপ্তাহিকভিত্তিতে বৃক্ষরোপণের তথ্য ই-মেইলযোগে admonitoring@dae.gov.bd / ddimplement@dae.gov.bd এ প্রেরণ করতে হবে। পরিচালক, সরেজমিন উইং, কৃষি সম্প্রসারণ অধিদপ্তর উক্ত তথ্য কৃষি মন্ত্রণালয়ে (E-mail-input2@moa.gov.bd ও moa.input2@gmail.com) আবশ্যিকভাবে প্রেরণ করতে হবে;</textarea>
+        </div>
+        <div class="h-px bg-amber-100 my-0.5"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-gray-600">
+          <div class="flex items-center gap-1">
+            <span class="font-bold text-gray-700 shrink-0">বিষয়:</span> 
+            <input id="rtGovtSubject" type="text" value="“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ” কর্মসূচির আওতায় বৃক্ষরোপণের কার্যক্রমের তথ্য প্রেরণ প্রসঙ্গে।" placeholder="বিষয়" class="text-gray-900 font-bold bg-white/60 hover:bg-white focus:bg-white border hover:border-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 px-1.5 py-0.5 rounded outline-none transition w-full" style="border-color:#e5e7eb">
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="font-bold text-gray-700 shrink-0">সূত্র:</span> 
+            <input id="rtGovtReference" type="text" value="স্মারক নং- ১২.০০.০০০০.০২৬.৩৮.০০২.২২.১৭৯, তারিখ: ২১ জ্যৈষ্ঠ ১৪৩৩" placeholder="সূত্র" class="font-mono text-gray-800 bg-white/60 hover:bg-white focus:bg-white border hover:border-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 px-1.5 py-0.5 rounded outline-none transition w-full" style="border-color:#e5e7eb">
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Official Memo Subject & Source Block -->
-    <div class="bg-emerald-50/40 border border-emerald-100 rounded-lg p-3 text-xs flex flex-col gap-1.5 shadow-sm">
-      <div class="leading-relaxed">
-        <span class="font-extrabold text-emerald-950">বিষয়:</span> 
-        <span class="text-gray-950 font-semibold bg-white/60 px-1.5 py-0.5 rounded shadow-sm border border-emerald-50">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ” কর্মসূচির আওতায় ১৭ ফেব্রুয়ারি ২০২৬ হতে ২৪ মে ২০২৬ তারিখ পর্যন্ত বৃক্ষরোপণের কার্যক্রমের তথ্য প্রেরণ প্রসঙ্গে।</span>
-      </div>
-      <div class="leading-relaxed text-gray-600">
-        <span class="font-bold text-gray-700">সূত্র:</span> 
-        <span>কৃষি মন্ত্রণালয়ের প্রশাসন-৫ শাখার স্মারক নং ১২.০০.০০০০.০২৪.৩২.০০১.২৬.২৫৮, তারিখ ০১.০৬.২০২৬</span>
-      </div>
-    </div>
-
-    <!-- Preamble text as printed in official memo -->
-    <p class="text-[11px] text-gray-600 leading-relaxed font-medium">
-      উপযুক্ত বিষয় ও সূত্রের প্রেক্ষিতে মহোদয়ের সদয় অবগতি ও প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য জানানো যাচ্ছে যে, <b class="text-emerald-900">“০৫ বছরে ২৫ কোটি বৃক্ষরোপণ”</b> কর্মসূচির আওতায় রোপণকৃত গাছের তালিকা নিম্নোক্ত ছক মোতাবেক <b class="text-emerald-700">Excel Format</b> এ প্রেরণ করা হল:
-    </p>
 
     <!-- OFFICIAL BULK TABLE (ছক পত্র) WITH THE EXACT ATTACHMENT COLUMNS -->
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
@@ -102,11 +140,11 @@
           <tr class="bg-emerald-800 text-white font-extrabold text-[10.5px] text-center border-b border-emerald-900">
             <th class="p-2 border-r border-emerald-900 w-[5%]">ক্র. নং</th>
             <th class="p-2 border-r border-emerald-900 w-[20%]">বৃক্ষরোপণের জেলা, উপজেলা, ইউনিয়ন ও গ্রামের নাম</th>
-            <th class="p-2 border-r border-emerald-900 w-[18%]">রোপণকৃত বৃক্ষের প্রজাতির নাম</th>
+            <th class="p-2 border-r border-emerald-900 w-[15%]">রোপণকৃত বৃক্ষের প্রজাতির নাম</th>
             <th class="p-2 border-r border-emerald-900 w-[10%]">রোপণকৃত বৃক্ষের সংখ্যা</th>
-            <th class="p-2 border-r border-emerald-900 w-[11%]">বৃক্ষরোপণের তারিখ</th>
             <th class="p-2 border-r border-emerald-900 w-[15%]">বৃক্ষরোপণের সুনির্দিষ্ট এলাকা (জিওগ্রাফিক্যাল কোঅর্ডিনেটসহ)</th>
-            <th class="p-2 border-r border-emerald-900 w-[10%]">পরিচর্যাকারীর নাম ও ফোন নম্বর</th>
+            <th class="p-2 border-r border-emerald-900 w-[12%]">পরিচর্যাকারী কৃষকের নাম ও ফোন নম্বর</th>
+            <th class="p-2 border-r border-emerald-900 w-[12%]">সংশ্লিষ্ট এসএএও (SAAO)-এর নাম ও ফোন নম্বর</th>
             <th class="p-2 border-r border-emerald-900 w-[11%]">মনিটরিং অফিসারের নাম ও ফোন নম্বর</th>
             <th class="p-2 w-[10%]">মন্তব্য</th>
           </tr>
@@ -133,17 +171,17 @@
       </table>
     </div>
 
-    <!-- Official Seal Signature Section -->
-    <div class="flex flex-col sm:flex-row justify-between items-end border-t border-gray-150 pt-2 mt-2 gap-4">
-      <div class="text-[10.5px] text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-105/40 flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-        <span>মোবাইল অথবা ল্যাপটপ থেকে সরাসরি জরীপ সাবমিট করলে অফলাইন ব্যাকআপ এক্সেল ফাইলে অটোমেটিক সেভ হয়ে যাবে।</span>
+    <!-- Official Seal Signature Section (Fully Editable/Placeholder Type) -->
+    <div class="flex flex-col sm:flex-row justify-between items-end border-t border-gray-150 pt-3 mt-2 gap-4">
+      <div class="text-[10.5px] text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-100 flex items-center gap-1.5 max-w-sm sm:max-w-md text-left">
+        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
+        <span>সরাসরি জরীপ সাবমিট করলে অফলাইন এক্সেল ফাইলে সেভ হবে। ৩-ডট থেকে পিডব্লিউএ (PWA) হিসেবেও ইনস্টল করতে পারেন।</span>
       </div>
-      <div class="text-right text-xs pr-4">
-        <p class="italic text-gray-400 text-[10px] mb-1">(ডিজিটাল সিলমোহর ও স্বাক্ষর)</p>
-        <div class="font-extrabold text-gray-900">ড. মোঃ আকরাম হোসেন চৌধুরী</div>
-        <div class="text-gray-600 font-semibold text-[10px]">প্রকল্প পরিচালক</div>
-        <div class="text-gray-500 text-[9.5px]">ইফনাপ, ডিএই, খামারবাড়ি, ঢাকা</div>
+      <div class="text-right text-xs pr-2 flex flex-col items-end gap-1 min-w-[220px] w-full sm:w-auto">
+        <p class="italic text-gray-400 text-[9.5px] mb-0.5">(ডিজিটাল সিলমোহর ও স্বাক্ষর)</p>
+        <input id="rtSignatoryName" type="text" value="আব্দুল্লাহ আল মামুন" placeholder="কর্মকর্তার নাম" class="text-right font-extrabold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-emerald-500 focus:bg-white px-1.5 py-0.5 rounded outline-none focus:ring-1 focus:ring-emerald-400 transition w-full sm:w-56">
+        <input id="rtSignatoryDesignation" type="text" value="উপপরিচালক" placeholder="পদবী (যেমন: উপজেলা কৃষি অফিসার)" class="text-right font-semibold text-gray-600 text-[10.5px] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-emerald-500 focus:bg-white px-1.5 py-0.5 rounded outline-none focus:ring-1 focus:ring-emerald-400 transition w-full sm:w-56">
+        <input id="rtSignatoryOffice" type="text" value="খামারবাড়ি, কুড়িগ্রাম" placeholder="কার্যালয় ও জেলা" class="text-right text-gray-500 text-[10px] bg-transparent border-b border-transparent hover:border-gray-200 focus:border-emerald-500 focus:bg-white px-1.5 py-0.5 rounded outline-none focus:ring-1 focus:ring-emerald-400 transition w-full sm:w-56">
       </div>
     </div>
 
@@ -165,9 +203,10 @@
 <h2 class="text-lg font-bold text-green-700 mb-4" id="formTitle">📄 নতুন তথ্য জমা দিন</h2>
 <form id="nurseryForm" novalidate>
 <input type="hidden" id="editId" value="">
+<input type="hidden" id="fFormType" value="plantation">
 <fieldset style="border-color:#86efac;background:#f9fafb" class="rounded-xl border-2 p-4 sm:p-5 mb-4">
-<legend class="px-3 py-1 rounded-lg text-white font-bold text-sm" style="background:#15803d">১. সাধারণ তথ্য</legend>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+<legend class="px-3 py-1 rounded-lg text-white font-bold text-sm" style="background:#15803d">১. সাধারণ ও ভৌগোলিক তথ্য (General & Location Info)</legend>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
 <div>
 <label class="block text-xs font-semibold text-gray-700 mb-1">অঞ্চল <span style="color:#ef4444">*</span></label>
 <select id="fRegion" onchange="onFormRegionChange()" class="w-full border rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db"><option value="">অঞ্চল নির্বাচন করুন</option></select>
@@ -184,50 +223,107 @@
 <p class="text-xs mt-0.5 hidden" data-error="fUpazila" style="color:#ef4444;font-size:0.75rem">উপজেলা আবশ্যক</p>
 </div>
 <div>
-<label class="block text-xs font-semibold text-gray-700 mb-1">রোপণকারীর নাম <span style="color:#ef4444">*</span></label>
-<input type="text" id="fNursery" placeholder="রোপণকারীর নাম লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
-<p class="text-xs mt-0.5 hidden" data-error="fNursery" style="color:#ef4444;font-size:0.75rem">রোপণকারীর নাম আবশ্যক</p>
+<label class="block text-xs font-semibold text-gray-700 mb-1 flex justify-between items-center">
+  <span>ইউনিয়ন <span style="color:#ef4444">*</span></span>
+  <button type="button" id="fUnionUnlockBtn" onclick="window.unlockField('fUnion')" class="hidden text-[10px] text-green-700 font-bold hover:underline bg-emerald-50 border-emerald-200 px-1.5 py-0.5 rounded cursor-pointer border-solid">🔓 আনলক</button>
+</label>
+<input type="text" id="fUnion" placeholder="ইউনিয়নের নাম লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fUnion" style="color:#ef4444;font-size:0.75rem">ইউনিয়ন আবশ্যক</p>
 </div>
 <div>
-<label class="block text-xs font-semibold text-gray-700 mb-1">মোবাইল নম্বর <span style="color:#ef4444">*</span></label>
-<input type="text" id="fMobile" maxlength="11" inputmode="numeric" placeholder="01XXXXXXXXX (১১ ডিজিট)" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
-<p class="text-xs mt-0.5 hidden" data-error="fMobile" style="color:#ef4444;font-size:0.75rem"></p>
-</div>
-<div>
-<label class="block text-xs font-semibold text-gray-700 mb-1">মনিটরিং অফিসার / তদারককারীর নাম</label>
-<input type="text" id="fCaretakerName" placeholder="মনিটরিং কর্মকর্তা / তদারককারীর নাম লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
-</div>
-<div>
-<label class="block text-xs font-semibold text-gray-700 mb-1">মনিটরিং অফিসার / তদারককারীর মোবাইল নম্বর</label>
-<input type="text" id="fCaretakerMobile" maxlength="11" inputmode="numeric" placeholder="01XXXXXXXXX" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
-<p class="text-xs mt-0.5 hidden" data-error="fCaretakerMobile" style="color:#ef4444;font-size:0.75rem"></p>
+<label class="block text-xs font-semibold text-gray-700 mb-1 flex justify-between items-center">
+  <span>গ্রাম <span style="color:#ef4444">*</span></span>
+  <button type="button" id="fVillageUnlockBtn" onclick="window.unlockField('fVillage')" class="hidden text-[10px] text-green-700 font-bold hover:underline bg-emerald-50 border-emerald-200 px-1.5 py-0.5 rounded cursor-pointer border-solid">🔓 আনলক</button>
+</label>
+<input type="text" id="fVillage" placeholder="গ্রামের নাম লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fVillage" style="color:#ef4444;font-size:0.75rem">গ্রাম আবশ্যক</p>
 </div>
 <div>
 <label class="block text-xs font-semibold text-gray-700 mb-1">রোপণের তারিখ</label>
 <input type="date" id="fPlantingDate" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
 </div>
-<div>
-<label class="block text-xs font-semibold text-gray-700 mb-1">জিও লোকেশন <button type="button" onclick="fetchGeoLocation()" id="geoBtn" class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition" style="font-size:10px;font-weight:500;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0" title="লোকেশন আপডেট করুন"><svg id="geoIcon" style="height:12px;width:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span id="geoBtnText">স্বয়ংক্রিয়</span></button></label>
-<div class="flex gap-2">
-<input type="text" id="fGeo" placeholder="অক্ষাংশ, দ্রাঘিমাংশ" class="flex-1 border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db" onchange="if(window.onGeoLocationChange){window.onGeoLocationChange(this, 'fAddress')}">
 </div>
+</fieldset>
+
+<fieldset style="border-color:#86efac;background:#f9fafb" class="rounded-xl border-2 p-4 sm:p-5 mb-4">
+<legend class="px-3 py-1 rounded-lg text-white font-bold text-sm" style="background:#15803d">২. পরিচর্যাকারী, কর্তাব্যক্তি ও কর্মকর্তা (Personnel Details)</legend>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">পরিচর্যাকারী কৃষকের নাম <span style="color:#ef4444">*</span></label>
+<input type="text" id="fNursery" placeholder="কৃষকের নাম লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fNursery" style="color:#ef4444;font-size:0.75rem">কৃষকের নাম আবশ্যক</p>
+</div>
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">কৃষকের মোবাইল নম্বর <span style="color:#ef4444">*</span></label>
+<input type="text" id="fMobile" maxlength="11" inputmode="numeric" placeholder="01XXXXXXXXX" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fMobile" style="color:#ef4444;font-size:0.75rem"></p>
+</div>
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">সংশ্লিষ্ট এসএএও (SAAO)-এর নাম <span style="color:#ef4444">*</span> <span class="text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-mono">Auto-Fetch</span></label>
+<input type="text" id="fSaaoName" list="officialDirectoryList" oninput="window.autoFetchOfficialMobile('fSaaoName', 'fSaaoMobile')" placeholder="SAAO এর নাম বা আইডি (যেমন: SAAO-201) লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fSaaoName" style="color:#ef4444;font-size:0.75rem">এসএএও-এর নাম আবশ্যক</p>
+</div>
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">এসএএও (SAAO)-এর মোবাইল নম্বর <span style="color:#ef4444">*</span></label>
+<input type="text" id="fSaaoMobile" maxlength="11" inputmode="numeric" placeholder="01XXXXXXXXX" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fSaaoMobile" style="color:#ef4444;font-size:0.75rem">এসএএও-এর মোবাইল আবশ্যক</p>
+</div>
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">মনিটরিং অফিসারের নাম <span class="text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-mono">Auto-Fetch</span></label>
+<input type="text" id="fCaretakerName" list="officialDirectoryList" oninput="window.autoFetchOfficialMobile('fCaretakerName', 'fCaretakerMobile')" placeholder="অফিসারের নাম বা আইডি (যেমন: MO-101) লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+</div>
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">মনিটরিং অফিসারের মোবাইল নম্বর</label>
+<input type="text" id="fCaretakerMobile" maxlength="11" inputmode="numeric" placeholder="01XXXXXXXXX" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
+<p class="text-xs mt-0.5 hidden" data-error="fCaretakerMobile" style="color:#ef4444;font-size:0.75rem"></p>
+</div>
+</div>
+</fieldset>
+
+<fieldset style="border-color:#86efac;background:#f9fafb" class="rounded-xl border-2 p-4 sm:p-5 mb-4">
+<legend class="px-3 py-1 rounded-lg text-white font-bold text-sm" style="background:#15803d">৩. বৃক্ষরোপণের সুনির্দিষ্ট এলাকা ও লোকেশন (Planting Spot & Geolocation Map)</legend>
+<div class="grid grid-cols-1 gap-3 mt-3">
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">সুনির্দিষ্ট এলাকা/স্পটের নাম <span style="color:#ef4444">*</span></label>
+<textarea id="fAddress" rows="1" placeholder="রাস্তার ধার, পুকুর পাড়, অথবা বসতবাড়ীর আঙ্গিনার সুনির্দিষ্ট বর্ণনা দিন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db"></textarea>
+<p class="text-xs mt-0.5 hidden" data-error="fAddress" style="color:#ef4444;font-size:0.75rem">সুনির্দিষ্ট এলাকা/স্পটের নাম আবশ্যক</p>
+</div>
+<div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">জিওগ্রাফিক্যাল কোঅর্ডিনেট <button type="button" onclick="fetchGeoLocation()" id="geoBtn" class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition" style="font-size:10px;font-weight:500;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0" title="লোকেশন আপডেট করুন"><svg id="geoIcon" style="height:12px;width:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span id="geoBtnText">স্বয়ংক্রিয়</span></button></label>
+<input type="text" id="fGeo" placeholder="অক্ষাংশ, দ্রাঘিমাংশ" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db" onchange="if(window.onGeoLocationChange){window.onGeoLocationChange(this, 'fAddress')}">
 <p id="geoStatus" class="hidden mt-0.5" style="font-size:10px;color:#9ca3af"><span id="geoStatusText"></span></p>
+<div class="mt-2 w-full">
+<div id="miniFormMap" class="w-full h-[180px] rounded-lg border border-gray-200" style="z-index: 1;"></div>
+<p class="text-[10px] text-gray-500 mt-1">💡 পিনটি সঠিক রোপণ স্থানে করিয়ে নিতে ম্যাপে ক্লিক করুন</p>
 </div>
-<div class="sm:col-span-2">
-<label class="block text-xs font-semibold text-gray-700 mb-1">রোপণকৃত বৃক্ষের অবস্থান</label>
-<textarea id="fAddress" rows="2" placeholder="রোপণকৃত বৃক্ষের অবস্থান লিখুন" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db"></textarea>
 </div>
-<div class="sm:col-span-2">
 <div>
-<label class="block text-xs font-semibold text-gray-700 mb-1">মন্তব্য</label>
-<input type="text" id="fRemarks" placeholder="মন্তব্য (যদি থাকে)" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
-</div>
+<label class="block text-xs font-semibold text-gray-700 mb-1">মন্তব্য (যদি থাকে)</label>
+<input type="text" id="fRemarks" placeholder="মন্তব্য" class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db">
 </div>
 </div>
 </fieldset>
 
 <!-- ===== SEEDLING SECTIONS 2, 3, 4 ===== -->
 <div id="seedlingSections" class="space-y-5 mb-6"></div>
+
+<!-- ===== SECTION 4: ADVANCED TRACKING ===== -->
+<fieldset style="border-color:#86efac;background:#f9fafb" class="rounded-xl border-2 p-4 sm:p-5 mb-6">
+<legend class="px-3 py-1 rounded-lg text-white font-bold text-sm bg-gradient-to-r from-green-700 to-emerald-600 shadow-sm">৪. অ্যাডভান্সড ট্র্যাকিং (Date & NDVI Indicator)</legend>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+<div>
+  <label class="block text-xs font-semibold text-gray-700 mb-1">তারিখ ও সময় (Timestamp)</label>
+  <input type="text" id="fTimestampDisplay" readonly class="w-full border rounded-md px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed outline-none" style="border-color:#d1d5db">
+</div>
+<div>
+  <label class="block text-xs font-semibold text-gray-700 mb-1">NDVI ইনিশিয়াল সোর্স (সর্বশেষ স্যাটেলাইট কন্ট্যাক্ট)</label>
+  <div class="flex items-center gap-2">
+    <input type="text" id="fBaseNdvi" readonly placeholder="NDVI = 0.45" class="w-full border rounded-md px-3 py-2 text-sm bg-gray-100 text-gray-500 font-mono font-bold cursor-not-allowed outline-none" style="border-color:#d1d5db">
+    <span class="text-xs font-semibold text-emerald-800 whitespace-nowrap bg-emerald-50 border border-emerald-200 px-2 sm:px-3 py-2 rounded-lg">📡 GEE Live Composite</span>
+  </div>
+</div>
+</div>
+</fieldset>
 
 <div class="flex gap-3 justify-center">
 <button type="submit" id="submitBtn" class="text-white px-8 py-3 rounded-lg shadow font-semibold text-sm transition" style="background:#15803d">তথ্য জমা দিন</button>
@@ -240,6 +336,29 @@
 
 <!-- ========== TAB: DASHBOARD ========== -->
 <section id="tab-dashboard" class="tab-content hidden">
+
+<!-- === GENERATIVE AI CO-PILOT QUICK ACCESS WIDGET === -->
+<div class="bg-gradient-to-r from-emerald-800 to-teal-950 text-white rounded-2xl p-4 sm:p-5 mb-6 shadow-lg border border-emerald-700/50 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <div class="p-2.5 bg-white/10 rounded-xl text-xl animate-pulse shrink-0">✨</div>
+    <div>
+      <h3 class="font-bold text-xs sm:text-sm text-emerald-50 tracking-tight flex items-center gap-2">
+        জাতীয় বৃক্ষরোপণ এআই কো-পাইলট (Generative AI Consultation)
+        <span class="text-[9px] px-1.5 py-0.5 bg-emerald-600/80 rounded-full font-bold tracking-wider font-mono">GEMINI 3.5 POWERED</span>
+      </h3>
+      <p class="text-[11px] text-emerald-200/90 leading-relaxed mt-0.5">রিয়েল-টাইমে চারার ছবি বিশ্লেষণ, রোগ নির্ণয়, মাটির গুণাগুণ পরীক্ষা এবং ২৫ কোটি বৃক্ষরোপণ কর্মসূচির তাৎক্ষণিক সমাধান পান।</p>
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-2 shrink-0">
+    <button onclick="window.parent.postMessage({ type: 'open-ai-assistant', tab: 'chat', prompt: 'চারার দ্রুত বৃদ্ধি এবং স্বাস্থ্যকর পাতার জন্য কী কী সার এবং মাটি পরিচর্যা করতে হবে?' }, '*')" class="bg-white/15 hover:bg-white/25 active:scale-98 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-white/10">
+      💬 এআই পরামর্শ চ্যাট
+    </button>
+    <button onclick="window.parent.postMessage({ type: 'open-ai-assistant', tab: 'diagnose', prompt: 'গাছটির পাতা বা ডালে রোগ দেখা যাচ্ছে, এর প্রতিকার ও সমাধান কী?' }, '*')" class="bg-emerald-500 hover:bg-emerald-450 active:scale-98 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-emerald-400">
+      📸 পাতার ছবি দিয়ে রোগ নির্ণয়
+    </button>
+  </div>
+</div>
+
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
 <div class="card-stat bg-white rounded-xl shadow p-4" style="border-left:4px solid #22c55e"><p class="text-xs sm:text-sm text-gray-500">মোট জমা</p><p id="statTotal" class="text-2xl sm:text-3xl font-bold text-green-700">0</p></div>
 <div class="card-stat bg-white rounded-xl shadow p-4" style="border-left:4px solid #3b82f6"><p class="text-xs sm:text-sm text-gray-500">মোট রোপণকারী</p><p id="statNurseries" class="text-2xl sm:text-3xl font-bold text-blue-700">0</p></div>
@@ -279,17 +398,80 @@
 <p id="dashNoData" class="hidden text-center text-gray-400 py-8">কোনো তথ্য পাওয়া যায়নি।</p>
 </div>
 
+<!-- === OFFICIAL DISTRICT TARGETS & PRIORITIES WIDGET === -->
+<div class="bg-white rounded-xl shadow p-5 mb-6 border-l-4 border-blue-600">
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-blue-50 text-blue-700 rounded-lg text-xl font-bold">🎯</div>
+      <div>
+        <h3 class="font-bold text-gray-800 text-sm sm:text-base">সরকারি লক্ষ্যমাত্রা ও অগ্রাধিকার প্রজাতি (Official Targets & Priorities)</h3>
+        <p class="text-xs text-gray-500">সংলগ্ন সরকারি ছক (PDF) অনুযায়ী ৬৪ জেলার রোপণের মোট টার্গেট ও রোপণযোগ্য বৃক্ষ প্রজাতির কোটা</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+      <label class="text-xs font-bold text-gray-650 whitespace-nowrap">জেলা নির্বাচন করুন:</label>
+      <select id="targetDistrictSelect" onchange="updateDistrictTargetWidget()" class="border rounded-md px-3 py-1.5 text-xs bg-white focus:ring-2 focus:ring-blue-400 outline-none" style="border-color:#d1d5db">
+        <!-- populated dynamically from official district lists -->
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Stat 1: Total Official Target -->
+    <div class="bg-gray-50 rounded-lg p-4 border border-gray-150 flex flex-col justify-center">
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">সরকারি মোট লক্ষ্যমাত্রা (Target)</p>
+      <p id="targetTotalVal" class="text-2xl sm:text-3xl font-black text-blue-700 mt-1">০ টি</p>
+      <p class="text-[10px] text-gray-400 mt-1 font-medium">প্রকল্পের আওতাভুক্ত বরাদ্দকৃত কোটা</p>
+    </div>
+
+    <!-- Stat 2: Active Local Progress VS Target -->
+    <div class="bg-gray-50 rounded-lg p-4 border border-gray-150 flex flex-col justify-center">
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">বাস্তব রোপণের অগ্রগতি (Progress)</p>
+      <div class="flex items-baseline gap-1 mt-1">
+        <p id="targetProgressVal" class="text-2xl sm:text-3xl font-black text-emerald-705">০ টি</p>
+        <span class="text-xs text-green-700 font-bold" id="targetProgressPercent">(০%)</span>
+      </div>
+      <p class="text-[10px] text-gray-400 mt-1 font-medium">সংগৃহীত ডাটা অনুসারে অর্জিত অগ্রগতি</p>
+    </div>
+
+    <!-- Stat 3: Core Priorities Recommendation -->
+    <div class="bg-gray-50 rounded-lg p-4 border border-gray-150">
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">অগ্রাধিকার রোপণ প্রজাতি (Top Recommendations)</p>
+      <div id="targetPriorityRecommendation" class="text-xs text-gray-700 space-y-1">
+        <!-- Render recommended list dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Species Target Table Detail -->
+  <div class="mt-4 overflow-x-auto border border-gray-150 rounded-lg">
+    <table class="w-full text-xs text-left border-collapse bg-white">
+      <thead>
+        <tr class="bg-blue-900 text-white font-extrabold text-[11px]">
+          <th class="p-2.5 border-r border-blue-950 w-2/5">রোপণযোগ্য গাছের প্রজাতির ক্যাটাগরি ও নাম</th>
+          <th class="p-2.5 border-r border-blue-950 text-center w-1/5">সরকারি লক্ষ্যমাত্রা (Target)</th>
+          <th class="p-2.5 border-r border-blue-950 text-center w-1/5 font-mono">চলমান রোপণ (Current)</th>
+          <th class="p-2.5 text-center w-1/5">অগ্রগতি স্ট্যাটাস</th>
+        </tr>
+      </thead>
+      <tbody id="targetWidgetTableBody" class="font-medium text-center divide-y divide-gray-150 text-gray-700">
+        <!-- Rows filled dynamically based on selected district -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <!-- === KOBO & SERVER SYNC CENTER === -->
 <div class="bg-white rounded-xl shadow p-5 mb-6">
   <div class="flex items-center gap-3 mb-4">
     <div class="p-2 bg-green-50 text-green-700 rounded-lg text-xl font-bold">🔄</div>
     <div>
       <h3 class="font-bold text-gray-800 text-sm sm:text-base">কোবো ও সার্ভার সিঙ্ক সেন্টার (KoBo & Server Sync)</h3>
-      <p class="text-xs text-gray-500">মোবাইলে অফলাইনে সংগৃহীত বৃক্ষরোপণের তথ্য কোবো টুলবক্স বা যেকোনো API সার্ভারে সিঙ্ক করুন</p>
+      <p class="text-xs text-gray-500">মোবাইলে অফলাইনে সংগৃহীত বৃক্ষরোপণের তথ্য কোবো ও ইমেইল সার্ভারে সিঙ্ক করুন</p>
     </div>
   </div>
   
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-3">
     <!-- Section 1: Spreadsheet Download with Database Columns -->
     <div class="border border-gray-100 rounded-lg p-4 bg-gray-50/50 flex flex-col justify-between">
       <div>
@@ -302,22 +484,24 @@
     </div>
 
     <!-- Section 2: JSON REST API Sync Emulator -->
-    <div class="border border-gray-100 rounded-lg p-4 bg-gray-50/50">
-      <h4 class="font-bold text-gray-700 text-xs sm:text-sm mb-1">পদ্ধতি ২: সরাসরি REST API-তে ডাটা সিঙ্ক</h4>
-      <p class="text-xs text-gray-500 mb-3 leading-relaxed">আপনার কোবো বা নিজস্ব সার্ভারের এন্ডপয়েন্ট ও সিক্রেট টোকেন দিয়ে সরাসরি মোবাইল থেকে ইন্টারনেট পাওয়ার পর ডাটা সাবমিট করুন।</p>
-      
-      <div class="space-y-2 mb-3">
-        <div>
-          <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">API Endpoint (সার্ভার ইউআরএল) *</label>
-          <input type="url" id="syncEndpoint" placeholder="https://yourserver.com/api/v1/sync" class="w-full border rounded px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-green-400" style="border-color:#d1d5db" onchange="saveSyncConfig()">
-        </div>
-        <div>
-          <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5 font-mono">Authorization Token (সিক্রেট টোকেন - ঐচ্ছিক)</label>
-          <input type="password" id="syncToken" placeholder="Bearer kobo_token_xyz" class="w-full border rounded px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-green-400" style="border-color:#d1d5db" onchange="saveSyncConfig()">
+    <div class="border border-gray-100 rounded-lg p-4 bg-gray-50/50 flex flex-col justify-between">
+      <div>
+        <h4 class="font-bold text-gray-700 text-xs sm:text-sm mb-1">পদ্ধতি ২: সরাসরি REST API-তে ডাটা সিঙ্ক</h4>
+        <p class="text-xs text-gray-500 mb-3 leading-relaxed">আপনার কোবো বা নিজস্ব সার্ভারের এন্ডপয়েন্ট ও সিক্রেট টোকেন দিয়ে সরাসরি মোবাইল থেকে ইন্টারনেট পাওয়ার পর ডাটা সাবমিট করুন।</p>
+        
+        <div class="space-y-2 mb-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">API Endpoint (সার্ভার ইউআরএল) *</label>
+            <input type="url" id="syncEndpoint" placeholder="https://yourserver.com/api/v1/sync" class="w-full border rounded px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-green-400 bg-white" style="border-color:#d1d5db" onchange="saveSyncConfig()">
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5 font-mono">Authorization Token (সিক্রেট টোকেন)</label>
+            <input type="password" id="syncToken" placeholder="Bearer kobo_token_xyz" class="w-full border rounded px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-green-400 bg-white" style="border-color:#d1d5db" onchange="saveSyncConfig()">
+          </div>
         </div>
       </div>
       
-      <div class="flex gap-2">
+      <div class="flex gap-2 mt-3">
         <button onclick="apiSyncNow()" class="flex-1 text-white text-xs px-4 py-2 rounded font-semibold transition flex items-center justify-center gap-1 hover:opacity-90 cursor-pointer" style="background:#2563eb">
           <span>⚡ ডাটা সিঙ্ক করুন</span>
         </button>
@@ -325,6 +509,33 @@
           <span>📝 JSON দেখুন</span>
         </button>
       </div>
+    </div>
+
+    <!-- Section 3: Official Email Submit with Selector and Custom Input -->
+    <div class="border border-gray-100 rounded-lg p-4 bg-gray-50/50 flex flex-col justify-between">
+      <div>
+        <h4 class="font-bold text-gray-700 text-xs sm:text-sm mb-1">পদ্ধতি ৩: অফিসিয়াল ইমেইলে রিপোর্ট প্রেরণ</h4>
+        <p class="text-xs text-gray-500 mb-3 leading-relaxed">আপনার সংগৃহীত বৃক্ষরোপণের অফলাইন রিপোর্ট সরাসরি প্রকল্প ইমেইলে অথবা যেকোনো কাস্টম ইমেইল ঠিকানায় সরাসরি প্রেরণ করুন।</p>
+        
+        <div class="space-y-2 mb-3">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">প্রাপক ইমেইল (Recipient Email) *</label>
+            <select id="syncEmailSelect" class="w-full border rounded px-2.5 py-2 text-xs outline-none focus:ring-1 focus:ring-green-400 bg-white" style="border-color:#d1d5db" onchange="window.onSyncEmailSelectChange()">
+              <option value="efnhup.dae@gmail.com" selected>efnhup.dae@gmail.com (প্রধান প্রকল্প কার্যালয়)</option>
+              <option value="krishiailive@gmail.com">krishiailive@gmail.com (হেল্পডেস্ক ও আইটি টিম)</option>
+              <option value="custom">অন্যান্য ইমেইল (Other Custom Email)</option>
+            </select>
+          </div>
+          <div id="syncEmailCustomContainer" class="hidden">
+            <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5 font-mono">অন্যান্য ইমেইল ঠিকানা লিখুন *</label>
+            <input type="email" id="syncEmailCustom" placeholder="officer@gmail.com" class="w-full border rounded px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-green-400 bg-white" style="border-color:#d1d5db">
+          </div>
+        </div>
+      </div>
+      
+      <button onclick="window.sendEmailReport()" class="w-full text-white text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow transition font-semibold flex items-center justify-center gap-2 hover:opacity-95 cursor-pointer mt-3" style="background:#0284c7">
+        <span>📤 ইমেইলে রিপোর্ট পাঠান</span>
+      </button>
     </div>
   </div>
 
@@ -341,160 +552,169 @@
 </section>
 
 <!-- ========== TAB: MAP ========== -->
-<section id="tab-map" class="tab-content hidden">
-<div class="bg-white rounded-xl shadow p-4 mb-4">
-<p class="font-semibold text-gray-700 mb-3 text-sm">🗺️ রোপণ লোকেশন ফিল্টার করুন</p>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-<select id="mapRegion" onchange="onMapFilterChange()" class="border rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db"><option value="">সব অঞ্চল</option></select>
-<select id="mapDistrict" onchange="onMapFilterChange()" class="border rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-green-400 outline-none" style="border-color:#d1d5db"><option value="">সব জেলা</option></select>
-<button onclick="zoomToMyGeoLocation()" class="text-white px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-green-800 flex items-center justify-center gap-1.5" style="background:#15803d">
-<svg id="geoIcon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-আমার অবস্থান খুঁজুন
-</button>
-</div>
-</div>
-
-<!-- Satellite NDVI Simulation Control Center Panel -->
-<div class="bg-white rounded-xl shadow p-4 mb-4 border-l-4 border-emerald-600">
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
-    <div>
-      <p class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-        <span>🛰️</span> উপগ্রহ এনডিভিআই সিমুলেটর ও বৃদ্ধি ট্র্যাকিং (Satellite NDVI & Canopy Growth Tracker)
-      </p>
-      <p class="text-[11px] text-gray-500 mt-0.5">সবুজ চাদরের ঘনত্ব ও গাছ বৃদ্ধির ভবিষ্যৎ প্রক্ষেপণ সিমুলেশন</p>
-    </div>
-    <!-- Mini Switch for NDVI Mode -->
-    <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-      <label class="relative inline-flex items-center cursor-pointer select-none">
-        <input type="checkbox" id="ndviToggle" onchange="toggleNdviMode()" class="sr-only peer">
-        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[16px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-        <span class="ml-2 text-xs font-bold text-gray-700">এনডিভিআই মোড সক্রিয় করুন</span>
-      </label>
-    </div>
-  </div>
-
-  <div id="ndviControls" class="opacity-50 pointer-events-none transition-all duration-300">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-      <!-- Year Slider for Projection -->
-      <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs font-semibold text-gray-600">বৃদ্ধির সময়কাল (Simulated Projection Year):</span>
-          <span id="ndviYearLabel" class="text-sm font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">২০২৬ (বর্তমান)</span>
-        </div>
-        <input type="range" id="ndviYearSlider" min="2026" max="2031" value="2026" oninput="updateNdviYear(this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
-        <div class="flex justify-between text-[9px] text-gray-400 mt-1 font-mono">
-          <span>২০২৬ (চারা)</span>
-          <span>২০২৭</span>
-          <span>২০২৮</span>
-          <span>২০২৯</span>
-          <span>২০৩০</span>
-          <span>২০৩১ (পরিপক্ক)</span>
-        </div>
+<section id="tab-map" class="tab-content hidden animate-in">
+  <!-- Region/District Filters -->
+  <div class="bg-white rounded-xl shadow border border-gray-100 p-4 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <p class="font-extrabold text-gray-800 text-sm flex items-center gap-1.5">
+          <span>🗺️</span> বনায়ন প্লট ও জিআইএস অনুসন্ধান
+        </p>
+        <p class="text-[11px] text-gray-500 mt-0.5">অঞ্চল এবং জেলা অনুযায়ী বনায়ন এলাকা ফিল্টার করুন</p>
       </div>
-
-      <!-- Quick Analysis Metrics -->
-      <div class="grid grid-cols-2 gap-2 text-center text-xs">
-        <div class="bg-emerald-50/65 rounded-lg p-2.5 border border-emerald-105 flex flex-col justify-center">
-          <span class="text-[10px] text-emerald-800 uppercase font-bold">গড় এনডিভিআই সূচক</span>
-          <span id="ndviScoreVal" class="text-lg font-extrabold text-emerald-700 mt-1 font-mono">0.24</span>
-          <span id="ndviHealthText" class="text-[9px] text-emerald-600 font-medium mt-0.5">নতুন রোপণকৃত কুঁড়ি</span>
-        </div>
-        <div class="bg-lime-50/65 rounded-lg p-2.5 border border-lime-105 flex flex-col justify-center">
-          <span class="text-[10px] text-lime-800 uppercase font-bold">প্রাক্কলিত কার্বন শোষণ</span>
-          <span id="ndviCo2Val" class="text-lg font-extrabold text-lime-700 mt-1 font-mono">১৮.৩ টন/বছর</span>
-          <span class="text-[9px] text-lime-600 font-medium mt-0.5">কার্বন অফসেট মাত্রা</span>
-        </div>
-      </div>
-      
-      <!-- Google Earth Engine Data Integration Engine Core Tabbed Interface -->
-      <div class="col-span-1 md:col-span-2 border-t border-gray-150 pt-3 mt-2">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-1.5">
-            <span class="flex h-2 w-2 relative">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Google Earth Engine (GEE) ক্লাউড ইন্টিগ্রেশন</span>
-          </div>
-          <span class="text-[10px] text-gray-400 font-mono">earthengine.googleapis.com v1alpha</span>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <!-- GEE Controls -->
-          <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-200 text-xs flex flex-col gap-2">
-            <div>
-              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">সুপারকম্পিউটার ডেটাসেট (EE Dataset):</label>
-              <select id="geeDataset" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
-                <option value="sentinel2">COPERNICUS/S2_SR_HARMONIZED (Sentinel-2 10m MSI)</option>
-                <option value="landsat9">LANDSAT/LC09/C02/T1_L2 (Landsat 9 OLI-2 30m)</option>
-                <option value="modis">MODIS/061/MOD13Q1 (MODIS Vegetation Indices 250m)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block font-semibold text-gray-600 text-[10px] uppercase mb-1">ব্যান্ড কম্বিনেশন (EO Band Rendering):</label>
-              <select id="geeBands" onchange="updateGeeScript()" class="w-full bg-white border border-gray-300 rounded px-2 py-1 outline-none text-xs text-gray-800">
-                <option value="truecolor">False/True Color Composite (B4, B3, B2 / Red-Green-Blue)</option>
-                <option value="ndvi">NDVI Vegetation Index (B8 - B4) / (B8 + B4)</option>
-                <option value="nir">NIR InfraRed Composite (B8, B4, B3 / Canopy Density)</option>
-              </select>
-            </div>
-
-            <div class="flex items-center justify-between text-[10px] bg-white border border-gray-200 rounded p-1.5 mt-1">
-              <span class="text-gray-500">ক্লাউড ফিল্টার (Cloud limit):</span>
-              <span class="font-bold text-emerald-700 font-mono">&lt;10%</span>
-            </div>
-
-            <button onclick="runGeeAnalysis()" class="w-full text-white bg-emerald-700 hover:bg-emerald-800 active:scale-98 font-bold py-1.5 px-3 rounded text-xs transition duration-150 shadow flex items-center justify-center gap-1.5 mt-auto">
-              <span>🚀</span> GEE লাইভ এনালিসিস রান করুন (Run Cloud Pipeline)
-            </button>
-          </div>
-
-          <!-- GEE LIVE SCRIPT CONSOLE -->
-          <div class="bg-gray-900 rounded-lg p-2.5 border border-gray-800 text-[10px] font-mono text-emerald-400 flex flex-col justify-between">
-            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
-              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">GEE JavaScript (Code Editor)</span>
-              <button onclick="copyGeeScript()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 rounded px-1.5 py-0.5 text-[9px] transition-colors">Copy</button>
-            </div>
-            <pre id="geeScriptPre" class="overflow-auto max-h-[105px] whitespace-pre text-emerald-500 leading-tight flex-1 scrolling-thin select-all"></pre>
-          </div>
-
-          <!-- GEE REALTIME TERMINAL LOG -->
-          <div class="bg-black rounded-lg p-2.5 border border-gray-900 text-[9.5px] font-mono text-white flex flex-col justify-between">
-            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
-              <span class="text-gray-400 font-sans font-bold uppercase text-[9px]">Platform Logs</span>
-              <span class="bg-emerald-950 text-emerald-400 text-[8px] font-bold px-1 rounded animate-pulse">Connected</span>
-            </div>
-            <div id="geeTerminalLog" class="overflow-y-auto max-h-[105px] h-[105px] flex flex-col gap-1 text-gray-300 leading-normal scrolling-thin">
-              <span class="text-blue-400">[info] GEE microserver initialized</span>
-              <span class="text-gray-505">[auth] Active Service Account Verified</span>
-              <span class="text-yellow-500">[wait] Click 'Run Cloud Pipeline' to fetch raster tiles...</span>
-            </div>
-          </div>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 max-w-2xl">
+        <select id="mapRegion" onchange="onMapFilterChange()" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-green-400 outline-none">
+          <option value="">সব অঞ্চল</option>
+        </select>
+        <select id="mapDistrict" onchange="onMapFilterChange()" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-green-400 outline-none">
+          <option value="">সব জেলা</option>
+        </select>
+        <button onclick="zoomToMyGeoLocation()" class="text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-green-800 flex items-center justify-center gap-1.5 shadow-sm active:scale-95" style="background:#15803d">
+          <svg id="geoIcon" class="h-3.5 w-3.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          আমার অবস্থান
+        </button>
       </div>
     </div>
   </div>
-</div>
 
-<div class="bg-white rounded-xl shadow p-3 mb-6 relative">
-<div id="leafletMap" class="w-full h-[450px] sm:h-[550px] rounded-lg border border-gray-200" style="z-index: 10;"></div>
-<div class="mt-3 flex flex-wrap justify-between items-center text-xs text-gray-500 gap-2 px-1">
-<div id="mapLegendNormal" class="block">
-<span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> ফলদ/বৃক্ষ সংখ্যা > ১০,০০০ (বৃহৎ)</span>
-<span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> ৫,০০০ - ১০,০০০ চারা</span>
-<span class="inline-flex items-center gap-2 ml-3"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> < ৫,০০০ চারা</span>
-</div>
-<div id="mapLegendNdvi" class="hidden flex flex-wrap gap-2 items-center">
-<span class="text-[10px] font-bold text-gray-500 uppercase mr-1">এনডিভিআই স্কেল:</span>
-<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#14532d] inline-block rounded border border-white shadow-sm"></span> +0.65 থেকে +0.85 (নিবিড় বনাঞ্চল)</span>
-<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#16a34a] inline-block rounded border border-white shadow-sm"></span> +0.40 থেকে +0.65 (মাঝারি চারা)</span>
-<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#86efac] inline-block rounded border border-white shadow-sm"></span> +0.15 থেকে +0.40 (নবজাতক)</span>
-<span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-3.5 h-3.5 bg-[#fef08a] inline-block rounded border border-white shadow-sm"></span> -0.10 থেকে +0.15 (শুষ্ক/অনাবাদী)</span>
-</div>
-<div id="mapStatsText" class="font-semibold text-green-700"></div>
-</div>
-</div>
+  <!-- Premium MapTab Container -->
+  <div class="map-tab-container relative">
+    <!-- Leaflet Canvas -->
+    <div id="leafletMap" class="leaflet-map"></div>
+
+    <!-- Top Floating Navigation & Layer Switcher Bar -->
+    <div class="top-bar">
+      <!-- 1. Layer Switcher (Pill Strip) -->
+      <div class="layer-switcher" role="tablist" aria-label="Map layers">
+        <button id="pill-ndvi" onclick="setMapLayer('ndvi')" class="layer-pill active" role="tab" aria-selected="true">
+          🌿 NDVI
+        </button>
+        <button id="pill-evi" onclick="setMapLayer('evi')" class="layer-pill" role="tab" aria-selected="false">
+          🍃 EVI
+        </button>
+        <button id="pill-satellite" onclick="setMapLayer('satellite')" class="layer-pill" role="tab" aria-selected="false">
+          🛰️ স্যাটেলাইট
+        </button>
+        <button id="pill-normal" onclick="setMapLayer('normal')" class="layer-pill" role="tab" aria-selected="false">
+          🗺️ মানচিত্র
+        </button>
+      </div>
+
+      <!-- Actions: Legend and Cloud Pipeline Triggers -->
+      <div class="top-actions">
+        <!-- 2. Legend Toggle Button -->
+        <button id="mapLegendBtn" onclick="toggleLegend()" class="legend-toggle active" title="লেজেন্ড ও সূচক" aria-label="Toggle Legend">
+          📊
+        </button>
+
+        <!-- 3. Cloud Pipeline Button (Ready/Slate by default) -->
+        <button id="pipelineBtn" onclick="runGeeAnalysisLocal()" class="pipeline-btn slate" title="GEE ক্লাউড রিয়েল-টাইম লাইভ পাইপলাইন রান করুন" aria-label="Run Cloud Pipeline">
+          <span id="pipelineIcon" class="icon">☁️</span>
+          <div id="pipelinePulse" class="hidden pulse-ring"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Result Overlay Panel: Slides in after Cloud Pipeline completes -->
+    <div id="resultOverlay" class="result-overlay hidden">
+      <button onclick="hideResultOverlay()" class="close-btn" aria-label="Close panel">✕</button>
+      <h3>🛰️ GEE রিয়েল-টাইম লাইভ সূচক</h3>
+      <div class="result-grid">
+        <div class="result-item full-width">
+          <span class="label">অধ্যয়ন অঞ্চল (Region)</span>
+          <span id="resRegion" class="value text-xs truncate">কুড়িগ্রাম বনায়ন প্রকল্প</span>
+        </div>
+        <div class="result-item">
+          <span class="label">গড় NDVI</span>
+          <span id="resNdvi" class="value green">+0.58</span>
+        </div>
+        <div class="result-item">
+          <span class="label">সুস্থ গাছপালা %</span>
+          <span id="resHealth" class="value green">৮২.৪%</span>
+        </div>
+        <div class="result-item">
+          <span class="label">চাপগ্রস্ত গাছপালা %</span>
+          <span id="resStress" class="value amber">১২.২%</span>
+        </div>
+        <div class="result-item">
+          <span class="label">নগ্ন / অনাবাদী %</span>
+          <span id="resBare" class="value red">৫.৪%</span>
+        </div>
+        <div class="result-item full-width">
+          <span class="label">পরিমাপযোগ্য এলাকা (হেক্টর)</span>
+          <span id="resArea" class="value blue">১২৪.৬ হেক্টর</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Floating Bottom-Left NDVI Legend -->
+    <div id="ndviLegend" class="ndvi-legend hidden animate-in">
+      <h4>🛰️ এনডিভিআই সূচক মাত্রা</h4>
+      <div class="legend-bands">
+        <div class="legend-band">
+          <div class="color-box bg-[#14532d]"></div>
+          <span class="band-label">+0.65 থেকে +0.85 (অতি ঘন)</span>
+        </div>
+        <div class="legend-band">
+          <div class="color-box bg-[#16a34a]"></div>
+          <span class="band-label">+0.40 থেকে +0.65 (ঘন সবুজ)</span>
+        </div>
+        <div class="legend-band">
+          <div class="color-box bg-[#86efac]"></div>
+          <span class="band-label">+0.15 থেকে +0.40 (মধ্যম)</span>
+        </div>
+        <div class="legend-band">
+          <div class="color-box bg-[#fef08a]"></div>
+          <span class="band-label">0.00 থেকে +0.15 (বিরল)</span>
+        </div>
+        <div class="legend-band">
+          <div class="color-box bg-[#dc2626]"></div>
+          <span class="band-label">-0.30 থেকে 0.00 (নগ্ন ভূমি)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Bottom-Left NORMAL Legend -->
+    <div id="normalLegend" class="ndvi-legend animate-in">
+      <h4>🌳 চারাগাছের ঘনত্ব লেজেন্ড</h4>
+      <div class="legend-bands">
+        <div class="legend-band">
+          <div class="color-box bg-orange-500"></div>
+          <span class="band-label">বৃক্ষ সংখ্যা > ১০,০০০ (বৃহৎ)</span>
+        </div>
+        <div class="legend-band">
+          <div class="color-box bg-blue-500"></div>
+          <span class="band-label">৫,০০০ - ১০,০০০ চারাগাছ</span>
+        </div>
+        <div class="legend-band">
+          <div class="color-box bg-emerald-500"></div>
+          <span class="band-label">&lt; ৫,০০০ চারাগাছ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Realtime Terminal Console for GEE Live Pipeline Logs -->
+  <div class="bg-gray-900 rounded-xl p-3 mt-4 border border-gray-800">
+    <div class="flex items-center justify-between border-b border-gray-800 pb-2 mb-2">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span class="text-xs font-bold text-gray-300 uppercase tracking-widest font-mono">Google Earth Engine (GEE) Live Pipeline Console</span>
+      </div>
+      <span class="text-[9.5px] text-gray-500 font-mono">earthengine.googleapis.com v1alpha</span>
+    </div>
+    <div id="geeTerminalLog" class="overflow-y-auto max-h-[110px] h-[110px] flex flex-col gap-1 text-[10px] font-mono text-gray-300 leading-normal scrolling-thin">
+      <span class="text-blue-400">[info] GEE microserver initialized</span>
+      <span class="text-gray-400">[auth] Active Service Account Verified (dae-kurigram-sa)</span>
+      <span class="text-yellow-500">[wait] Select a layer and click the 🚀 Rocket button on the map to trigger GEE...</span>
+    </div>
+  </div>
 </section>
 
 <!-- ========== TAB: STORED DATA (LOOKUP ONLY) ========== -->
@@ -543,12 +763,162 @@
 </div>
 <div class="bg-white rounded-xl shadow overflow-x-auto">
 <table class="w-full text-xs sm:text-sm" id="adminTable">
-<thead><tr style="background:#f0fdf4;color:#166534"><th class="px-2 py-2 text-left whitespace-nowrap">ক্রম</th><th class="px-2 py-2 text-left whitespace-nowrap">অঞ্চল</th><th class="px-2 py-2 text-left whitespace-nowrap">জেলা</th><th class="px-2 py-2 text-left whitespace-nowrap">উপজেলা</th><th class="px-2 py-2 text-left whitespace-nowrap">রোপণকারীর নাম</th><th class="px-2 py-2 text-left whitespace-nowrap">মোবাইল</th><th class="px-2 py-2 text-left whitespace-nowrap">চারা</th><th class="px-2 py-2 text-left whitespace-nowrap">তারিখ</th><th class="px-2 py-2 text-center whitespace-nowrap">অ্যাকশন</th></tr></thead>
+<thead><tr style="background:#f0fdf4;color:#166534"><th class="px-2 py-2 text-left whitespace-nowrap">ক্রম</th><th class="px-2 py-2 text-left whitespace-nowrap">ক্যাটাগরি</th><th class="px-2 py-2 text-left whitespace-nowrap">অঞ্চল</th><th class="px-2 py-2 text-left whitespace-nowrap">জেলা</th><th class="px-2 py-2 text-left whitespace-nowrap">উপজেলা</th><th class="px-2 py-2 text-left whitespace-nowrap">উদ্যোক্তা / রোপণকারী</th><th class="px-2 py-2 text-left whitespace-nowrap">মোবাইল</th><th class="px-2 py-2 text-left whitespace-nowrap">চারা সংখ্যা</th><th class="px-2 py-2 text-left whitespace-nowrap">তারিখ</th><th class="px-2 py-2 text-center whitespace-nowrap">অ্যাকশন</th></tr></thead>
 <tbody id="adminTableBody"></tbody>
 </table>
 <p id="adminNoData" class="hidden text-center text-gray-400 py-8">কোনো তথ্য নেই।</p>
 </div>
 </div>
 </section>
+
+<!-- ==================== HELP GUIDE CENTER MODAL ==================== -->
+<div id="helpGuideModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center modal-bg p-4" style="background:rgba(0,0,0,.5); backdrop-filter: blur(4px);">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden anim-in border border-gray-100">
+    <!-- Modal Header -->
+    <div class="bg-gradient-to-r from-green-800 to-green-700 text-white px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">📚</span>
+        <div>
+          <h3 class="text-sm sm:text-base font-bold">সহায়িকা ও ইউজার গাইড সেন্টার</h3>
+          <p class="text-[10px] text-green-200">ডিএই বনায়ন ও প্ল্যাটফর্ম ফিচার ম্যানুয়াল</p>
+        </div>
+      </div>
+      <button onclick="window.closeHelpGuide && window.closeHelpGuide()" class="text-white bg-white/10 hover:bg-white/20 hover:scale-105 active:scale-95 transition rounded-full p-1.5 focus:outline-none border-none cursor-pointer">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="p-5 overflow-y-auto space-y-4 flex-1 text-xs sm:text-sm text-gray-700 leading-relaxed scroll-smooth">
+      
+      <!-- Interactive Feature Tour Start Card -->
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm anim-in" style="animation-delay: 50ms">
+        <div class="text-center sm:text-left">
+          <span class="inline-block bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded mb-1.5 shadow-sm">অনুমোদিত নির্দেশক</span>
+          <h4 class="font-extrabold text-emerald-950 text-xs sm:text-sm">ইন্টারেক্টিভ ফিচার এক্সপ্লোরার ট্যুর</h4>
+          <p class="text-[11px] text-emerald-700 mt-0.5 font-medium">প্রতিটি ট্যাব ও ফিচারের ব্যবহারিক স্ক্রিন-বাই-স্ক্রিন গাইডলাইন সরাসরি দেখে শিখুন।</p>
+        </div>
+        <button onclick="window.startInteractiveTour && window.startInteractiveTour()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl shadow-md transition duration-150 cursor-pointer border-none flex items-center gap-1.5 flex-shrink-0">
+          🚀 ট্যুর শুরু করি
+        </button>
+      </div>
+
+      <!-- Accordion Section -->
+      <div class="space-y-2.5">
+        
+        <!-- Accordion 1 -->
+        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition hover:border-gray-300">
+          <button onclick="window.toggleHelpAccordion(1)" class="help-accordion-btn w-full px-4 py-3 bg-gray-50/50 flex items-center justify-between text-left font-bold text-gray-800 transition outline-none border-none cursor-pointer text-xs sm:text-sm">
+            <span class="flex items-center gap-2">📝 <span>১. নতুন জরিপ ও চারার তথ্য এন্ট্রি</span></span>
+            <span class="help-accordion-icon text-gray-400 font-bold">▼</span>
+          </button>
+          <div id="help-accordion-content-1" class="hidden p-4 border-t border-gray-150 space-y-2 text-[11px] sm:text-xs">
+            <p><strong>জরিপ পদ্ধতি:</strong> এই প্ল্যাটফর্ম থেকে খুব সহজে নতুন তথ্য ইনপুট দেওয়া যায়। ফর্ম পূরণের ধারাবাহিক ধাপগুলো নিম্নরূপ:</p>
+            <ol class="list-decimal pl-4 space-y-1.5 font-medium text-gray-600">
+              <li><strong>অঞ্চল ও জেলা নির্বাচন:</strong> প্রথমে অঞ্চলের নাম সিলেক্ট করলে সেখানের অধীনে থাকা জেলা ও উপজেলার নাম ড্রপডাউনে স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</li>
+              <li><strong>স্থান নির্ধারণ:</strong> রোপণকারীর নাম, মোবাইল নম্বর এবং রোপণের তারিখ দিন। "স্বয়ংক্রিয়" GPS বোতামে ক্লিক করলে ব্রাউজার থেকে অনুমতি নিয়ে নির্ভুল অক্ষাংশ-দ্রাঘিমাংশ সংগ্রহ করে নেবে।</li>
+              <li><strong>চারার বিবরণী:</strong> ফলদ, বনজ এবং ঔষধি বিভাগে চারার সাধারণ সংখ্যা এবং গ্রাফটিং বা কলমের সংখ্যা আলাদা করে ক্যাটালগ এন্ট্রি করতে পারবেন। নতুন রো যোগ করতে <span class="text-emerald-700 font-bold">+ আরেকটি যোগ করুন</span> এ চাপুন।</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Accordion 2 -->
+        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition hover:border-gray-300">
+          <button onclick="window.toggleHelpAccordion(2)" class="help-accordion-btn w-full px-4 py-3 bg-gray-50/50 flex items-center justify-between text-left font-bold text-gray-800 transition outline-none border-none cursor-pointer text-xs sm:text-sm">
+            <span class="flex items-center gap-2">🛒 <span>২. ক্যাটাগরি অনুসন্ধান (চারা সরবরাহকারী বনাম বাস্তব রোপণ)</span></span>
+            <span class="help-accordion-icon text-gray-400 font-bold">▼</span>
+          </button>
+          <div id="help-accordion-content-2" class="hidden p-4 border-t border-gray-150 space-y-2 text-[11px] sm:text-xs text-gray-600">
+            <p>ডিএই এবং ইফনাপ প্রকল্পের তথ্যের স্বচ্ছতা নিশ্চিত করতে অ্যাপের মধ্যে রোপণের ক্যাটাগরি ও বাকেট চমৎকারভাবে শ্রেণিবদ্ধ করা হয়েছে:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5 font-medium">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                <p class="font-extrabold text-blue-900 flex items-center gap-1">🛒 চারা সরবরাহকারী (Seed Suppliers)</p>
+                <p class="text-[10px] text-blue-700 mt-1">যেসব নার্সারির বাকেট আইডি <code class="bg-blue-100 px-1 py-0.5 rounded font-mono text-[9px]">seed_</code> দিয়ে বা কাস্টম নার্সারি দিয়ে শুরু, সেগুলো সরাসরি বাগান নয় বরং সরকারি চারা বিক্রয় ও বিতরণের কেন্দ্র নির্দেশ করে।</p>
+              </div>
+              <div class="bg-green-50 border border-green-200 rounded-lg p-2.5">
+                <p class="font-extrabold text-green-900 flex items-center gap-1">🏡 বাস্তব রোপণ (Planted Canopy)</p>
+                <p class="text-[10px] text-green-700 mt-1">সাধারণ আইডি দিয়ে চিহ্নিত রেকর্ডগুলো সরাসরি অনাবাদী পতিত জমি ও বসতবাড়ীর আঙ্গিনায় পারিবারিক পুষ্টি বাগান বা ফরেস্ট রোপণের অংশ নির্দেশ করে।</p>
+              </div>
+            </div>
+            <p class="mt-2 text-[10px] font-semibold text-gray-500">ম্যাপে চারা সরবরাহকারীদের নীল (Blue) মার্কার এবং বাস্তব রোপণকে সবুজ (Green) মার্কার দিয়ে আলাদাভাবে দৃশ্যমান করা হয়েছে।</p>
+          </div>
+        </div>
+
+        <!-- Accordion 3 -->
+        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition hover:border-gray-300">
+          <button onclick="window.toggleHelpAccordion(3)" class="help-accordion-btn w-full px-4 py-3 bg-gray-50/50 flex items-center justify-between text-left font-bold text-gray-800 transition outline-none border-none cursor-pointer text-xs sm:text-sm">
+            <span class="flex items-center gap-2">📡 <span>৩. অফলাইন ডেটা কালেকশন ও নিরাপদ সিঙ্ক</span></span>
+            <span class="help-accordion-icon text-gray-400 font-bold">▼</span>
+          </button>
+          <div id="help-accordion-content-3" class="hidden p-4 border-t border-gray-150 space-y-2 text-[11px] sm:text-xs text-gray-600">
+            <p><strong>ইন্টারনেটহীন জরীপ পরিচালনা:</strong> এই সিস্টেমটি প্রগ্রেসিভ ওয়েব অ্যাপ (PWA) কোডিং আর্কিটেকচারে তৈরি। ইন্টারনেট সম্পূর্ণ বিচ্ছিন্ন থাকলেও অ্যাপের প্রতিটি কুয়েরি ও ম্যাপ সলিডভাবে কাজ করে:</p>
+            <ul class="list-disc pl-4 space-y-1 mt-1 font-medium text-gray-600">
+              <li>অফলাইনে ডাটা ইনপুট দিলে ব্যাকড্রপ রিসিভার বা ব্রাউজারের <code class="bg-gray-100 rounded px-1 text-[10px] font-mono">LocalStorage</code> এ চিরস্থায়ী ডেটা লক হয়ে যায়।</li>
+              <li>পরবর্তীতে ইন্টারনেট পুনরায় সংযুক্ত হলে ব্যাকগ্রাউন্ডে বা ড্যাশবোর্ডে সিঙ্ক সেন্টার অ্যাক্টিভ হয়ে অটোমেটিক ক্লাউড গেটওয়েতে জরিপ পুশ করে রোপণের লাইভ কাউন্ট আপডেট করে।</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Accordion 4 -->
+        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition hover:border-gray-300">
+          <button onclick="window.toggleHelpAccordion(4)" class="help-accordion-btn w-full px-4 py-3 bg-gray-50/50 flex items-center justify-between text-left font-bold text-gray-800 transition outline-none border-none cursor-pointer text-xs sm:text-sm">
+            <span class="flex items-center gap-2">🍁 <span>৪. গুগল আর্থ ইঞ্জিন (GEE) ও NDVI ক্যানোপি ডেটা</span></span>
+            <span class="help-accordion-icon text-gray-400 font-bold">▼</span>
+          </button>
+          <div id="help-accordion-content-4" class="hidden p-4 border-t border-gray-150 space-y-2 text-[11px] sm:text-xs text-gray-600">
+            <p><strong>স্যাটেলাইট ভিত্তিক নজরদারি:</strong> বনায়ন প্রকল্পের বিশ্বস্ততা নিশ্চিত করতে ম্যাপ ট্যাবে <em>Google Earth Engine (GEE)</em> রাস্টার গেটওয়ে ইন্টিগ্রেট করা হয়েছে।</p>
+            <ul class="list-disc pl-4 space-y-1 mt-1 font-medium">
+              <li><strong>সরাসরি পাইপলাইন:</strong> ম্যাপ ট্যাবে 'Run GEE Satellite Pipeline' চাপুন। Copernicus Sentinel-2 এর ডেটা ডিকোড করে ক্যানোপি কভারেজ প্রজেক্ট করবে।</li>
+              <li><strong>NDVI বিশ্লেষণ:</strong> স্পেকট্রাল ভিজুয়ালাইজার দ্বারা কচি পাতার ক্লোরোফিল প্রতিফলন এবং ক্যানোপি স্তর চিহ্নিত করতে পারে, যা বনায়ন ও চারাগাছের বাড়ন্ত কার্বন অফসেট টন হিসেবে ক্যালকুলেট করে।</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Accordion 5 -->
+        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition hover:border-gray-300">
+          <button onclick="window.toggleHelpAccordion(5)" class="help-accordion-btn w-full px-4 py-3 bg-gray-50/50 flex items-center justify-between text-left font-bold text-gray-800 transition outline-none border-none cursor-pointer text-xs sm:text-sm">
+            <span class="flex items-center gap-2">📄 <span>৫. সরকারি ছকপত্র এবং রিপোর্ট জেনারেটর</span></span>
+            <span class="help-accordion-icon text-gray-400 font-bold">▼</span>
+          </button>
+          <div id="help-accordion-content-5" class="hidden p-4 border-t border-gray-150 space-y-2 text-[11px] sm:text-xs text-gray-600">
+            <p><strong>রিপোর্টিং সহজীকরণ:</strong> মাঠ কর্মকর্তাদের কাজ আরও দ্রুত করার লক্ষ্যে এই সিস্টেমে কৃষি অধিদপ্তরের অফিশিয়াল স্মারক ফরমেট যুক্ত করা হয়েছে:</p>
+            <ul class="list-disc pl-4 space-y-1 mt-1 font-medium">
+              <li>ফর্মের উপরে থাকা <strong>🇧🇩 বাংলাদেশ সরকার</strong> ব্যানারযুক্ত প্রিভিউ ছকে প্রতিটি ফিলের বাস্তব-সময় রূপান্তর দেখতে পাবেন।</li>
+              <li>যেকোনো এন্ট্রি শেষ করে এক ক্লিকে <span class="bg-emerald-700 text-white rounded px-1.5 text-[9.5px]">Excel Format ডাউনলোড (XLSX)</span> বোতামে প্রেস করলে কৃষি মন্ত্রণালয়ের নির্দেশনা মোতাবেক ছক-২ সহ মেইল ফরম্যাট এক্সেল ফাইলে রূপান্তরিত হয়ে ডাউনলোড হবে।</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Accordion 6 -->
+        <div class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition hover:border-gray-300">
+          <button onclick="window.toggleHelpAccordion(6)" class="help-accordion-btn w-full px-4 py-3 bg-gray-50/50 flex items-center justify-between text-left font-bold text-gray-800 transition outline-none border-none cursor-pointer text-xs sm:text-sm">
+            <span class="flex items-center gap-2">🔐 <span>৬. অ্যাডমিন গেটওয়ে ও ডাটা এক্সপোর্ট</span></span>
+            <span class="help-accordion-icon text-gray-400 font-bold">▼</span>
+          </button>
+          <div id="help-accordion-content-6" class="hidden p-4 border-t border-gray-150 space-y-2 text-[11px] sm:text-xs text-gray-600">
+            <p><strong>অ্যাডমিন প্যানেল এবং সিকিউরিটি:</strong> অ্যাডমিন ট্যাবে গিয়ে ড্যাশবোর্ড বা জরীপের যেকোনো আপডেট রিলিজ সংশোধন বা অপসারণের সুবিধাজনক কনসোল রয়েছে:</p>
+            <ul class="list-disc pl-4 space-y-1 mt-1 font-medium">
+              <li><strong>ডিফল্ট অ্যাক্সেস পাসওয়ার্ড:</strong> এডমিন প্যানেলের ডিফল্ট পাসওয়ার্ড হচ্ছে <code class="bg-gray-100 px-1 py-0.5 rounded font-mono text-[10.5px]">admin2026</code>। সফল লগইনে উপজেলা ও জেলা ভিত্তিক বাল্ক রিপোর্টিং অ্যাক্টিভ হবে।</li>
+              <li><strong>বাল্ক এক্সপোর্ট:</strong> অ্যাডমিন প্যানেল থেকে সমস্ত ডাটাবেজ এক ক্লিকে Excel, CSV অথবা ব্যাকআপ JSON হিসেবে ডাউনলোড করে এক্সেল শিটে প্রিন্ট করতে পারবেন।</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="bg-gray-50 px-5 py-4 border-t border-gray-150 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10.5px] text-gray-500">
+      <div class="flex items-center gap-1 font-medium text-emerald-800">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span>DAE Kurigram Registry v1.4.2 · ২০২৬</span>
+      </div>
+      <button onclick="window.closeHelpGuide && window.closeHelpGuide()" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-bold py-2 px-5 rounded-xl transition cursor-pointer border-none text-xs">
+        বন্ধ করুন
+      </button>
+    </div>
+  </div>
+</div>
 
 </main>

@@ -85,8 +85,8 @@ export default function WelcomeModal() {
                 <div className="flex flex-col items-center gap-2.5">
                   <div className="w-20 h-20 p-1 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center">
                     <img 
-                      src="logo.svg" 
-                      alt="Government Seal of Bangladesh" 
+                      src="dae-logo.png" 
+                      alt="কৃষি সম্প্রসারণ অধিদপ্তর" 
                       className="w-full h-full object-contain"
                       referrerPolicy="no-referrer"
                     />

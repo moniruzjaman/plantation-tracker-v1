@@ -39,6 +39,40 @@ export default function MobileControlCenter({ networkState, geoState, submission
   const [activeTab, setActiveTab] = useState<'db' | 'net' | 'gps' | 'mydata'>('db');
   const [language, setLanguage] = useState<'bn' | 'en'>('bn');
   const [copied, setCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  
+  const [ruralDataSaver, setRuralDataSaver] = useState(() => localStorage.getItem('rural_data_saver_active') === 'true');
+
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'rural_data_saver_active') {
+        setRuralDataSaver(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const handleToggleDataSaver = () => {
+    const nextVal = !ruralDataSaver;
+    setRuralDataSaver(nextVal);
+    localStorage.setItem('rural_data_saver_active', nextVal ? 'true' : 'false');
+    
+    // Dispatch storage event locally so other components in the same tab update instantly
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'rural_data_saver_active',
+      newValue: nextVal ? 'true' : 'false'
+    }));
+
+    // Send a message to the iframe so it updates instantly
+    const iframe = document.querySelector('iframe');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({
+        type: 'rural-data-saver-change',
+        enabled: nextVal
+      }, '*');
+    }
+  };
 
   // Compute stats
   const { totalLogs, totalSeedlings, fruitCount, forestCount, medicinalCount, sortedDistricts } = useMemo(() => {
@@ -114,6 +148,8 @@ export default function MobileControlCenter({ networkState, geoState, submission
       navigator.clipboard.writeText(text).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+      }).catch((err) => {
+        console.warn('Coordinates copying failed, likely due to iframe focus: ', err);
       });
     }
   };
@@ -252,17 +288,48 @@ export default function MobileControlCenter({ networkState, geoState, submission
         {/* Sharing Button */}
         <button
           onClick={() => {
+            const shareData = {
+              title: language === 'bn' ? 'বৃক্ষরোপণ ট্র্যাকার' : 'Plantation Tracker',
+              text: 'গাছ লাগাই গাছ বাচাই।',
+              url: 'https://plantation-tracker-v1-1073841706415.us-west1.run.app/',
+            };
             if (navigator.share) {
-              navigator.share({
-                title: 'Plantation Tracker',
-                text: 'Check out this plantation tracking application.',
-                url: window.location.href,
-              }).catch(console.error);
+              navigator.share(shareData).catch((err) => {
+                // If sharing was cancelled/aborted, do not fallback to clipboard copy or report errors
+                if (err.name === 'AbortError' || err.message?.toLowerCase().includes('cancel') || err.message?.toLowerCase().includes('abort')) {
+                  console.log('Sharing canceled or aborted by user.');
+                  return;
+                }
+                console.warn('Sharing failed, attempting clipboard fallback:', err);
+                navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`).then(() => {
+                  setShareCopied(true);
+                  setTimeout(() => setShareCopied(false), 2000);
+                }).catch((clipErr) => {
+                  console.warn('Clipboard fallback also failed:', clipErr);
+                });
+              });
+            } else {
+              navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`).then(() => {
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 2000);
+              }).catch((clipErr) => {
+                console.warn('Clipboard copy failed:', clipErr);
+              });
             }
           }}
-          className="p-2.5 bg-white text-gray-800 rounded-full shadow-lg border border-gray-150 cursor-pointer hover:bg-slate-50 transition-all"
+          className="p-2.5 bg-white text-gray-800 rounded-full shadow-lg border border-gray-150 cursor-pointer hover:bg-slate-50 transition-all flex items-center justify-center relative"
+          title={language === 'bn' ? 'শেয়ার করুন' : 'Share'}
         >
-          <Share2 className="w-3.5 h-3.5" />
+          {shareCopied ? (
+            <Check className="w-3.5 h-3.5 text-emerald-600" />
+          ) : (
+            <Share2 className="w-3.5 h-3.5" />
+          )}
+          {shareCopied && (
+            <span className="absolute -top-8 right-0 bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-md whitespace-nowrap font-sans">
+              {language === 'bn' ? 'লিঙ্ক কপি করা হয়েছে!' : 'Link Copied!'}
+            </span>
+          )}
         </button>
 
         {/* Dynamic Slide-Up Bottom Drawer sheet popup */}
@@ -549,6 +616,50 @@ export default function MobileControlCenter({ networkState, geoState, submission
                           </div>
                         )}
 
+                      </div>
+
+                      {/* Rural Data Saver Mode Switch */}
+                      <div className={`p-3 rounded-xl border flex flex-col gap-2 ${
+                        ruralDataSaver 
+                          ? 'bg-amber-50/70 border-amber-200 text-amber-900 shadow-sm' 
+                          : 'bg-emerald-50/40 border-emerald-100 text-emerald-900'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">🌾</span>
+                            <div className="flex flex-col text-left">
+                              <span className="text-xs font-bold">
+                                {language === 'bn' ? 'গ্রামীণ ডাটা সেভার মোড' : 'Rural Data Saver Mode'}
+                              </span>
+                              <span className="text-[9px] text-gray-500 font-medium">
+                                {language === 'bn' ? 'ডাটা ও ব্যাটারি সাশ্রয় করুন' : 'Saves mobile data & battery'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Beautiful Toggle Switch */}
+                          <button
+                            id="btnToggleRuralDataSaver"
+                            onClick={handleToggleDataSaver}
+                            className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
+                              ruralDataSaver ? 'bg-amber-500 justify-end' : 'bg-gray-300 justify-start'
+                            }`}
+                          >
+                            <div className="bg-white w-4 h-4 rounded-full shadow-md" />
+                          </button>
+                        </div>
+                        
+                        <p className="text-[10px] text-gray-500 leading-relaxed font-sans mt-1">
+                          {ruralDataSaver ? (
+                            language === 'bn' 
+                              ? 'সক্রিয়: স্যাটেলাইট ম্যাপ বন্ধ, এআই ছবি কম্প্রেশন ৯৯% সচল, ডেটা ট্রান্সফার সীমাবদ্ধ।' 
+                              : 'Active: Satellite layers blocked, AI leaf snapshots compressed by 99%, data transfer limited.'
+                          ) : (
+                            language === 'bn' 
+                              ? 'অফলাইনে আছেন? ডাটা সেভার চালু করলে আপনার ইন্টারনেট খরচ বিপুল পরিমাণ কমে যাবে।' 
+                              : 'Slow internet? Enable to save data and battery in remote fields.'
+                          )}
+                        </p>
                       </div>
 
                       {/* Visual sync info box depending on mode */}
